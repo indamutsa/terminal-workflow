@@ -1,0 +1,27 @@
+diff --git a/src/calculator.py b/src/calculator.py
+index c7f2b36..b784002 100644
+--- a/src/calculator.py
++++ b/src/calculator.py
+@@ -30,6 +30,10 @@ class Calculator:
+     def clear_history(self):
+         self.history = []
+ 
++    def average(self):
++        # TODO: guard against empty history (ZeroDivisionError)
++        return sum(self.history) / len(self.history)
++
+ 
+ class Person:
+     """Macro-practice target: attributes need a `self.` prefix (Lesson 3.2)."""
+diff --git a/src/orders.py b/src/orders.py
+index 87f0f2e..287b2a4 100644
+--- a/src/orders.py
++++ b/src/orders.py
+@@ -36,6 +36,7 @@ class OrderBook:
+ def calc(o):
+     subtotal = o.subtotal()
+     taxed = subtotal * (1 + TAX_RATE)
++    # TODO: apply discount before tax, not after (product wants pre-tax discount)
+     return taxed - o.discount
+ 
+ 
