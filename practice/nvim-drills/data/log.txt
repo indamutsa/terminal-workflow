@@ -1,0 +1,20 @@
+item 1: pending
+item 2: pending
+item 3: pending
+
+item 4: pending
+item 5: pending
+# TODO: batch these into a single job
+item 6: pending
+
+item 7: pending
+item 8: pending
+item 9: pending
+# TODO: this whole file should come from the DB, not a flat file
+item 10: pending
+
+keep: this line matches a filter pattern
+drop: this line does not
+keep: another one that matches
+drop: neither does this one
+keep: last one that matches
