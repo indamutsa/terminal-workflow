@@ -32,7 +32,7 @@ practice on. Safe to run as many times as you want.
 ## Running things
 
 ```bash
-pytest                  # one test fails on purpose — see Lesson 6 (neotest)
+pytest                  # two tests fail on purpose — see Lesson 6 (neotest + DAP)
 python -m src.report    # prints the order report
 ruff check .            # two lint findings on purpose — see Lesson 6 (diagnostics)
 ```
