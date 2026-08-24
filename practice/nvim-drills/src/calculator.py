@@ -30,6 +30,10 @@ class Calculator:
     def clear_history(self):
         self.history = []
 
+    def average(self):
+        # TODO: guard against empty history (ZeroDivisionError)
+        return sum(self.history) / len(self.history)
+
 
 class Person:
     """Macro-practice target: attributes need a `self.` prefix (Lesson 3.2)."""
