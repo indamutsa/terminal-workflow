@@ -1,0 +1,20 @@
+.vscode
+.DS_Store
+
+# Local-only: personal write-ups, browser automation logs
+docs/
+.playwright-mcp/
+*.log
+
+# Obsidian vault copy of lessons/neovim-tmux-iterm-guide.md
+practice/lessons/Neovim Tmux iTerm Guide.md
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Original standalone .git of practice/nvim-drills (history now merged here)
+.nvim-drills-git-backup/

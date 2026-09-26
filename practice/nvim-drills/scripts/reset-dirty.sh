@@ -5,7 +5,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 git checkout -- src/calculator.py src/orders.py
-git apply scripts/dirty.patch
+# Patch paths are relative to this project; prefix them when it lives inside a larger repo.
+prefix="$(git rev-parse --show-prefix)"
+git apply ${prefix:+--directory="$prefix"} scripts/dirty.patch
 cp scripts/scratch.py.template src/scratch.py
 
 echo "Reset to dirty state:"
