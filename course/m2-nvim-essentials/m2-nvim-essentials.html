@@ -1,0 +1,1487 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Neovim essentials — Terminal Workflow</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <style>
+/* Terminal Workflow course styles. Base from the SQL course.
+   Fonts are local files so the course runs offline. */
+@font-face{font-family:"Kalam";font-weight:400;font-display:swap;src:url("../_shared/fonts/kalam-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Kalam";font-weight:700;font-display:swap;src:url("../_shared/fonts/kalam-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;font-display:swap;src:url("../_shared/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("../_shared/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("../_shared/fonts/inter-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:700;font-display:swap;src:url("../_shared/fonts/inter-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:600;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2")}
+:root {
+  --board: #1c2b24;
+  --alt: #17231d;
+  --raised: #213328;
+  --chalk: #ede6d6;
+  --dim: #9faea3;
+  --gold: #e8c468;
+  --gold-dim: #b99a54;
+  --blue: #7fa8c9;
+  --coral: #e2897d;
+  --mint: #8fc9a8;
+  --line: rgba(237, 230, 214, 0.14);
+  --soft: rgba(237, 230, 214, 0.07);
+  --r: 10px;
+  --display: "Kalam", cursive;
+  --body: "Inter", -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: var(--chalk);
+  background:
+    radial-gradient(
+      ellipse at 10% 0,
+      rgba(127, 168, 201, 0.07),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 100%,
+      rgba(232, 196, 104, 0.06),
+      transparent 48%
+    ),
+    var(--board);
+  font: 15px/1.62 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+a {
+  color: var(--blue);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+::selection {
+  color: var(--board);
+  background: var(--gold);
+}
+main,
+footer,
+.tabbar-inner,
+.group-nav {
+  width: min(780px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.lesson {
+  display: none;
+}
+.lesson.active {
+  display: block;
+  animation: rise 0.35s ease both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+.lesson-header {
+  padding: 46px 0 26px;
+  text-align: center;
+}
+.eyebrow,
+.section-label,
+.label {
+  color: var(--blue);
+  font: 600 11px/1.3 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  color: var(--gold);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.18;
+}
+h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 6vw, 43px);
+}
+h2 {
+  margin: 4px 0 9px;
+  font-size: 26px;
+}
+h3 {
+  margin: 16px 0 6px;
+  font-size: 20px;
+}
+p {
+  margin: 8px 0;
+}
+.subtitle,
+.section-intro,
+.lede {
+  color: var(--dim);
+}
+.subtitle {
+  max-width: 560px;
+  margin-inline: auto;
+}
+.rule {
+  width: 120px;
+  height: 2px;
+  margin: 24px auto 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--dim) 0 6px,
+    transparent 6px 12px
+  );
+}
+.block {
+  margin-top: 44px;
+}
+.one-idea,
+.word-problem {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--raised);
+}
+.one-idea {
+  text-align: center;
+}
+.one-idea .tag,
+.word-problem .tag {
+  color: var(--gold);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.one-idea > p {
+  margin-top: 12px;
+  font-size: 17px;
+}
+.one-idea em {
+  color: var(--gold);
+  font-style: normal;
+  border-bottom: 2px dashed var(--gold-dim);
+}
+.one-idea .kitchen-links {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.one-idea .kitchen-links li {
+  margin-top: 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+.one-idea .kitchen-links li:first-child {
+  margin-top: 0;
+}
+.one-idea .kitchen-links strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+.one-idea .kitchen-links .kl-nowrap {
+  white-space: nowrap;
+}
+.term-definition {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+  font-size: 13px;
+  text-align: left;
+}
+.term-definition strong,
+.rule-body strong,
+.solution-body strong {
+  color: var(--chalk);
+}
+.explorer {
+  margin-top: 16px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.control label,
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--dim);
+  font: 12px var(--mono);
+}
+output,
+.val {
+  color: var(--gold);
+  font-weight: 600;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.button-row,
+.arch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.btn,
+.toggle-btn {
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.btn:hover,
+.btn[aria-pressed="true"],
+.toggle-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.stage,
+.arch-stage {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.stage svg,
+.arch-stage svg {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+}
+.wire {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 4;
+}
+.node {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.node.hot {
+  fill: rgba(232, 196, 104, 0.16);
+  stroke: var(--gold);
+}
+.node.off {
+  fill: rgba(226, 137, 125, 0.08);
+  stroke: var(--coral);
+}
+.svg-label {
+  fill: var(--chalk);
+  font: 600 12px var(--mono);
+  text-anchor: middle;
+}
+.svg-small {
+  fill: var(--dim);
+  font: 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-node {
+  opacity: 0.14;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  transform: translateY(4px);
+}
+.arch-node.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.arch-node rect {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 1.5;
+}
+.arch-node.is-current rect {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.arch-node text {
+  fill: var(--chalk);
+  font: 600 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-link {
+  opacity: 0.12;
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.arch-link.is-visible {
+  opacity: 0.85;
+}
+.readout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: var(--board);
+}
+.fact {
+  min-width: 0;
+}
+.fact.wide {
+  grid-column: 1/-1;
+}
+.tiny {
+  display: block;
+  color: var(--dim);
+  font: 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fact p {
+  overflow-wrap: anywhere;
+}
+.rule-card,
+.practice-card {
+  margin-bottom: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.rule-card summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.rule-card summary::-webkit-details-marker,
+.hint summary::-webkit-details-marker,
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+.num,
+.q-num {
+  color: var(--gold-dim);
+  font: 600 12px var(--mono);
+}
+.chevron::after {
+  content: "⌄";
+  color: var(--dim);
+}
+.rule-body {
+  padding: 15px 18px 18px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+}
+.rule-body p:first-child {
+  margin-top: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid var(--soft);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  text-transform: uppercase;
+}
+code {
+  color: var(--gold);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+.word-problem {
+  margin-top: 14px;
+}
+.worked-steps {
+  padding-left: 22px;
+}
+.worked-steps li + li,
+.solution-steps li + li {
+  margin-top: 7px;
+}
+.result-box,
+.interview-answer {
+  margin-top: 13px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  background: rgba(232, 196, 104, 0.06);
+}
+.review-mistakes li::marker {
+  color: var(--coral);
+}
+.practice-card {
+  position: relative;
+  padding: 16px 18px;
+}
+.q-num {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+}
+.q-kind {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.q-text {
+  padding-right: 40px;
+}
+.hint,
+.solution {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+}
+.hint summary,
+.solution summary {
+  color: var(--blue);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+  list-style: none;
+}
+.solution summary {
+  color: var(--mint);
+}
+.hint p,
+.solution-body {
+  color: var(--dim);
+  font-size: 13.5px;
+}
+.solution-steps {
+  padding-left: 22px;
+}
+.solution-final {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--mint);
+  background: rgba(143, 201, 168, 0.08);
+}
+.tabbar {
+  margin-top: 52px;
+  padding: 14px 0;
+  border-block: 1px solid var(--line);
+  background: var(--alt);
+}
+.tabbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+}
+.tab,
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.tab.active {
+  color: var(--board);
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.nav-arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.progress-mini {
+  min-width: 94px;
+  color: var(--dim);
+  font: 11px var(--mono);
+  text-align: right;
+}
+.group-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+}
+footer {
+  padding: 35px 0 70px;
+  color: var(--dim);
+  text-align: center;
+}
+.no-js-note {
+  padding: 10px 24px;
+  color: var(--coral);
+  text-align: center;
+}
+@media (max-width: 650px) {
+  main,
+  footer,
+  .tabbar-inner,
+  .group-nav {
+    width: min(100% - 28px, 780px);
+  }
+  .controls,
+  .readout {
+    grid-template-columns: 1fr;
+  }
+  .fact.wide {
+    grid-column: auto;
+  }
+  .stage svg,
+  .arch-stage svg {
+    min-width: 540px;
+  }
+  .explorer {
+    padding: 17px 14px;
+  }
+  .progress-mini {
+    min-width: 73px;
+    font-size: 10px;
+  }
+  .group-nav {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabs.sq-tabs{justify-content:flex-start}
+    /* contextual glossary v1 */
+.glossary-term {
+  position: relative;
+  display: inline;
+  margin: 0;
+  padding: 0 1px;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 196, 104, 0.72);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='%23E8C468' stroke='%231C2B24' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-family='Arial' font-size='16' font-weight='700' fill='%231C2B24'%3E%3F%3C/text%3E%3C/svg%3E")
+      14 14,
+    help;
+  text-decoration: none;
+  transition:
+    color 0.16s,
+    background 0.16s,
+    border-color 0.16s;
+}
+.glossary-term:hover,
+.glossary-term:focus-visible,
+.glossary-term[aria-expanded="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: rgba(232, 196, 104, 0.08);
+  outline: none;
+}
+.glossary-term:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--board),
+    0 0 0 4px var(--gold);
+}
+.glossary-term::after {
+  content: "?";
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--board);
+  font: 700 11px/1 var(--mono);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px) scale(0.72);
+  transition:
+    opacity 0.14s,
+    transform 0.14s;
+}
+.glossary-term:hover::after,
+.glossary-term:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.glossary-popover {
+  --pointer-x: 50%;
+  position: fixed;
+  z-index: 1000;
+  width: min(430px, calc(100vw - 24px));
+  padding: 16px 42px 15px 17px;
+  border: 1px solid rgba(232, 196, 104, 0.48);
+  border-radius: 11px;
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(0, 0, 0, 0.08)
+    ),
+    var(--raised);
+  color: var(--chalk);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(28, 43, 36, 0.85);
+  animation: glossary-arrive 0.16s ease both;
+}
+.glossary-popover[hidden] {
+  display: none;
+}
+.glossary-popover::after {
+  content: "";
+  position: absolute;
+  left: var(--pointer-x);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid rgba(232, 196, 104, 0.48);
+  border-bottom: 1px solid rgba(232, 196, 104, 0.48);
+  background: var(--raised);
+  transform: translateX(-50%) rotate(-45deg);
+}
+.glossary-popover.below::after {
+  top: -6px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(135deg);
+}
+.glossary-popover strong {
+  display: inline;
+  color: var(--gold);
+  font: 600 15px/1.4 var(--body);
+}
+.glossary-popover strong::after {
+  content: " —";
+  color: var(--dim);
+}
+.glossary-popover p {
+  display: inline;
+  margin: 0;
+  color: #c8d0ca;
+  font-size: 14px;
+  line-height: 1.58;
+}
+.glossary-meta {
+  display: block;
+  margin-top: 10px;
+  color: var(--dim);
+  font: 10px/1.4 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.glossary-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font: 18px/1 var(--body);
+}
+.glossary-close:hover,
+.glossary-close:focus-visible {
+  background: rgba(232, 196, 104, 0.1);
+  color: var(--gold);
+}
+@keyframes glossary-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (max-width: 650px) {
+  .glossary-popover {
+    padding: 15px 40px 14px 15px;
+  }
+  .glossary-popover p {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glossary-popover,
+  .glossary-term::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+
+.sq-code{margin:10px 0;padding:12px 14px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#121c17;color:var(--chalk);font:500 13px/1.55 var(--mono);white-space:pre}
+.sq-code code{padding:0;border:0;background:none;color:inherit;font:inherit}
+.rule-body table{display:block;overflow-x:auto;max-width:100%}
+
+/* Terminal Workflow additions */
+.tw-codebox{margin:14px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--alt);overflow:hidden}
+.tw-code-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.tw-where{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.tw-code-title{flex:1;min-width:0;overflow-wrap:anywhere;color:var(--chalk);font-weight:500}
+.tw-copy{min-height:32px;padding:4px 12px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;font:600 12px var(--mono)}
+.tw-copy:hover{background:rgba(232,196,104,.12)}
+.tw-codebox .sq-code{margin:0;border:0;border-radius:0}
+.tw-expect,.tw-try{margin:0;padding:10px 12px;border-top:1px solid var(--line);color:var(--chalk);font-size:14px}
+.tw-expect-label{display:inline-block;margin-right:8px;color:var(--mint);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-try .tw-expect-label{color:var(--gold)}
+.tw-scroll{overflow-x:auto;max-width:100%}
+.tw-keytable{width:100%;border-collapse:collapse}
+.tw-keytable td{padding:7px 12px;border-top:1px solid var(--soft);vertical-align:top}
+.tw-keytable tr:first-child td{border-top:0}
+.tw-keytable td:first-child{white-space:nowrap}
+.tw-key{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--raised);color:var(--chalk);font:500 12.5px var(--mono)}
+.tw-text{margin:12px 0;color:var(--chalk)}
+[id^="module-"]{scroll-margin-top:72px}
+.tw-hit{outline:2px solid var(--gold);outline-offset:4px}
+.tw-search-btn{position:fixed;top:12px;right:12px;z-index:40;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-search-btn:hover{border-color:var(--gold)}
+.tw-search-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-search[hidden]{display:none}
+.tw-search{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55)}
+.tw-search-panel{display:flex;flex-direction:column;width:min(680px,calc(100% - 24px));max-height:80vh;margin:8vh auto 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--board)}
+.tw-q{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);font-size:16px}
+.tw-results{flex:1;margin:10px 0 0;padding:0;overflow-y:auto;list-style:none}
+.tw-results [role=option]{padding:8px 10px;border:1px solid transparent;border-radius:8px;cursor:pointer}
+.tw-results [role=option][aria-selected=true]{border-color:var(--gold);background:var(--soft)}
+.tw-results mark{background:rgba(232,196,104,.25);color:inherit}
+.tw-r-meta{overflow:hidden;color:var(--dim);font:11px var(--mono);text-overflow:ellipsis;white-space:nowrap}
+.tw-r-kind{margin-right:8px;color:var(--blue);font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-r-title{font-weight:600}
+.tw-r-text{color:var(--dim);font-size:13px;overflow-wrap:anywhere}
+.tw-search-foot{margin:8px 0 0;color:var(--dim);font:11px var(--mono)}
+@media (max-width:480px){.tw-search-btn kbd{display:none}}
+body.tw-search-open{overflow:hidden}
+
+    </style>
+  </head>
+  <body data-root="../" data-file="m2-nvim-essentials/m2-nvim-essentials.html">
+    <button class="tw-search-btn" type="button" aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
+    <main id="lessonRoot">
+<section class="lesson sq-page active" id="module-1" data-module="1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false"><header class="lesson-header"><div class="eyebrow">Neovim essentials · Page 1 of 4</div><h1>Open, move, save, quit</h1><p class="subtitle">Open the practice project, find a file, make an edit, save it and get out.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Four moves cover a first edit: open, find, type, save.</p><ul class="kitchen-links"><li><strong>Open <span class="kl-nowrap">→ v ..</span></strong> Opens Neovim with the file explorer.</li><li><strong>Find a file <span class="kl-nowrap">→ &lt;Space&gt;sf.</span></strong> Fuzzy search by name. Your Cmd+P.</li><li><strong>Search text <span class="kl-nowrap">→ &lt;Space&gt;sg.</span></strong> Grep inside every file.</li><li><strong>Save and quit <span class="kl-nowrap">→ :wq.</span></strong> Writes the file and leaves.</li></ul></div></div><div class="block" id="module-1-problem"><div class="word-problem"><span class="tag">The problem</span><p>You open Neovim and typing does nothing useful. You cannot find a file, and you cannot get out.</p><div class="result-box"><strong>The fix:</strong> Press <code>i</code> to type and <code>Esc</code> to stop. Save with <code>:w</code>, leave with <code>:q</code>. The exit table below gets you out of anything.</div></div></div><section class="block" id="module-1-d1"><div class="section-label">Type it</div><h2>Setup: the practice repo</h2><p class="section-intro">Every exercise runs against a small Python project with deliberate flaws. This lesson only moves around in it.</p><figure class="tw-codebox tw-cmd" id="module-1-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Go to the practice project</span><button class="tw-copy" type="button" aria-label="Copy: Go to the practice project">Copy</button></figcaption><pre class="sq-code"><code>cd Terminal-Workflow/practice/nvim-drills
+ls</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> lists <code>data</code>, <code>scripts</code>, <code>src</code> and <code>tests</code>.</p></figure><p class="tw-text">The project has bad names, an unused import, an off-by-one bug and a failing test. You fix none of that here. Undo a throwaway edit with <code>u</code>, or discard it with <code>:e!</code>.</p><figure class="tw-codebox tw-cmd" id="module-1-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Smaller sandbox: the demo project</span><button class="tw-copy" type="button" aria-label="Copy: Smaller sandbox: the demo project">Copy</button></figcaption><pre class="sq-code"><code>cd demo-project
+git init &amp;&amp; git add -A &amp;&amp; git commit -m &quot;Initial commit&quot;</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Git creates a repository with one commit, &quot;Initial commit&quot;. The files are <code>src/calculator.py</code>, <code>src/app.py</code> and <code>tests/test_calculator.py</code>.</p></figure></section><section class="block" id="module-1-d2"><div class="section-label">Type it</div><h2>Open a project</h2><p class="section-intro">Run this from inside <code>nvim-drills</code>. <code>v</code> with no argument opens the dashboard. <code>v .</code> opens the file explorer.</p><figure class="tw-codebox tw-cmd" id="module-1-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open the project</span><button class="tw-copy" type="button" aria-label="Copy: Open the project">Copy</button></figcaption><pre class="sq-code"><code>v .          # or: nvim .</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The file explorer opens. Press <code>Enter</code> on <code>src/calculator.py</code> to open it.</p></figure></section><section class="block" id="module-1-d3"><div class="section-label">Type it</div><h2>Navigate files without a mouse</h2><p class="section-intro">Learn <code>&lt;Space&gt;sf</code> and <code>&lt;Space&gt;sg</code>. You will use them a hundred times a day.</p><figure class="tw-codebox tw-keys" id="module-1-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Find files and symbols</span><button class="tw-copy" type="button" aria-label="Copy: Find files and symbols">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">\</kbd></td><td>Toggle the file tree sidebar (neo-tree)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;e</kbd></td><td>Toggle the file explorer (snacks, the LazyVim default)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;sf</kbd></td><td>Search files by name (fuzzy, your Cmd+P)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;&lt;Space&gt;</kbd></td><td>Find files (built-in alias for &lt;Space&gt;sf)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;sg</kbd></td><td>Search inside all files (grep)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;/</kbd></td><td>Grep (built-in alias for &lt;Space&gt;sg)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;fr</kbd></td><td>Recent files</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;fg</kbd></td><td>Find git-tracked files</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;,</kbd></td><td>Switch between open buffers</td></tr><tr><td><kbd class="tw-key">gd</kbd></td><td>Go to definition of symbol under cursor</td></tr><tr><td><kbd class="tw-key">gr</kbd></td><td>Find all references</td></tr><tr><td><kbd class="tw-key">gO</kbd></td><td>Outline of functions/classes in current file</td></tr><tr><td><kbd class="tw-key">Ctrl-o</kbd></td><td>Jump back after going to a definition</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>\  Toggle the file tree sidebar (neo-tree)
+&lt;Space&gt;e  Toggle the file explorer (snacks, the LazyVim default)
+&lt;Space&gt;sf  Search files by name (fuzzy, your Cmd+P)
+&lt;Space&gt;&lt;Space&gt;  Find files (built-in alias for &lt;Space&gt;sf)
+&lt;Space&gt;sg  Search inside all files (grep)
+&lt;Space&gt;/  Grep (built-in alias for &lt;Space&gt;sg)
+&lt;Space&gt;fr  Recent files
+&lt;Space&gt;fg  Find git-tracked files
+&lt;Space&gt;,  Switch between open buffers
+gd  Go to definition of symbol under cursor
+gr  Find all references
+gO  Outline of functions/classes in current file
+Ctrl-o  Jump back after going to a definition</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>&lt;Space&gt;sf</code>, type <code>orders</code>, press <code>Enter</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>src/orders.py</code> opens.</p></figure><p class="tw-text">The <code>&lt;Space&gt;s</code> search group: <code>sf</code> files, <code>sg</code> grep, <code>sw</code> word, <code>sk</code> keymaps, <code>sh</code> help, <code>sd</code> diagnostics, <code>sr</code> search and replace. Press <code>&lt;Space&gt;s</code> and wait to see them all.</p><figure class="tw-codebox tw-keys" id="module-1-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Find where TAX_RATE is used</span><button class="tw-copy" type="button" aria-label="Copy: Find where TAX_RATE is used">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">&lt;Space&gt;sf</kbd></td><td>Type orders, Enter: opens src/orders.py</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;sg</kbd></td><td>Type TAX_RATE, Enter: greps the whole project</td></tr><tr><td><kbd class="tw-key">Ctrl-n / Ctrl-p</kbd></td><td>Move between the 5 matches (2 in orders.py, 3 in report.py)</td></tr><tr><td><kbd class="tw-key">Enter</kbd></td><td>Jump to the match</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>&lt;Space&gt;sf  Type orders, Enter: opens src/orders.py
+&lt;Space&gt;sg  Type TAX_RATE, Enter: greps the whole project
+Ctrl-n / Ctrl-p  Move between the 5 matches (2 in orders.py, 3 in report.py)
+Enter  Jump to the match</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Run the three steps in order.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> Matches in <code>src/orders.py</code> (the definition and its use inside <code>calc</code>) and <code>src/report.py</code> (the import line plus two f-string uses).</p></figure><figure class="tw-codebox tw-keys" id="module-1-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Jump to a definition and back</span><button class="tw-copy" type="button" aria-label="Copy: Jump to a definition and back">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">gd</kbd></td><td>Jump to the <code>calc</code> definition</td></tr><tr><td><kbd class="tw-key">Ctrl-o</kbd></td><td>Jump back to where you were</td></tr><tr><td><kbd class="tw-key">gr</kbd></td><td>List every place <code>calc</code> is referenced</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>gd  Jump to the `calc` definition
+Ctrl-o  Jump back to where you were
+gr  List every place `calc` is referenced</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> In <code>src/orders.py</code>, put the cursor on <code>calc</code> inside the <code>all_totals</code> list comprehension. Press <code>gd</code>, <code>Ctrl-o</code>, then <code>gr</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>gr</code> shows references in 3 files: <code>orders.py</code>, <code>report.py</code> and <code>tests/test_orders.py</code>. Imports count as references.</p></figure></section><section class="block" id="module-1-d4"><div class="section-label">Type it</div><h2>Edit, save, quit</h2><p class="section-intro">The rhythm: <code>i</code> to type, <code>Esc</code> to stop, <code>:w</code> to save.</p><figure class="tw-codebox tw-keys" id="module-1-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Modes and saving</span><button class="tw-copy" type="button" aria-label="Copy: Modes and saving">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">i</kbd></td><td>Enter insert mode (now you can type)</td></tr><tr><td><kbd class="tw-key">Esc</kbd></td><td>Back to normal mode</td></tr><tr><td><kbd class="tw-key">:w</kbd></td><td>Save</td></tr><tr><td><kbd class="tw-key">:q</kbd></td><td>Quit</td></tr><tr><td><kbd class="tw-key">:wq</kbd></td><td>Save and quit</td></tr><tr><td><kbd class="tw-key">ZZ</kbd></td><td>Save and quit (faster, no colon needed)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>i  Enter insert mode (now you can type)
+Esc  Back to normal mode
+:w  Save
+:q  Quit
+:wq  Save and quit
+ZZ  Save and quit (faster, no colon needed)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Open <code>src/calculator.py</code>, go to the blank line 2, press <code>i</code>, type <code># scratch</code>, press <code>Esc</code>, then <code>:w</code>. Press <code>u</code>, then <code>:w</code> again.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The save, undo, save loop works and the file is left unmodified.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Keep these at hand</h2><details class="rule-card" id="module-1-r1" name="rules-1" open><summary><span><span class="num">01</span>How to exit everything</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Stuck somewhere? Find the row.</p><table><thead><tr><th>Stuck in...</th><th>Exit with</th></tr></thead><tbody><tr><td>Insert mode</td><td><code>Esc</code></td></tr><tr><td>Visual mode</td><td><code>Esc</code></td></tr><tr><td>Terminal mode (nvim)</td><td><code>Ctrl-\ Ctrl-n</code> (then <code>q</code> or <code>&lt;Space&gt;ft</code> to close)</td></tr><tr><td>Picker / fuzzy finder (snacks)</td><td><code>Esc</code> or <code>Ctrl-c</code></td></tr><tr><td>LazyGit</td><td><code>q</code></td></tr><tr><td>Snacks explorer (<code>&lt;Space&gt;e</code>)</td><td><code>&lt;Space&gt;e</code> or <code>q</code></td></tr><tr><td>Neo-tree sidebar</td><td><code>` or </code>q<code></code></td></tr><tr><td>grug-far (search/replace)</td><td><code>q</code> or <code>:q</code></td></tr><tr><td>tmux copy mode</td><td><code>q</code> or <code>Esc</code></td></tr><tr><td>tmux window picker (<code>Ctrl-a w</code>)</td><td><code>Esc</code> or <code>q</code></td></tr><tr><td>A command-line prompt (<code>:</code>)</td><td><code>Esc</code></td></tr><tr><td>Neovim entirely</td><td><code>:q</code> (or <code>:q!</code> to force without saving)</td></tr><tr><td>Stuck and nothing works</td><td><code>:qa!</code> (force quit everything)</td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r2" name="rules-1"><summary><span><span class="num">02</span>Quick start</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">The first five minutes of Neovim.</p><figure class="tw-codebox tw-code" id="module-1-r2-code"><figcaption class="tw-code-head"><span class="tw-where">Example</span><span class="tw-code-title">Quick start</span><button class="tw-copy" type="button" aria-label="Copy: Quick start">Copy</button></figcaption><pre class="sq-code"><code>nvim .                              # open project
+
+\                File tree (toggle)
+&lt;Space&gt;sf        Search files (fuzzy)
+&lt;Space&gt;sg        Search all file contents (grep)
+i                Insert mode (type)
+Esc              Normal mode (commands)
+:w               Save
+dd               Delete line
+ci&quot;              Change inside quotes
+gg               Top of file
+G                Bottom of file
+u                Undo
+.                Repeat last change</code></pre></figure></div></details></section><section class="block" id="module-1-worked"><div class="section-label">Worked application</div><h2>Save, undo, save</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You open a file, make a throwaway edit and leave the file clean.</p><p><code>src/calculator.py</code> is open.</p><ol class="worked-steps"><li>Go to the blank line 2.</li><li>Press <code>i</code>, type <code># scratch</code>, press <code>Esc</code>.</li><li>Run <code>:w</code> to save.</li><li>Press <code>u</code> to undo, then <code>:w</code> again.</li></ol><div class="result-box"><strong>Why it matters:</strong> The file ends exactly as it began. Save, undo, save is the safe loop for any throwaway edit.</div></div></section><section class="block" id="module-1-practice"><div class="section-label">Your turn</div><h2>Practice: open and save</h2><div class="practice-card" id="module-1-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does typing do nothing when Neovim opens?</p><details class="hint"><summary>hint</summary><p>Which mode do you start in?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Neovim starts in normal mode, where keys are commands.</li><li>Press <code>i</code> to enter insert mode.</li></ol><div class="solution-final"><strong>Final answer:</strong> Normal mode treats keys as commands. <code>i</code> switches to typing.</div></div></details></div><div class="practice-card" id="module-1-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which keys save and leave in one go, without a colon?</p><details class="hint"><summary>hint</summary><p>Two capital letters.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Make sure you are in normal mode.</li><li>Press <code>ZZ</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>ZZ</code>. The same as <code>:wq</code>.</div></div></details></div><div class="practice-card" id="module-1-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Find every use of <code>TAX_RATE</code> in the project.</p><details class="hint"><summary>hint</summary><p>Search inside files, not file names.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>&lt;Space&gt;sg</code>.</li><li>Type <code>TAX_RATE</code> and press <code>Enter</code>.</li><li>Move through the matches with <code>Ctrl-n</code> and <code>Ctrl-p</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>&lt;Space&gt;sg</code>, then <code>TAX_RATE</code>. Five matches in two files.</div></div></details></div><div class="practice-card" id="module-1-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You are in a terminal inside Neovim and nothing navigates. What first?</p><details class="hint"><summary>hint</summary><p>Terminal mode has its own exit.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>Ctrl-\ Ctrl-n</code> to leave terminal mode.</li><li>Now navigation keys work again.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-\ Ctrl-n</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-2" data-module="2" role="tabpanel" aria-labelledby="tab-2" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Neovim essentials · Page 2 of 4</div><h1>Move fast and search</h1><p class="subtitle">Jump by word, line, bracket or pattern. Hold no arrow keys.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Every jump has a short key. Learn the jumps and the file stops being long.</p><ul class="kitchen-links"><li><strong>Word <span class="kl-nowrap">→ w / b / e.</span></strong> Forward, back, end of word.</li><li><strong>Line <span class="kl-nowrap">→ 0 / $ / ^.</span></strong> Start, end, first non-blank.</li><li><strong>File <span class="kl-nowrap">→ gg / G.</span></strong> Top or bottom. 42G goes to line 42.</li><li><strong>Search <span class="kl-nowrap">→ /pattern.</span></strong> Then n and N step through the matches.</li></ul></div></div><div class="block" id="module-2-problem"><div class="word-problem"><span class="tag">The problem</span><p>You hold <code>j</code> to reach line 50, overshoot, and scroll back. Finding one word means reading the whole screen.</p><div class="result-box"><strong>The fix:</strong> Jump with <code>51G</code>, <code>%</code> and <code>gg</code>. Search with <code>/pattern</code> and step with <code>n</code>.</div></div></div><section class="block" id="module-2-d1"><div class="section-label">Type it</div><h2>Move fast</h2><p class="section-intro">Line numbers can drift if you edited the file earlier. <code>/RAW_ORDERS</code> then <code>Enter</code> always works too.</p><figure class="tw-codebox tw-keys" id="module-2-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Movement keys</span><button class="tw-copy" type="button" aria-label="Copy: Movement keys">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">h/j/k/l</kbd></td><td>Left/down/up/right (instead of arrow keys)</td></tr><tr><td><kbd class="tw-key">w</kbd></td><td>Jump forward one word</td></tr><tr><td><kbd class="tw-key">b</kbd></td><td>Jump back one word</td></tr><tr><td><kbd class="tw-key">e</kbd></td><td>Jump to end of word</td></tr><tr><td><kbd class="tw-key">0</kbd></td><td>Start of line</td></tr><tr><td><kbd class="tw-key">$</kbd></td><td>End of line</td></tr><tr><td><kbd class="tw-key">^</kbd></td><td>First non-whitespace character on line</td></tr><tr><td><kbd class="tw-key">gg</kbd></td><td>Top of file</td></tr><tr><td><kbd class="tw-key">G</kbd></td><td>Bottom of file</td></tr><tr><td><kbd class="tw-key">42G</kbd></td><td>Jump to line 42 (any number works)</td></tr><tr><td><kbd class="tw-key">Ctrl-d</kbd></td><td>Half-page down</td></tr><tr><td><kbd class="tw-key">Ctrl-u</kbd></td><td>Half-page up</td></tr><tr><td><kbd class="tw-key">Ctrl-f</kbd></td><td>Full page down</td></tr><tr><td><kbd class="tw-key">Ctrl-b</kbd></td><td>Full page up</td></tr><tr><td><kbd class="tw-key">%</kbd></td><td>Jump to matching bracket/paren/brace</td></tr><tr><td><kbd class="tw-key">{</kbd></td><td>Previous empty line (paragraph up)</td></tr><tr><td><kbd class="tw-key">}</kbd></td><td>Next empty line (paragraph down)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>h/j/k/l  Left/down/up/right (instead of arrow keys)
+w  Jump forward one word
+b  Jump back one word
+e  Jump to end of word
+0  Start of line
+$  End of line
+^  First non-whitespace character on line
+gg  Top of file
+G  Bottom of file
+42G  Jump to line 42 (any number works)
+Ctrl-d  Half-page down
+Ctrl-u  Half-page up
+Ctrl-f  Full page down
+Ctrl-b  Full page up
+%  Jump to matching bracket/paren/brace
+{  Previous empty line (paragraph up)
+}  Next empty line (paragraph down)</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Get to RAW_ORDERS and back without scrolling</span><button class="tw-copy" type="button" aria-label="Copy: Get to RAW_ORDERS and back without scrolling">Copy</button></figcaption><pre class="sq-code"><code>51G
+%
+gg</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>51G</code> lands on <code>RAW_ORDERS = [</code>. <code>%</code> on that <code>[</code> lands on the closing <code>]</code>, 7 lines down. <code>gg</code> is back at the top.</p></figure></section><section class="block" id="module-2-d2"><div class="section-label">Type it</div><h2>Searching</h2><p class="section-intro"><code>src/orders.py</code> has a TODO above <code>calc</code> and a FIXME above <code>qualifies_for_free_shipping</code>.</p><figure class="tw-codebox tw-keys" id="module-2-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Search keys</span><button class="tw-copy" type="button" aria-label="Copy: Search keys">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">/pattern</kbd></td><td>Search forward</td></tr><tr><td><kbd class="tw-key">?pattern</kbd></td><td>Search backward</td></tr><tr><td><kbd class="tw-key">n</kbd></td><td>Next match</td></tr><tr><td><kbd class="tw-key">N</kbd></td><td>Previous match</td></tr><tr><td><kbd class="tw-key">*</kbd></td><td>Search for word under cursor (forward)</td></tr><tr><td><kbd class="tw-key">#</kbd></td><td>Search for word under cursor (backward)</td></tr><tr><td><kbd class="tw-key">f{char}</kbd></td><td>Jump to next {char} on this line</td></tr><tr><td><kbd class="tw-key">F{char}</kbd></td><td>Jump to previous {char} on this line</td></tr><tr><td><kbd class="tw-key">;</kbd></td><td>Repeat last f/F jump</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>/pattern  Search forward
+?pattern  Search backward
+n  Next match
+N  Previous match
+*  Search for word under cursor (forward)
+#  Search for word under cursor (backward)
+f{char}  Jump to next {char} on this line
+F{char}  Jump to previous {char} on this line
+;  Repeat last f/F jump</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Open <code>src/calculator.py</code>, run <code>/divide</code>, then press <code>n</code> and <code>N</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> You land on the <code>divide</code> method and on the <code>raise Exception(&quot;Cannot divide by zero&quot;)</code> line inside it.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Find every TODO without grepping</span><button class="tw-copy" type="button" aria-label="Copy: Find every TODO without grepping">Copy</button></figcaption><pre class="sq-code"><code>gg
+/TODO
+/FIXME</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>/TODO</code> and <code>/FIXME</code> each find exactly one match in <code>src/orders.py</code>.</p></figure><p class="tw-text">Put the cursor on <code>calc</code> after the TODO comment and press <code>*</code> to jump to its next use. Use <code>#</code> to search backward and compare.</p></section><section class="block" id="module-2-d3"><div class="section-label">Type it</div><h2>Entering insert mode</h2><p class="section-intro">Instead of <code>$a</code>, press <code>A</code>. Each variant saves a step.</p><figure class="tw-codebox tw-keys" id="module-2-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Ways into insert mode</span><button class="tw-copy" type="button" aria-label="Copy: Ways into insert mode">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">i</kbd></td><td>Insert before cursor</td></tr><tr><td><kbd class="tw-key">a</kbd></td><td>Insert after cursor</td></tr><tr><td><kbd class="tw-key">I</kbd></td><td>Insert at start of line</td></tr><tr><td><kbd class="tw-key">A</kbd></td><td>Insert at end of line</td></tr><tr><td><kbd class="tw-key">o</kbd></td><td>New line below, enter insert mode</td></tr><tr><td><kbd class="tw-key">O</kbd></td><td>New line above, enter insert mode</td></tr><tr><td><kbd class="tw-key">s</kbd></td><td>Delete char under cursor, enter insert mode</td></tr><tr><td><kbd class="tw-key">S</kbd></td><td>Delete entire line, enter insert mode</td></tr><tr><td><kbd class="tw-key">C</kbd></td><td>Delete to end of line, enter insert mode</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>i  Insert before cursor
+a  Insert after cursor
+I  Insert at start of line
+A  Insert at end of line
+o  New line below, enter insert mode
+O  New line above, enter insert mode
+s  Delete char under cursor, enter insert mode
+S  Delete entire line, enter insert mode
+C  Delete to end of line, enter insert mode</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> In <code>src/calculator.py</code> run <code>/clear_history</code>, go to the <code>self.history = []</code> line and press <code>o</code>. Type <code>pass  # scratch line, will discard</code>, press <code>Esc</code>, then discard with <code>:e!</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>o</code> opens an indented line below. After <code>:e!</code>, <code>/scratch</code> reports pattern not found: the file is clean.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Movement at a glance</h2><details class="rule-card" id="module-2-r1" name="rules-2" open><summary><span><span class="num">01</span>Movement card</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">The keys that carry most of your day.</p><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>h/j/k/l</code></td><td>Move cursor</td></tr><tr><td><code>w/b/e</code></td><td>Word forward/back/end</td></tr><tr><td><code>0/$</code></td><td>Start/end of line</td></tr><tr><td><code>gg/G</code></td><td>Top/bottom of file</td></tr><tr><td><code>Ctrl-d/Ctrl-u</code></td><td>Half-page down/up</td></tr><tr><td><code>%</code></td><td>Matching bracket</td></tr><tr><td><code>/pattern</code></td><td>Search (n=next, N=prev)</td></tr><tr><td><code>*/#</code></td><td>Search word under cursor</td></tr><tr><td><code>f{c}/F{c}</code></td><td>Jump to char on line</td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r2" name="rules-2"><summary><span><span class="num">02</span>If the line number drifts</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Edits move lines. Search instead.</p><table><thead><tr><th>Step</th><th>Keys</th></tr></thead><tbody><tr><td>Jump to a line</td><td><code>51G</code></td></tr><tr><td>Always works</td><td><code>/RAW_ORDERS</code> then <code>Enter</code></td></tr><tr><td>Back to the top</td><td><code>gg</code></td></tr></tbody></table></div></details></section><section class="block" id="module-2-worked"><div class="section-label">Worked application</div><h2>Find a list and its end</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You need <code>RAW_ORDERS</code> and its closing bracket without scrolling.</p><p><code>src/orders.py</code> is open at line 1.</p><ol class="worked-steps"><li>Press <code>51G</code> to reach <code>RAW_ORDERS = [</code>.</li><li>Press <code>%</code> on the <code>[</code> to jump to the matching <code>]</code>.</li><li>Press <code>gg</code> to return to the top.</li></ol><div class="result-box"><strong>Why it matters:</strong> Three keys replace a page of scrolling. <code>%</code> works on any bracket pair.</div></div></section><section class="block" id="module-2-practice"><div class="section-label">Your turn</div><h2>Practice: moving and searching</h2><div class="practice-card" id="module-2-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>%</code> jump from <code>[</code> to <code>]</code>?</p><details class="hint"><summary>hint</summary><p>It matches pairs.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>%</code> finds the partner of the bracket under the cursor.</li><li>It works for (), [] and {}.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>%</code> jumps to the matching bracket.</div></div></details></div><div class="practice-card" id="module-2-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which keys go to line 42?</p><details class="hint"><summary>hint</summary><p>A number, then a capital letter.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Type <code>42</code>.</li><li>Press <code>G</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>42G</code>.</div></div></details></div><div class="practice-card" id="module-2-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Find the TODO and then the FIXME in <code>src/orders.py</code>.</p><details class="hint"><summary>hint</summary><p>Search twice.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>gg</code>.</li><li>Run <code>/TODO</code>.</li><li>Run <code>/FIXME</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>/TODO</code> then <code>/FIXME</code>. One match each.</div></div></details></div><div class="practice-card" id="module-2-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You edited the file and <code>51G</code> now lands on the wrong line. What do you do?</p><details class="hint"><summary>hint</summary><p>Search, not count.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Line numbers drift after edits.</li><li>Run <code>/RAW_ORDERS</code> and press <code>Enter</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> Search for the name. It always works.</div></div></details></div></section></section><section class="lesson sq-page" id="module-3" data-module="3" role="tabpanel" aria-labelledby="tab-3" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Neovim essentials · Page 3 of 4</div><h1>Delete, yank, paste, undo</h1><p class="subtitle">Cut, copy, paste and comment lines, then undo and repeat any change.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Delete and yank are one or two keys. Undo and repeat make mistakes cheap.</p><ul class="kitchen-links"><li><strong>Delete a line <span class="kl-nowrap">→ dd.</span></strong> Cuts the whole line.</li><li><strong>Copy a line <span class="kl-nowrap">→ yy.</span></strong> Yank. Paste with p.</li><li><strong>Comment <span class="kl-nowrap">→ gcc.</span></strong> Toggle a comment on the line.</li><li><strong>Undo <span class="kl-nowrap">→ u.</span></strong> Ctrl-r redoes. . repeats.</li></ul></div></div><div class="block" id="module-3-problem"><div class="word-problem"><span class="tag">The problem</span><p>You delete the wrong line and have no idea how to get it back. You retype the same edit on ten lines.</p><div class="result-box"><strong>The fix:</strong> Undo with <code>u</code>, redo with <code>Ctrl-r</code>, and repeat the last change with <code>.</code>.</div></div></div><section class="block" id="module-3-d1"><div class="section-label">Type it</div><h2>Delete, yank, paste</h2><p class="section-intro"><code>RAW_ORDERS</code> in <code>src/orders.py</code> has six entries, <code>A1</code> to <code>A6</code>.</p><figure class="tw-codebox tw-keys" id="module-3-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Delete, yank, paste</span><button class="tw-copy" type="button" aria-label="Copy: Delete, yank, paste">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">dd</kbd></td><td>Delete (cut) whole line</td></tr><tr><td><kbd class="tw-key">5dd</kbd></td><td>Delete 5 lines</td></tr><tr><td><kbd class="tw-key">D</kbd></td><td>Delete to end of line</td></tr><tr><td><kbd class="tw-key">yy</kbd></td><td>Yank (copy) whole line</td></tr><tr><td><kbd class="tw-key">5yy</kbd></td><td>Yank 5 lines</td></tr><tr><td><kbd class="tw-key">y$</kbd></td><td>Yank to end of line</td></tr><tr><td><kbd class="tw-key">p</kbd></td><td>Paste below / after cursor</td></tr><tr><td><kbd class="tw-key">P</kbd></td><td>Paste above / before cursor</td></tr><tr><td><kbd class="tw-key">x</kbd></td><td>Delete character under cursor</td></tr><tr><td><kbd class="tw-key">X</kbd></td><td>Delete character before cursor (Backspace)</td></tr><tr><td><kbd class="tw-key">J</kbd></td><td>Join current line with next (remove newline)</td></tr><tr><td><kbd class="tw-key">yyp</kbd></td><td>Duplicate current line (yank + paste)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>dd  Delete (cut) whole line
+5dd  Delete 5 lines
+D  Delete to end of line
+yy  Yank (copy) whole line
+5yy  Yank 5 lines
+y$  Yank to end of line
+p  Paste below / after cursor
+P  Paste above / before cursor
+x  Delete character under cursor
+X  Delete character before cursor (Backspace)
+J  Join current line with next (remove newline)
+yyp  Duplicate current line (yank + paste)</code></pre></figure><figure class="tw-codebox tw-keys" id="module-3-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Commenting</span><button class="tw-copy" type="button" aria-label="Copy: Commenting">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">gcc</kbd></td><td>Toggle comment on current line</td></tr><tr><td><kbd class="tw-key">gc{motion}</kbd></td><td>Comment a range (e.g., gcip = comment paragraph)</td></tr><tr><td><kbd class="tw-key">gc5j</kbd></td><td>Comment 5 lines down</td></tr><tr><td><kbd class="tw-key">V then gc</kbd></td><td>Select lines, then toggle comment</td></tr><tr><td><kbd class="tw-key">gcO</kbd></td><td>Add comment on line above</td></tr><tr><td><kbd class="tw-key">gco</kbd></td><td>Add comment on line below</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>gcc  Toggle comment on current line
+gc{motion}  Comment a range (e.g., gcip = comment paragraph)
+gc5j  Comment 5 lines down
+V then gc  Select lines, then toggle comment
+gcO  Add comment on line above
+gco  Add comment on line below</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Duplicate and retire an order line</span><button class="tw-copy" type="button" aria-label="Copy: Duplicate and retire an order line">Copy</button></figcaption><pre class="sq-code"><code>/A1
+yyp
+gcc
+gcc
+dd
+:%s/&quot;A1&quot;//gn</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>yyp</code> duplicates the <code>A1</code> line. The first <code>gcc</code> comments the duplicate out, the second brings it back, <code>dd</code> deletes it. The last command reports 1 match: a single <code>A1</code> entry.</p></figure></section><section class="block" id="module-3-d2"><div class="section-label">Type it</div><h2>Undo, redo, repeat</h2><p class="section-intro">The <code>.</code> command repeats your last change. Make a change, move to another word, press <code>.</code>.</p><figure class="tw-codebox tw-keys" id="module-3-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Undo, redo, repeat</span><button class="tw-copy" type="button" aria-label="Copy: Undo, redo, repeat">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">u</kbd></td><td>Undo</td></tr><tr><td><kbd class="tw-key">Ctrl-r</kbd></td><td>Redo</td></tr><tr><td><kbd class="tw-key">.</kbd></td><td>Repeat last change (incredibly powerful)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>u  Undo
+Ctrl-r  Redo
+.  Repeat last change (incredibly powerful)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> In <code>data/log.txt</code>, put the cursor on <code>pending</code> in line 1, press <code>ciw</code>, type <code>done</code>, press <code>Esc</code>. On line 2 press <code>.</code>. Then <code>u</code> twice, <code>Ctrl-r</code> twice, then <code>:e!</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> Line 1 reads <code>item 1: done</code>, and line 2 reads <code>item 2: done</code> after <code>.</code>. After <code>:e!</code>, <code>/done</code> finds nothing: every line still says <code>pending</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Editing at a glance</h2><details class="rule-card" id="module-3-r1" name="rules-3" open><summary><span><span class="num">01</span>Editing card</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">The edits you repeat all day.</p><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>i/a/o/O</code></td><td>Enter insert mode</td></tr><tr><td><code>A/I</code></td><td>Insert at end/start of line</td></tr><tr><td><code>dd/D</code></td><td>Delete line / to end</td></tr><tr><td><code>cc/C</code></td><td>Change line / to end</td></tr><tr><td><code>yy/p</code></td><td>Copy line / paste</td></tr><tr><td><code>ci&quot;/ci(/ci{</code></td><td>Change inside quotes/parens/braces</td></tr><tr><td><code>di&quot;/da(</code></td><td>Delete inside/around</td></tr><tr><td><code>vi{/vip</code></td><td>Select inside braces/paragraph</td></tr><tr><td><code>u / Ctrl-r</code></td><td>Undo / redo</td></tr><tr><td><code>.</code></td><td>Repeat last change</td></tr><tr><td><code>&gt;&gt;  / &lt;&lt;</code></td><td>Indent / unindent</td></tr><tr><td><code>gg=G</code></td><td>Auto-indent entire file</td></tr><tr><td><code>&lt;Space&gt;cf</code></td><td>Format file</td></tr><tr><td><code>:%s/old/new/g</code></td><td>Find and replace</td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r2" name="rules-3"><summary><span><span class="num">02</span>Undo a throwaway edit</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Three ways back, from smallest to biggest.</p><table><thead><tr><th>Situation</th><th>Keys</th></tr></thead><tbody><tr><td>Undo the last change</td><td><code>u</code></td></tr><tr><td>Redo it</td><td><code>Ctrl-r</code></td></tr><tr><td>Discard everything unsaved</td><td><code>:e!</code></td></tr></tbody></table></div></details></section><section class="block" id="module-3-worked"><div class="section-label">Worked application</div><h2>Mark two lines done, then undo</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You change one word on two lines, then take both changes back.</p><p><code>data/log.txt</code> is open: ten lines like <code>item 1: pending</code>.</p><ol class="worked-steps"><li>On line 1, put the cursor on <code>pending</code>. Press <code>ciw</code>, type <code>done</code>, press <code>Esc</code>.</li><li>Move to line 2, on <code>pending</code>. Press <code>.</code>. The same edit repeats.</li><li>Press <code>u</code> twice. Both lines say <code>pending</code> again.</li><li>Press <code>Ctrl-r</code> twice. Both say <code>done</code> again.</li><li>Run <code>:e!</code> to leave the file as it was on disk.</li></ol><div class="result-box"><strong>Why it matters:</strong> One edit, repeated with a key, and fully reversible. Later lessons expect <code>pending</code>, so always discard.</div></div></section><section class="block" id="module-3-practice"><div class="section-label">Your turn</div><h2>Practice: editing and undo</h2><div class="practice-card" id="module-3-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>yyp</code> duplicate a line?</p><details class="hint"><summary>hint</summary><p>Two commands in a row.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>yy</code> yanks the line.</li><li><code>p</code> pastes it below.</li></ol><div class="solution-final"><strong>Final answer:</strong> Yank the line, then paste it below.</div></div></details></div><div class="practice-card" id="module-3-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which keys toggle a comment on the current line?</p><details class="hint"><summary>hint</summary><p>g, c, then c again.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>gcc</code>.</li><li>Press <code>gcc</code> again to uncomment.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>gcc</code>.</div></div></details></div><div class="practice-card" id="module-3-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Change <code>pending</code> to <code>done</code> on two lines without retyping.</p><details class="hint"><summary>hint</summary><p>Change once, then repeat.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>On the first line, run <code>ciw</code>, type <code>done</code>, press <code>Esc</code>.</li><li>Move to the second line and press <code>.</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>ciw</code> once, then <code>.</code>.</div></div></details></div><div class="practice-card" id="module-3-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You edited a lesson file and want it clean. What do you run?</p><details class="hint"><summary>hint</summary><p>Reload from disk.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>u</code> only undoes one step at a time.</li><li><code>:e!</code> discards every unsaved change.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>:e!</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-4" data-module="4" role="tabpanel" aria-labelledby="tab-4" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Neovim essentials · Page 4 of 4</div><h1>Buffers, terminals, splits, tabs, leader</h1><p class="subtitle">Work on several files and a terminal at once, and discover keys as you go.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Buffers are open files. Splits and tabs arrange them. The leader key finds the rest.</p><ul class="kitchen-links"><li><strong>Next buffer <span class="kl-nowrap">→ Shift-L.</span></strong> Shift-H goes back.</li><li><strong>Terminal <span class="kl-nowrap">→ Ctrl-\.</span></strong> Floating terminal. Press again to hide.</li><li><strong>Split <span class="kl-nowrap">→ :vsplit file.py.</span></strong> Two files side by side.</li><li><strong>Discover <span class="kl-nowrap">→ &lt;Space&gt;.</span></strong> Wait for the which-key menu.</li></ul></div></div><div class="block" id="module-4-problem"><div class="word-problem"><span class="tag">The problem</span><p>You keep closing one file to open another. Running the tests means leaving the editor.</p><div class="result-box"><strong>The fix:</strong> Cycle open files with <code>Shift-H</code> and <code>Shift-L</code>, open a terminal with <code>Ctrl-`, and split the screen when you need two files.</code></div></div></div><section class="block" id="module-4-d1"><div class="section-label">Type it</div><h2>Buffers (open files)</h2><p class="section-intro">Cycle through the three source files.</p><figure class="tw-codebox tw-keys" id="module-4-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Buffer keys</span><button class="tw-copy" type="button" aria-label="Copy: Buffer keys">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Shift-L</kbd></td><td>Next open buffer</td></tr><tr><td><kbd class="tw-key">Shift-H</kbd></td><td>Previous open buffer</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;,</kbd></td><td>Fuzzy-find / switch open buffers</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;bd</kbd></td><td>Close current buffer</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;bp</kbd></td><td>Pin / unpin buffer</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;bP</kbd></td><td>Close all non-pinned buffers</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Shift-L  Next open buffer
+Shift-H  Previous open buffer
+&lt;Space&gt;,  Fuzzy-find / switch open buffers
+&lt;Space&gt;bd  Close current buffer
+&lt;Space&gt;bp  Pin / unpin buffer
+&lt;Space&gt;bP  Close all non-pinned buffers</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Open <code>calculator</code>, <code>orders</code> and <code>report</code> with <code>&lt;Space&gt;sf</code>. Press <code>Shift-H</code> twice, <code>Shift-L</code> once, then <code>&lt;Space&gt;,</code> and type <code>report</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>&lt;Space&gt;,</code> lists <code>calculator.py</code>, <code>orders.py</code> and <code>report.py</code>, plus anything still open such as <code>data/log.txt</code>.</p></figure></section><section class="block" id="module-4-d2"><div class="section-label">Type it</div><h2>Terminals inside Neovim</h2><p class="section-intro">LazyVim uses a floating Snacks terminal. All three keys below toggle the same one.</p><figure class="tw-codebox tw-keys" id="module-4-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Toggle the floating terminal</span><button class="tw-copy" type="button" aria-label="Copy: Toggle the floating terminal">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-\</kbd></td><td>Toggle floating terminal (also Ctrl-/ or &lt;Space&gt;ft)</td></tr><tr><td><kbd class="tw-key">Ctrl-\ Ctrl-n</kbd></td><td>Exit terminal mode (back to normal navigation)</td></tr><tr><td><kbd class="tw-key">q</kbd></td><td>Hide terminal (from normal mode inside it)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-\  Toggle floating terminal (also Ctrl-/ or &lt;Space&gt;ft)
+Ctrl-\ Ctrl-n  Exit terminal mode (back to normal navigation)
+q  Hide terminal (from normal mode inside it)</code></pre></figure><figure class="tw-codebox tw-keys" id="module-4-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Split terminals added to the lesson config</span><button class="tw-copy" type="button" aria-label="Copy: Split terminals added to the lesson config">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">&lt;Space&gt;tf</kbd></td><td>Floating terminal</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;tv</kbd></td><td>Vertical terminal (right side)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;th</kbd></td><td>Horizontal terminal (bottom)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>&lt;Space&gt;tf  Floating terminal
+&lt;Space&gt;tv  Vertical terminal (right side)
+&lt;Space&gt;th  Horizontal terminal (bottom)</code></pre></figure><p class="tw-text">The lesson mapped these under capital <code>&lt;Space&gt;T</code>, because <code>&lt;Space&gt;t</code> is the test prefix in LazyVim. That mapping is not in the current config. Use <code>&lt;Space&gt;ft</code> or <code>Ctrl-`, or the built-in splits below. For several independent terminals, prefer tmux panes (</code>Ctrl-a |<code>, </code>Ctrl-a -<code>).</code></p><figure class="tw-codebox tw-keys" id="module-4-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Built-in split terminals</span><button class="tw-copy" type="button" aria-label="Copy: Built-in split terminals">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">:split | terminal</kbd></td><td>Open terminal in horizontal split (top/bottom)</td></tr><tr><td><kbd class="tw-key">:vsplit | terminal</kbd></td><td>Open terminal in vertical split (side by side)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>:split | terminal  Open terminal in horizontal split (top/bottom)
+:vsplit | terminal  Open terminal in vertical split (side by side)</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-4-d2-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Run the test suite and just look at it</span><button class="tw-copy" type="button" aria-label="Copy: Run the test suite and just look at it">Copy</button></figcaption><pre class="sq-code"><code>pytest</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The summary ends with <code>2 failed, 7 passed</code>. The failures are <code>tests/test_calculator.py::test_history_tracks_results</code> and <code>tests/test_orders.py::test_free_shipping_threshold</code>.</p></figure><p class="tw-text">Open the terminal first (<code>Ctrl-`). If </code>pytest<code> is not the one on your PATH, run </code>python3 -m pytest<code>. Then </code>Ctrl-\ Ctrl-n<code> to leave terminal mode and press the toggle again to close it. The pass count can drift if you left a file dirty: run </code>:e!<code> on it and re-run.</code></p></section><section class="block" id="module-4-d3"><div class="section-label">Type it</div><h2>Copy and paste inside Neovim</h2><p class="section-intro"><code>Cmd+C</code> and <code>Cmd+V</code> do not work inside Neovim. Your clipboard is synced (<code>unnamedplus</code>), so anything you <code>y</code> is ready for <code>Cmd+V</code> outside.</p><figure class="tw-codebox tw-keys" id="module-4-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Copy from a code buffer</span><button class="tw-copy" type="button" aria-label="Copy: Copy from a code buffer">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">yy</kbd></td><td>Copy current line → system clipboard</td></tr><tr><td><kbd class="tw-key">5yy</kbd></td><td>Copy 5 lines</td></tr><tr><td><kbd class="tw-key">v → select → y</kbd></td><td>Visual select then yank → system clipboard</td></tr><tr><td><kbd class="tw-key">Vi{y</kbd></td><td>Copy everything inside braces</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>yy  Copy current line → system clipboard
+5yy  Copy 5 lines
+v → select → y  Visual select then yank → system clipboard
+Vi{y  Copy everything inside braces</code></pre></figure><figure class="tw-codebox tw-keys" id="module-4-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Copy from the terminal output</span><button class="tw-copy" type="button" aria-label="Copy: Copy from the terminal output">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-\ Ctrl-n</kbd></td><td>Exit terminal mode</td></tr><tr><td><kbd class="tw-key">Ctrl-a [</kbd></td><td>Enter tmux copy mode (navigate freely)</td></tr><tr><td><kbd class="tw-key">v</kbd></td><td>Start selection</td></tr><tr><td><kbd class="tw-key">y</kbd></td><td>Yank → system clipboard (via pbcopy)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-\ Ctrl-n  Exit terminal mode
+Ctrl-a [  Enter tmux copy mode (navigate freely)
+v  Start selection
+y  Yank → system clipboard (via pbcopy)</code></pre></figure><figure class="tw-codebox tw-keys" id="module-4-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Paste into the terminal</span><button class="tw-copy" type="button" aria-label="Copy: Paste into the terminal">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a ]</kbd></td><td>tmux paste (bypasses nvim, always works)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a ]  tmux paste (bypasses nvim, always works)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Or press <code>i</code> (terminal insert mode), then <code>Ctrl-a ]</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The text lands at the terminal prompt.</p></figure><figure class="tw-codebox tw-keys" id="module-4-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Select with the mouse</span><button class="tw-copy" type="button" aria-label="Copy: Select with the mouse">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a z</kbd></td><td>Zoom pane to fullscreen first (Option + mouse-drag selects only this pane)</td></tr><tr><td><kbd class="tw-key">Cmd+C</kbd></td><td>Copy</td></tr><tr><td><kbd class="tw-key">Ctrl-a z</kbd></td><td>Unzoom back to normal layout</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a z  Zoom pane to fullscreen first (Option + mouse-drag selects only this pane)
+Cmd+C  Copy
+Ctrl-a z  Unzoom back to normal layout</code></pre></figure><figure class="tw-codebox tw-keys" id="module-4-d3-b5"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Navigate between terminals and code</span><button class="tw-copy" type="button" aria-label="Copy: Navigate between terminals and code">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-\ Ctrl-n</kbd></td><td>Exit terminal mode first (REQUIRED before navigating)</td></tr><tr><td><kbd class="tw-key">Ctrl-h/j/k/l</kbd></td><td>Move between splits (works across nvim + tmux panes)</td></tr><tr><td><kbd class="tw-key">Ctrl-w q</kbd></td><td>Close current split</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-\ Ctrl-n  Exit terminal mode first (REQUIRED before navigating)
+Ctrl-h/j/k/l  Move between splits (works across nvim + tmux panes)
+Ctrl-w q  Close current split</code></pre></figure></section><section class="block" id="module-4-d4"><div class="section-label">Type it</div><h2>Splits (multiple files visible)</h2><p class="section-intro">From the picker, press <code>Ctrl-v</code> (vsplit) or <code>Ctrl-s</code> (hsplit) instead of <code>Enter</code> to open a file in a split.</p><figure class="tw-codebox tw-keys" id="module-4-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Split keys</span><button class="tw-copy" type="button" aria-label="Copy: Split keys">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">:vsplit file.py</kbd></td><td>Vertical split (side by side)</td></tr><tr><td><kbd class="tw-key">:split file.py</kbd></td><td>Horizontal split (top/bottom)</td></tr><tr><td><kbd class="tw-key">Ctrl-w h/j/k/l</kbd></td><td>Navigate between splits</td></tr><tr><td><kbd class="tw-key">Ctrl-w =</kbd></td><td>Make all splits equal size</td></tr><tr><td><kbd class="tw-key">Ctrl-w _</kbd></td><td>Maximize current split height</td></tr><tr><td><kbd class="tw-key">Ctrl-w |</kbd></td><td>Maximize current split width</td></tr><tr><td><kbd class="tw-key">Ctrl-w q</kbd></td><td>Close current split</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>:vsplit file.py  Vertical split (side by side)
+:split file.py  Horizontal split (top/bottom)
+Ctrl-w h/j/k/l  Navigate between splits
+Ctrl-w =  Make all splits equal size
+Ctrl-w _  Maximize current split height
+Ctrl-w |  Maximize current split width
+Ctrl-w q  Close current split</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> In <code>src/orders.py</code> run <code>/def calc</code>. Press <code>&lt;Space&gt;sf</code>, type <code>report</code>, press <code>Ctrl-v</code>. In the new pane run <code>/def print_report</code>. Flip with <code>Ctrl-w h</code> and <code>Ctrl-w l</code>, then close with <code>Ctrl-w q</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> Two panes open at once, each showing a different file. <code>Ctrl-w h</code> and <code>Ctrl-w l</code> move focus between them without closing either.</p></figure><p class="tw-text">A &quot;Pick window&quot; prompt means the cursor is in the explorer sidebar. Press <code>Esc</code>, then <code>Ctrl-l</code> to reach the code area, or close the explorer with <code>` before splitting.</code></p></section><section class="block" id="module-4-d5"><div class="section-label">Type it</div><h2>Tabs (separate workspaces)</h2><p class="section-intro">A tab is a layout. Each tab has its own arrangement of splits. For switching files, use buffers.</p><figure class="tw-codebox tw-keys" id="module-4-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Tab keys</span><button class="tw-copy" type="button" aria-label="Copy: Tab keys">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">:tabnew</kbd></td><td>New empty tab</td></tr><tr><td><kbd class="tw-key">:tabnew file.py</kbd></td><td>Open file in new tab</td></tr><tr><td><kbd class="tw-key">gt</kbd></td><td>Next tab</td></tr><tr><td><kbd class="tw-key">gT</kbd></td><td>Previous tab</td></tr><tr><td><kbd class="tw-key">:tabclose</kbd></td><td>Close current tab</td></tr><tr><td><kbd class="tw-key">:tabs</kbd></td><td>List all tabs</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>:tabnew  New empty tab
+:tabnew file.py  Open file in new tab
+gt  Next tab
+gT  Previous tab
+:tabclose  Close current tab
+:tabs  List all tabs</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> With <code>src/calculator.py</code> open, run <code>:tabnew tests/test_calculator.py</code>. Flip with <code>gt</code> and <code>gT</code>, then <code>:tabclose</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The test file opens in a brand-new tab: source and tests kept in separate layouts.</p></figure></section><section class="block" id="module-4-d6"><div class="section-label">Type it</div><h2>The leader key</h2><p class="section-intro"><code>&lt;Space&gt;</code> is your leader key. Press it and wait: the which-key popup shows every command group.</p><figure class="tw-codebox tw-keys" id="module-4-d6-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Leader groups</span><button class="tw-copy" type="button" aria-label="Copy: Leader groups">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">&lt;Space&gt;f...</kbd></td><td>Find: files, recent, buffers, config</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;s...</kbd></td><td>Search: grep, keymaps, help, diagnostics, marks</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;g...</kbd></td><td>Git: status, lazygit, blame, diff</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;c...</kbd></td><td>Code: actions, rename, format, symbols</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;x...</kbd></td><td>Diagnostics / Trouble</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;b...</kbd></td><td>Buffer commands</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;t...</kbd></td><td>Test (neotest)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;T...</kbd></td><td>Terminals (float / vertical / horizontal)</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;u...</kbd></td><td>UI toggles; &lt;Space&gt;uC switches colorscheme</td></tr><tr><td><kbd class="tw-key">&lt;Space&gt;1-9</kbd></td><td>Jump to Harpoon file 1-9 (&lt;Space&gt;H adds current file)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>&lt;Space&gt;f...  Find: files, recent, buffers, config
+&lt;Space&gt;s...  Search: grep, keymaps, help, diagnostics, marks
+&lt;Space&gt;g...  Git: status, lazygit, blame, diff
+&lt;Space&gt;c...  Code: actions, rename, format, symbols
+&lt;Space&gt;x...  Diagnostics / Trouble
+&lt;Space&gt;b...  Buffer commands
+&lt;Space&gt;t...  Test (neotest)
+&lt;Space&gt;T...  Terminals (float / vertical / horizontal)
+&lt;Space&gt;u...  UI toggles; &lt;Space&gt;uC switches colorscheme
+&lt;Space&gt;1-9  Jump to Harpoon file 1-9 (&lt;Space&gt;H adds current file)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>&lt;Space&gt;</code>, wait for the popup, press <code>s</code>, then press <code>g</code> and grep for <code>qualifies_for_free_shipping</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The grep finds 4 matches: the definition in <code>src/orders.py</code>, and an import, a comment and the test call in <code>tests/test_orders.py</code>.</p></figure><p class="tw-text">Forgot a key? Press <code>&lt;Space&gt;</code> and read the menu, or <code>&lt;Space&gt;sk</code> to fuzzy-search every keymap by description.</p><figure class="tw-codebox tw-code" id="module-4-d6-b3"><figcaption class="tw-code-head"><span class="tw-where">~/.zshrc</span><span class="tw-code-title">Open Neovim in a folder</span><button class="tw-copy" type="button" aria-label="Copy: Open Neovim in a folder">Copy</button></figcaption><pre class="sq-code"><code>vp() { cd &quot;$1&quot; &amp;&amp; nvim . ; }</code></pre></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Terminals, splits and keys at a glance</h2><details class="rule-card" id="module-4-r1" name="rules-4" open><summary><span><span class="num">01</span>Terminal card</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Terminals inside Neovim.</p><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Ctrl-`</code></td><td>Toggle terminal (root dir)</td></tr><tr><td><code>&lt;Space&gt;ft</code></td><td>Terminal (toggle, root)</td></tr><tr><td><code>&lt;Space&gt;Tf</code></td><td>Terminal float</td></tr><tr><td><code>&lt;Space&gt;Th</code></td><td>Terminal horizontal (bottom)</td></tr><tr><td><code>&lt;Space&gt;Tv</code></td><td>Terminal vertical (right)</td></tr><tr><td><code>Ctrl-\ Ctrl-n</code></td><td>Exit terminal mode → normal</td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r2" name="rules-4"><summary><span><span class="num">02</span>Split from the picker</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Open a found file beside the current one.</p><table><thead><tr><th>Keys</th><th>Result</th></tr></thead><tbody><tr><td><code>Ctrl-v</code></td><td>Open the picked file in a vertical split</td></tr><tr><td><code>Ctrl-s</code></td><td>Open the picked file in a horizontal split</td></tr><tr><td><code>Esc</code> then <code>Ctrl-l</code></td><td>Leave the explorer for the code area when &quot;Pick window&quot; appears</td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r3" name="rules-4"><summary><span><span class="num">03</span>Forgot a key?</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Let Neovim tell you.</p><table><thead><tr><th>Keys</th><th>Result</th></tr></thead><tbody><tr><td><code>&lt;Space&gt;</code></td><td>Wait for the which-key menu</td></tr><tr><td><code>&lt;Space&gt;sk</code></td><td>Fuzzy-search every keymap</td></tr></tbody></table></div></details></section><section class="block" id="module-4-worked"><div class="section-label">Worked application</div><h2>Edit, then test without leaving Neovim</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You change code and want the test result in the same window.</p><p>A code file is open in <code>nvim-drills</code>.</p><figure class="tw-codebox tw-code" id="module-4-worked-code"><figcaption class="tw-code-head"><span class="tw-where">Example</span><span class="tw-code-title">Edit, then test without leaving Neovim</span><button class="tw-copy" type="button" aria-label="Copy: Edit, then test without leaving Neovim">Copy</button></figcaption><pre class="sq-code"><code>pytest</code></pre></figure><ol class="worked-steps"><li>Open a terminal with <code>&lt;Space&gt;th</code> and run <code>pytest</code>.</li><li>Press <code>Ctrl-\ Ctrl-n</code> to leave terminal mode.</li><li>Edit the code and save with <code>:w</code>.</li><li>Press <code>&lt;Space&gt;th</code> to toggle back to the terminal and run it again.</li><li>For separate long-running processes (test watcher, dev server, logs), use tmux panes beside Neovim.</li></ol><div class="result-box"><strong>Why it matters:</strong> The terminal toggles like a drawer, so the editor stays clean. Long-running jobs belong in tmux, where they persist.</div></div></section><section class="block" id="module-4-practice"><div class="section-label">Your turn</div><h2>Practice: buffers, terminals and splits</h2><div class="practice-card" id="module-4-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">What is a buffer, and how is it different from a tab?</p><details class="hint"><summary>hint</summary><p>A file versus a layout.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>A buffer is an open file.</li><li>A tab is an arrangement of splits.</li></ol><div class="solution-final"><strong>Final answer:</strong> A buffer holds a file. A tab holds a layout.</div></div></details></div><div class="practice-card" id="module-4-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which keys open the picked file in a vertical split?</p><details class="hint"><summary>hint</summary><p>Not Enter.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>&lt;Space&gt;sf</code> and find the file.</li><li>Press <code>Ctrl-v</code> instead of <code>Enter</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-v</code>.</div></div></details></div><div class="practice-card" id="module-4-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Run <code>pytest</code> and then get back to editing.</p><details class="hint"><summary>hint</summary><p>Toggle the terminal and leave terminal mode.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Open the terminal and run <code>pytest</code>.</li><li>Press <code>Ctrl-\ Ctrl-n</code>.</li><li>Toggle the terminal closed.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-`, </code>pytest<code>, </code>Ctrl-\ Ctrl-n<code>, then toggle closed.</code></div></div></details></div><div class="practice-card" id="module-4-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Pressing <code>Ctrl-h</code> in a terminal does not move to the split. Why?</p><details class="hint"><summary>hint</summary><p>Which mode are you in?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Terminal mode sends the key to the shell.</li><li>Press <code>Ctrl-\ Ctrl-n</code> first.</li></ol><div class="solution-final"><strong>Final answer:</strong> Leave terminal mode before navigating.</div></div></details></div></section></section>
+    </main>
+    <nav class="tabbar" aria-label="Page navigation">
+      <div class="tabbar-inner">
+        <button id="prevBtn" class="nav-arrow" type="button" aria-label="Previous page">‹</button>
+        <div id="tabs" class="tabs sq-tabs" role="tablist" aria-label="Pages"></div>
+        <button id="nextBtn" class="nav-arrow" type="button" aria-label="Next page">›</button>
+        <span id="progressMini" class="progress-mini" aria-live="polite">1/4</span>
+      </div>
+    </nav>
+    <nav class="group-nav" aria-label="Course modules">
+      <a rel="prev" href="../m1-tmux/m1-tmux.html">← tmux and the shell</a>
+      <a rel="next" href="../m3-power-editing/m3-power-editing.html">Power editing →</a>
+    </nav>
+    <footer>
+      <strong>Module 2 · Neovim essentials</strong><br />Open, move, search, edit, undo; buffers, terminals, splits, tabs and the leader key
+    </footer>
+    <script>window.TW_GLOSSARY = [{"id": "tw-prefix", "label": "Prefix key", "forms": ["prefix key", "prefix"], "definition": "The key you press first to tell tmux that the next key is a tmux command. Here: Ctrl-a."}, {"id": "tw-session", "label": "Session", "forms": ["session", "sessions"], "definition": "A tmux workspace that keeps running when you close the terminal window. You re-attach to it later."}, {"id": "tw-pane", "label": "Pane", "forms": ["pane", "panes"], "definition": "One rectangle inside a tmux window. Each pane runs its own shell."}, {"id": "tw-buffer", "label": "Buffer", "forms": ["buffer", "buffers"], "definition": "A file loaded into Neovim's memory. You edit the buffer, and saving writes it to disk."}, {"id": "tw-register", "label": "Register", "forms": ["register", "registers"], "definition": "A named slot in Neovim that holds text: yanked, deleted or typed."}, {"id": "tw-worktree", "label": "Worktree", "forms": ["worktree", "worktrees"], "definition": "A second folder checked out from the same git repository, on its own branch."}, {"id": "tw-leader", "label": "Leader key", "forms": ["leader key", "leader"], "definition": "A key you press first to start your own Neovim shortcuts. Here: Space."}, {"id": "tw-picker", "label": "Picker", "forms": ["picker", "pickers"], "definition": "A pop-up list you filter by typing, such as the file finder."}, {"id": "tw-hunk", "label": "Hunk", "forms": ["hunk", "hunks"], "definition": "One block of changed lines in a git diff."}, {"id": "tw-quickfix", "label": "Quickfix list", "forms": ["quickfix list", "quickfix"], "definition": "A list of locations, such as search hits or errors, that you step through one by one."}, {"id": "tw-lsp", "label": "LSP", "forms": ["LSP"], "definition": "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."}];</script>
+    <script src="../_shared/search-index.js?v=6de6753e2c"></script>
+    <script>
+/* Course page behaviour: tabs, hash links, rule cards, glossary. Base from the SQL course. */
+
+"use strict";
+document.documentElement.classList.add("js-ready");
+const lessons = Array.from(document.querySelectorAll(".lesson"));
+const tabsHost = document.getElementById("tabs");
+const previousButton = document.getElementById("prevBtn");
+const nextButton = document.getElementById("nextBtn");
+const progress = document.getElementById("progressMini");
+let activeLesson = 0;
+const tabs = lessons.map((lesson, index) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "tab";
+  button.id = `tab-${index + 1}`;
+  button.setAttribute("role", "tab");
+  button.setAttribute("aria-controls", lesson.id);
+  button.setAttribute("aria-label", `Open page ${index + 1}`);
+  button.textContent = String(index + 1);
+  button.addEventListener("click", () => goTo(index));
+  tabsHost.append(button);
+  return button;
+});
+function showLesson(index, options = {}) {
+  activeLesson = Math.max(0, Math.min(index, lessons.length - 1));
+  lessons.forEach((lesson, position) => {
+    const selected = position === activeLesson;
+    lesson.classList.toggle("active", selected);
+    lesson.setAttribute("aria-hidden", String(!selected));
+    tabs[position].classList.toggle("active", selected);
+    tabs[position].setAttribute("aria-selected", String(selected));
+    tabs[position].tabIndex = selected ? 0 : -1;
+  });
+  previousButton.disabled = activeLesson === 0;
+  nextButton.disabled = activeLesson === lessons.length - 1;
+  progress.textContent = `${activeLesson + 1}/${lessons.length}`;
+  if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
+}
+// Tab moves rewrite the hash without a new history entry, so reload and shared links keep the page.
+function goTo(index) {
+  showLesson(index);
+  history.replaceState(null, "", `#${lessons[activeLesson].id}`);
+}
+previousButton.addEventListener("click", () => goTo(activeLesson - 1));
+nextButton.addEventListener("click", () => goTo(activeLesson + 1));
+tabsHost.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight") { event.preventDefault(); goTo(activeLesson + 1); tabs[activeLesson].focus(); }
+  if (event.key === "ArrowLeft") { event.preventDefault(); goTo(activeLesson - 1); tabs[activeLesson].focus(); }
+});
+
+const HIT_FLASH_MS = 1600;
+// Any id inside a page works as a deep link: open its tab, open its details, then scroll to it.
+function routeToHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const target = id && document.getElementById(id);
+  const lesson = target && target.closest(".lesson");
+  if (!lesson) return false;
+  showLesson(lessons.indexOf(lesson), { scroll: false });
+  for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: "start" });
+    if (target === lesson) return;
+    target.classList.add("tw-hit");
+    setTimeout(() => target.classList.remove("tw-hit"), HIT_FLASH_MS);
+  });
+  return true;
+}
+addEventListener("hashchange", routeToHash);
+if (!routeToHash()) showLesson(0);
+
+if (!("name" in HTMLDetailsElement.prototype)) {
+  document.querySelectorAll(".rule-card").forEach((card) => {
+    card.addEventListener("toggle", () => {
+      if (!card.open || !card.getAttribute("name")) return;
+      const name = card.getAttribute("name");
+      document.querySelectorAll(`.rule-card[name="${name}"]`).forEach((other) => {
+        if (other !== card && other.open) other.open = false;
+      });
+    });
+  });
+}
+
+(function () {
+  const glossaryEntries = window.TW_GLOSSARY || [];
+      const glossaryFormMap = new Map();
+      glossaryEntries.forEach(function (entry) {
+        entry.forms.forEach(function (form) {
+          glossaryFormMap.set(form.toLowerCase(), entry);
+        });
+      });
+      const glossaryForms = [...glossaryFormMap.keys()].sort(function (a, b) {
+        return b.length - a.length;
+      });
+      const glossaryPattern = new RegExp(
+        "\\b(" +
+          glossaryForms
+            .map(function (term) {
+              return term.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+            })
+            .join("|") +
+          ")\\b",
+        "gi",
+      );
+      const glossarySkip =
+        "button,a,summary,label,input,select,option,textarea,code,pre,script,style,noscript,svg,.tw-codebox,.tw-search,.tw-search-btn,kbd,.glossary-popover,.glossary-term,.eyebrow,.kitchen-strip";
+      const glossarySection = 'section[id^="module-"]';
+
+      function applyGlossary(scope) {
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode: function (node) {
+            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest(glossarySkip))
+              return NodeFilter.FILTER_REJECT;
+            glossaryPattern.lastIndex = 0;
+            return glossaryPattern.test(node.nodeValue)
+              ? NodeFilter.FILTER_ACCEPT
+              : NodeFilter.FILTER_REJECT;
+          },
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function (node) {
+          const text = node.nodeValue;
+          // One link per term per page. The DOM is the record: the observer below re-runs this on every caption change.
+          const section = node.parentElement.closest(glossarySection);
+          const linkedHere = new Set();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          glossaryPattern.lastIndex = 0;
+          let match;
+          while ((match = glossaryPattern.exec(text))) {
+            const entry = glossaryFormMap.get(match[0].toLowerCase());
+            if (
+              section &&
+              (linkedHere.has(entry.id) ||
+                section.querySelector(
+                  '.glossary-term[data-glossary="' + entry.id + '"]',
+                ))
+            )
+              continue;
+            if (match.index > cursor)
+              fragment.append(
+                document.createTextNode(text.slice(cursor, match.index)),
+              );
+            const term = document.createElement("button");
+            term.type = "button";
+            term.className = "glossary-term";
+            term.dataset.glossary = entry.id;
+            term.setAttribute("aria-haspopup", "dialog");
+            term.setAttribute("aria-expanded", "false");
+            term.setAttribute("aria-label", match[0] + ": open definition");
+            term.textContent = match[0];
+            fragment.append(term);
+            linkedHere.add(entry.id);
+            cursor = match.index + match[0].length;
+          }
+          // Nothing linked: leave the node alone, or the observer would loop forever.
+          if (!linkedHere.size) return;
+          if (cursor < text.length)
+            fragment.append(document.createTextNode(text.slice(cursor)));
+          node.replaceWith(fragment);
+        });
+      }
+
+      const glossaryPopover = document.createElement("aside");
+      glossaryPopover.className = "glossary-popover";
+      glossaryPopover.id = "glossary-popover";
+      glossaryPopover.hidden = true;
+      glossaryPopover.setAttribute("role", "dialog");
+      glossaryPopover.setAttribute("aria-label", "Term definition");
+      glossaryPopover.innerHTML =
+        '<button class="glossary-close" type="button" aria-label="Close definition">×</button><strong class="glossary-title"></strong><p class="glossary-definition"></p><span class="glossary-meta">Definition · Press Esc or click elsewhere to close</span>';
+      document.body.append(glossaryPopover);
+
+      let activeGlossaryTerm = null;
+      function closeGlossary() {
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = null;
+        glossaryPopover.hidden = true;
+      }
+      function positionGlossary(term) {
+        const gap = 13,
+          margin = 12,
+          termRect = term.getBoundingClientRect();
+        glossaryPopover.classList.remove("below");
+        glossaryPopover.hidden = false;
+        const popRect = glossaryPopover.getBoundingClientRect();
+        const left = Math.max(
+          margin,
+          Math.min(
+            innerWidth - popRect.width - margin,
+            termRect.left + termRect.width / 2 - popRect.width / 2,
+          ),
+        );
+        let top = termRect.top - popRect.height - gap;
+        if (top < margin) {
+          top = termRect.bottom + gap;
+          glossaryPopover.classList.add("below");
+        }
+        const pointer = Math.max(
+          16,
+          Math.min(
+            popRect.width - 16,
+            termRect.left + termRect.width / 2 - left,
+          ),
+        );
+        glossaryPopover.style.left = left + "px";
+        glossaryPopover.style.top =
+          Math.min(top, innerHeight - popRect.height - margin) + "px";
+        glossaryPopover.style.setProperty("--pointer-x", pointer + "px");
+      }
+      function openGlossary(term) {
+        const entry = glossaryEntries.find(function (item) {
+          return item.id === term.dataset.glossary;
+        });
+        if (!entry) return;
+        if (activeGlossaryTerm === term && !glossaryPopover.hidden) {
+          closeGlossary();
+          return;
+        }
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = term;
+        term.setAttribute("aria-expanded", "true");
+        glossaryPopover.querySelector(".glossary-title").textContent =
+          entry.label;
+        glossaryPopover.querySelector(".glossary-definition").textContent =
+          entry.definition;
+        positionGlossary(term);
+      }
+      document.addEventListener("click", function (event) {
+        const term = event.target.closest(".glossary-term");
+        if (term) {
+          event.preventDefault();
+          event.stopPropagation();
+          openGlossary(term);
+          return;
+        }
+        if (event.target.closest(".glossary-close")) {
+          closeGlossary();
+          return;
+        }
+        if (!event.target.closest(".glossary-popover")) closeGlossary();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !glossaryPopover.hidden) {
+          const term = activeGlossaryTerm;
+          closeGlossary();
+          if (term) term.focus();
+        }
+      });
+      addEventListener("resize", closeGlossary);
+      addEventListener("scroll", closeGlossary, true);
+
+      const glossaryRoot = document.querySelector("main");
+      applyGlossary(glossaryRoot);
+      let glossaryQueued = false;
+      new MutationObserver(function () {
+        if (glossaryQueued) return;
+        glossaryQueued = true;
+        requestAnimationFrame(function () {
+          glossaryQueued = false;
+          applyGlossary(glossaryRoot);
+        });
+      }).observe(glossaryRoot, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+    })();
+
+    </script>
+    <script>
+/* Site behaviour shared by every page: copy buttons and site-wide search. */
+"use strict";
+(function () {
+  const MAX_RESULTS = 40;
+  const COPY_RESET_MS = 1500;
+  const KIND_LABEL = { p: "Page", h: "Section", c: "Command", k: "Key", t: "Text" };
+  const KIND_WEIGHT = { c: 30, k: 30, h: 20, p: 15, t: 0 };
+  const PHRASE_BONUS = 100, START_BONUS = 50, SAME_FILE_BONUS = 5;
+  const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
+  const root = document.body.dataset.root || "";
+  const here = document.body.dataset.file || "index.html";
+  const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
+
+  // Vim and tmux spellings of the same key must meet: "<C-w>v" and "Ctrl-w v" both become "ctrl-w v".
+  function norm(s) {
+    return String(s).toLowerCase()
+      .replace(/<c-([^>]+)>/g, " ctrl-$1 ")
+      .replace(/<leader>/g, "<space>")
+      .replace(/\bctrl\+/g, "ctrl-")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  // ---- copy
+  function legacyCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    area.remove();
+    return ok;
+  }
+  async function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+    }
+    return legacyCopy(text);
+  }
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".tw-copy");
+    if (!button) return;
+    const box = button.closest(".tw-codebox");
+    const source = box && (box.querySelector(".tw-copy-src code") || box.querySelector("pre.sq-code code"));
+    if (!source) return;
+    const ok = await copyText(source.textContent);
+    button.textContent = ok ? "Copied" : "Copy failed";
+    clearTimeout(button._twReset);
+    button._twReset = setTimeout(() => { button.textContent = "Copy"; }, COPY_RESET_MS);
+  });
+
+  // ---- search
+  const dialog = document.getElementById("tw-search");
+  const input = document.getElementById("tw-q");
+  const list = document.getElementById("tw-results");
+  const openButton = document.querySelector(".tw-search-btn");
+  if (!dialog || !input || !list) return;
+
+  let cache = null;
+  let active = -1;
+  let shown = [];
+  let lastFocus = null;
+
+  function index() {
+    const data = window.TW_SEARCH;
+    if (!data) return null;
+    if (!cache) {
+      cache = {
+        both: data.items.map((it) => norm(it[4] + " " + it[5])),
+        text: data.items.map((it) => norm(it[5])),
+      };
+    }
+    return cache;
+  }
+
+  function isOpen() { return !dialog.hidden; }
+
+  function openSearch() {
+    if (isOpen()) return;
+    lastFocus = document.activeElement;
+    dialog.hidden = false;
+    document.body.classList.add("tw-search-open");
+    input.focus();
+    input.select();
+  }
+
+  function closeSearch() {
+    if (!isOpen()) return;
+    dialog.hidden = true;
+    document.body.classList.remove("tw-search-open");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function search(q) {
+    const data = window.TW_SEARCH;
+    const c = index();
+    if (!data || !c) return [];
+    const tokens = q.split(" ");
+    const hits = [];
+    data.items.forEach((it, i) => {
+      const hay = c.both[i];
+      if (!tokens.every((t) => hay.includes(t))) return;
+      let score = KIND_WEIGHT[it[0]] || 0;
+      if (hay.includes(q)) score += PHRASE_BONUS;
+      if (c.text[i].startsWith(q)) score += START_BONUS;
+      if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
+      score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
+      hits.push({ i, score });
+    });
+    hits.sort((a, b) => b.score - a.score || a.i - b.i);
+    return hits.slice(0, MAX_RESULTS).map((h) => data.items[h.i]);
+  }
+
+  // Mark every case-insensitive literal occurrence of a token, using text nodes only.
+  function highlight(host, text, tokens) {
+    const lower = text.toLowerCase();
+    const marked = new Array(text.length).fill(false);
+    tokens.forEach((t) => {
+      if (!t) return;
+      for (let at = lower.indexOf(t); at !== -1; at = lower.indexOf(t, at + t.length)) {
+        for (let k = at; k < at + t.length; k++) marked[k] = true;
+      }
+    });
+    let start = 0;
+    while (start < text.length) {
+      let end = start;
+      while (end < text.length && marked[end] === marked[start]) end++;
+      const piece = text.slice(start, end);
+      if (marked[start]) {
+        const mark = document.createElement("mark");
+        mark.textContent = piece;
+        host.append(mark);
+      } else {
+        host.append(document.createTextNode(piece));
+      }
+      start = end;
+    }
+  }
+
+  function setActive(next) {
+    const options = list.querySelectorAll('[role="option"]');
+    if (!options.length) return;
+    active = (next + options.length) % options.length;
+    options.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    input.setAttribute("aria-activedescendant", options[active].id);
+    options[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function render(q) {
+    list.replaceChildren();
+    input.removeAttribute("aria-activedescendant");
+    shown = [];
+    active = -1;
+    if (!q) { input.setAttribute("aria-expanded", "false"); return; }
+    input.setAttribute("aria-expanded", "true");
+    shown = search(q);
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "tw-r-text";
+      li.textContent = "No match. Try a key like Ctrl-w or a command like git worktree.";
+      list.append(li);
+      return;
+    }
+    const data = window.TW_SEARCH;
+    const tokens = q.split(" ");
+    shown.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.id = `tw-r-${i}`;
+      li.setAttribute("role", "option");
+      const mod = data.mods[it[1]];
+      const meta = document.createElement("div");
+      meta.className = "tw-r-meta";
+      const kind = document.createElement("span");
+      kind.className = "tw-r-kind";
+      kind.textContent = KIND_LABEL[it[0]] || it[0];
+      meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
+      const title = document.createElement("div");
+      title.className = "tw-r-title";
+      title.textContent = it[4];
+      const snippet = document.createElement("div");
+      snippet.className = "tw-r-text";
+      highlight(snippet, it[5], tokens);
+      li.append(meta, title, snippet);
+      li.addEventListener("click", () => go(it));
+      list.append(li);
+    });
+    setActive(0);
+  }
+
+  function go(it) {
+    const file = window.TW_SEARCH.files[it[1]];
+    const target = it[3];
+    closeSearch();
+    if (file === here) {
+      if (location.hash === "#" + target) dispatchEvent(new HashChangeEvent("hashchange"));
+      else location.hash = target;
+    } else {
+      location.href = root + file + "#" + target;
+    }
+  }
+
+  input.addEventListener("input", () => render(norm(input.value)));
+  if (openButton) openButton.addEventListener("click", openSearch);
+  dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
+
+  document.addEventListener("keydown", (event) => {
+    if (isOpen()) {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSearch(); }
+      else if (event.key === "ArrowDown") { event.preventDefault(); setActive(active + 1); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); setActive(active - 1); }
+      else if (event.key === "Enter" && shown[active]) { event.preventDefault(); go(shown[active]); }
+      return;
+    }
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+    event.preventDefault();
+    openSearch();
+  }, true);
+})();
+
+    </script>
+  </body>
+</html>
