@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Worktrees and the agent loop — Terminal Workflow</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <style>
+/* Terminal Workflow course styles. Base from the SQL course.
+   Fonts are local files so the course runs offline. */
+@font-face{font-family:"Kalam";font-weight:400;font-display:swap;src:url("../_shared/fonts/kalam-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Kalam";font-weight:700;font-display:swap;src:url("../_shared/fonts/kalam-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;font-display:swap;src:url("../_shared/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("../_shared/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("../_shared/fonts/inter-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:700;font-display:swap;src:url("../_shared/fonts/inter-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:600;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2")}
+:root {
+  --board: #1c2b24;
+  --alt: #17231d;
+  --raised: #213328;
+  --chalk: #ede6d6;
+  --dim: #9faea3;
+  --gold: #e8c468;
+  --gold-dim: #b99a54;
+  --blue: #7fa8c9;
+  --coral: #e2897d;
+  --mint: #8fc9a8;
+  --line: rgba(237, 230, 214, 0.14);
+  --soft: rgba(237, 230, 214, 0.07);
+  --r: 10px;
+  --display: "Kalam", cursive;
+  --body: "Inter", -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: var(--chalk);
+  background:
+    radial-gradient(
+      ellipse at 10% 0,
+      rgba(127, 168, 201, 0.07),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 100%,
+      rgba(232, 196, 104, 0.06),
+      transparent 48%
+    ),
+    var(--board);
+  font: 15px/1.62 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+a {
+  color: var(--blue);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+::selection {
+  color: var(--board);
+  background: var(--gold);
+}
+main,
+footer,
+.tabbar-inner,
+.group-nav {
+  width: min(780px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.lesson {
+  display: none;
+}
+.lesson.active {
+  display: block;
+  animation: rise 0.35s ease both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+.lesson-header {
+  padding: 46px 0 26px;
+  text-align: center;
+}
+.eyebrow,
+.section-label,
+.label {
+  color: var(--blue);
+  font: 600 11px/1.3 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  color: var(--gold);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.18;
+}
+h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 6vw, 43px);
+}
+h2 {
+  margin: 4px 0 9px;
+  font-size: 26px;
+}
+h3 {
+  margin: 16px 0 6px;
+  font-size: 20px;
+}
+p {
+  margin: 8px 0;
+}
+.subtitle,
+.section-intro,
+.lede {
+  color: var(--dim);
+}
+.subtitle {
+  max-width: 560px;
+  margin-inline: auto;
+}
+.rule {
+  width: 120px;
+  height: 2px;
+  margin: 24px auto 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--dim) 0 6px,
+    transparent 6px 12px
+  );
+}
+.block {
+  margin-top: 44px;
+}
+.one-idea,
+.word-problem {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--raised);
+}
+.one-idea {
+  text-align: center;
+}
+.one-idea .tag,
+.word-problem .tag {
+  color: var(--gold);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.one-idea > p {
+  margin-top: 12px;
+  font-size: 17px;
+}
+.one-idea em {
+  color: var(--gold);
+  font-style: normal;
+  border-bottom: 2px dashed var(--gold-dim);
+}
+.one-idea .kitchen-links {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.one-idea .kitchen-links li {
+  margin-top: 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+.one-idea .kitchen-links li:first-child {
+  margin-top: 0;
+}
+.one-idea .kitchen-links strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+.one-idea .kitchen-links .kl-nowrap {
+  white-space: nowrap;
+}
+.term-definition {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+  font-size: 13px;
+  text-align: left;
+}
+.term-definition strong,
+.rule-body strong,
+.solution-body strong {
+  color: var(--chalk);
+}
+.explorer {
+  margin-top: 16px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.control label,
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--dim);
+  font: 12px var(--mono);
+}
+output,
+.val {
+  color: var(--gold);
+  font-weight: 600;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.button-row,
+.arch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.btn,
+.toggle-btn {
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.btn:hover,
+.btn[aria-pressed="true"],
+.toggle-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.stage,
+.arch-stage {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.stage svg,
+.arch-stage svg {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+}
+.wire {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 4;
+}
+.node {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.node.hot {
+  fill: rgba(232, 196, 104, 0.16);
+  stroke: var(--gold);
+}
+.node.off {
+  fill: rgba(226, 137, 125, 0.08);
+  stroke: var(--coral);
+}
+.svg-label {
+  fill: var(--chalk);
+  font: 600 12px var(--mono);
+  text-anchor: middle;
+}
+.svg-small {
+  fill: var(--dim);
+  font: 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-node {
+  opacity: 0.14;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  transform: translateY(4px);
+}
+.arch-node.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.arch-node rect {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 1.5;
+}
+.arch-node.is-current rect {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.arch-node text {
+  fill: var(--chalk);
+  font: 600 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-link {
+  opacity: 0.12;
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.arch-link.is-visible {
+  opacity: 0.85;
+}
+.readout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: var(--board);
+}
+.fact {
+  min-width: 0;
+}
+.fact.wide {
+  grid-column: 1/-1;
+}
+.tiny {
+  display: block;
+  color: var(--dim);
+  font: 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fact p {
+  overflow-wrap: anywhere;
+}
+.rule-card,
+.practice-card {
+  margin-bottom: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.rule-card summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.rule-card summary::-webkit-details-marker,
+.hint summary::-webkit-details-marker,
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+.num,
+.q-num {
+  color: var(--gold-dim);
+  font: 600 12px var(--mono);
+}
+.chevron::after {
+  content: "⌄";
+  color: var(--dim);
+}
+.rule-body {
+  padding: 15px 18px 18px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+}
+.rule-body p:first-child {
+  margin-top: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid var(--soft);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  text-transform: uppercase;
+}
+code {
+  color: var(--gold);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+.word-problem {
+  margin-top: 14px;
+}
+.worked-steps {
+  padding-left: 22px;
+}
+.worked-steps li + li,
+.solution-steps li + li {
+  margin-top: 7px;
+}
+.result-box,
+.interview-answer {
+  margin-top: 13px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  background: rgba(232, 196, 104, 0.06);
+}
+.review-mistakes li::marker {
+  color: var(--coral);
+}
+.practice-card {
+  position: relative;
+  padding: 16px 18px;
+}
+.q-num {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+}
+.q-kind {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.q-text {
+  padding-right: 40px;
+}
+.hint,
+.solution {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+}
+.hint summary,
+.solution summary {
+  color: var(--blue);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+  list-style: none;
+}
+.solution summary {
+  color: var(--mint);
+}
+.hint p,
+.solution-body {
+  color: var(--dim);
+  font-size: 13.5px;
+}
+.solution-steps {
+  padding-left: 22px;
+}
+.solution-final {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--mint);
+  background: rgba(143, 201, 168, 0.08);
+}
+.tabbar {
+  margin-top: 52px;
+  padding: 14px 0;
+  border-block: 1px solid var(--line);
+  background: var(--alt);
+}
+.tabbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+}
+.tab,
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.tab.active {
+  color: var(--board);
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.nav-arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.progress-mini {
+  min-width: 94px;
+  color: var(--dim);
+  font: 11px var(--mono);
+  text-align: right;
+}
+.group-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+}
+footer {
+  padding: 35px 0 70px;
+  color: var(--dim);
+  text-align: center;
+}
+.no-js-note {
+  padding: 10px 24px;
+  color: var(--coral);
+  text-align: center;
+}
+@media (max-width: 650px) {
+  main,
+  footer,
+  .tabbar-inner,
+  .group-nav {
+    width: min(100% - 28px, 780px);
+  }
+  .controls,
+  .readout {
+    grid-template-columns: 1fr;
+  }
+  .fact.wide {
+    grid-column: auto;
+  }
+  .stage svg,
+  .arch-stage svg {
+    min-width: 540px;
+  }
+  .explorer {
+    padding: 17px 14px;
+  }
+  .progress-mini {
+    min-width: 73px;
+    font-size: 10px;
+  }
+  .group-nav {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabs.sq-tabs{justify-content:flex-start}
+    /* contextual glossary v1 */
+.glossary-term {
+  position: relative;
+  display: inline;
+  margin: 0;
+  padding: 0 1px;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 196, 104, 0.72);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='%23E8C468' stroke='%231C2B24' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-family='Arial' font-size='16' font-weight='700' fill='%231C2B24'%3E%3F%3C/text%3E%3C/svg%3E")
+      14 14,
+    help;
+  text-decoration: none;
+  transition:
+    color 0.16s,
+    background 0.16s,
+    border-color 0.16s;
+}
+.glossary-term:hover,
+.glossary-term:focus-visible,
+.glossary-term[aria-expanded="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: rgba(232, 196, 104, 0.08);
+  outline: none;
+}
+.glossary-term:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--board),
+    0 0 0 4px var(--gold);
+}
+.glossary-term::after {
+  content: "?";
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--board);
+  font: 700 11px/1 var(--mono);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px) scale(0.72);
+  transition:
+    opacity 0.14s,
+    transform 0.14s;
+}
+.glossary-term:hover::after,
+.glossary-term:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.glossary-popover {
+  --pointer-x: 50%;
+  position: fixed;
+  z-index: 1000;
+  width: min(430px, calc(100vw - 24px));
+  padding: 16px 42px 15px 17px;
+  border: 1px solid rgba(232, 196, 104, 0.48);
+  border-radius: 11px;
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(0, 0, 0, 0.08)
+    ),
+    var(--raised);
+  color: var(--chalk);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(28, 43, 36, 0.85);
+  animation: glossary-arrive 0.16s ease both;
+}
+.glossary-popover[hidden] {
+  display: none;
+}
+.glossary-popover::after {
+  content: "";
+  position: absolute;
+  left: var(--pointer-x);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid rgba(232, 196, 104, 0.48);
+  border-bottom: 1px solid rgba(232, 196, 104, 0.48);
+  background: var(--raised);
+  transform: translateX(-50%) rotate(-45deg);
+}
+.glossary-popover.below::after {
+  top: -6px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(135deg);
+}
+.glossary-popover strong {
+  display: inline;
+  color: var(--gold);
+  font: 600 15px/1.4 var(--body);
+}
+.glossary-popover strong::after {
+  content: " —";
+  color: var(--dim);
+}
+.glossary-popover p {
+  display: inline;
+  margin: 0;
+  color: #c8d0ca;
+  font-size: 14px;
+  line-height: 1.58;
+}
+.glossary-meta {
+  display: block;
+  margin-top: 10px;
+  color: var(--dim);
+  font: 10px/1.4 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.glossary-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font: 18px/1 var(--body);
+}
+.glossary-close:hover,
+.glossary-close:focus-visible {
+  background: rgba(232, 196, 104, 0.1);
+  color: var(--gold);
+}
+@keyframes glossary-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (max-width: 650px) {
+  .glossary-popover {
+    padding: 15px 40px 14px 15px;
+  }
+  .glossary-popover p {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glossary-popover,
+  .glossary-term::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+
+.sq-code{margin:10px 0;padding:12px 14px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#121c17;color:var(--chalk);font:500 13px/1.55 var(--mono);white-space:pre}
+.sq-code code{padding:0;border:0;background:none;color:inherit;font:inherit}
+.rule-body table{display:block;overflow-x:auto;max-width:100%}
+
+/* Terminal Workflow additions */
+.tw-codebox{margin:14px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--alt);overflow:hidden}
+.tw-code-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.tw-where{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.tw-code-title{flex:1;min-width:0;overflow-wrap:anywhere;color:var(--chalk);font-weight:500}
+.tw-copy{min-height:32px;padding:4px 12px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;font:600 12px var(--mono)}
+.tw-copy:hover{background:rgba(232,196,104,.12)}
+.tw-codebox .sq-code{margin:0;border:0;border-radius:0}
+.tw-expect,.tw-try{margin:0;padding:10px 12px;border-top:1px solid var(--line);color:var(--chalk);font-size:14px}
+.tw-expect-label{display:inline-block;margin-right:8px;color:var(--mint);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-try .tw-expect-label{color:var(--gold)}
+.tw-scroll{overflow-x:auto;max-width:100%}
+.tw-keytable{width:100%;border-collapse:collapse}
+.tw-keytable td{padding:7px 12px;border-top:1px solid var(--soft);vertical-align:top}
+.tw-keytable tr:first-child td{border-top:0}
+.tw-keytable td:first-child{white-space:nowrap}
+.tw-key{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--raised);color:var(--chalk);font:500 12.5px var(--mono)}
+.tw-text{margin:12px 0;color:var(--chalk)}
+[id^="module-"]{scroll-margin-top:72px}
+.tw-hit{outline:2px solid var(--gold);outline-offset:4px}
+.tw-search-btn{position:fixed;top:12px;right:12px;z-index:40;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-search-btn:hover{border-color:var(--gold)}
+.tw-search-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-search[hidden]{display:none}
+.tw-search{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55)}
+.tw-search-panel{display:flex;flex-direction:column;width:min(680px,calc(100% - 24px));max-height:80vh;margin:8vh auto 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--board)}
+.tw-q{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);font-size:16px}
+.tw-results{flex:1;margin:10px 0 0;padding:0;overflow-y:auto;list-style:none}
+.tw-results [role=option]{padding:8px 10px;border:1px solid transparent;border-radius:8px;cursor:pointer}
+.tw-results [role=option][aria-selected=true]{border-color:var(--gold);background:var(--soft)}
+.tw-results mark{background:rgba(232,196,104,.25);color:inherit}
+.tw-r-meta{overflow:hidden;color:var(--dim);font:11px var(--mono);text-overflow:ellipsis;white-space:nowrap}
+.tw-r-kind{margin-right:8px;color:var(--blue);font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-r-title{font-weight:600}
+.tw-r-text{color:var(--dim);font-size:13px;overflow-wrap:anywhere}
+.tw-search-foot{margin:8px 0 0;color:var(--dim);font:11px var(--mono)}
+@media (max-width:480px){.tw-search-btn kbd{display:none}}
+body.tw-search-open{overflow:hidden}
+
+    </style>
+  </head>
+  <body data-root="../" data-file="m4-worktrees/m4-worktrees.html">
+    <button class="tw-search-btn" type="button" aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
+    <main id="lessonRoot">
+<section class="lesson sq-page active" id="module-1" data-module="1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false"><header class="lesson-header"><div class="eyebrow">Worktrees and the agent loop · Page 1 of 4</div><h1>Parallel branches without stashing</h1><p class="subtitle">Check out several branches at once, each in its own folder.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>A worktree is another folder on another branch, sharing one git history.</p><ul class="kitchen-links"><li><strong>Create <span class="kl-nowrap">→ git worktree add ../dir -b branch.</span></strong> A new folder on a new branch.</li><li><strong>List <span class="kl-nowrap">→ git worktree list.</span></strong> Every folder and its branch.</li><li><strong>Remove <span class="kl-nowrap">→ git worktree remove ../dir.</span></strong> Deletes the folder.</li><li><strong>Prune <span class="kl-nowrap">→ git worktree prune.</span></strong> Clears stale entries.</li></ul></div></div><div class="block" id="module-1-problem"><div class="word-problem"><span class="tag">The problem</span><p>Mid-feature, a hotfix lands. You stash, switch branches, switch back and hope the stash pops cleanly.</p><div class="result-box"><strong>The fix:</strong> Give each branch its own folder with <code>git worktree add</code>. No stashing, no switching.</div></div></div><section class="block" id="module-1-d1"><div class="section-label">Type it</div><h2>The problem worktrees solve</h2><p class="section-intro">Compare the painful way with the worktree way.</p><figure class="tw-codebox tw-code" id="module-1-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Without worktrees</span><span class="tw-code-title">Stash and switch, then worktrees</span><button class="tw-copy" type="button" aria-label="Copy: Stash and switch, then worktrees">Copy</button></figcaption><pre class="sq-code"><code># Without worktrees (painful):
+git stash
+git checkout other-branch
+# do work...
+git checkout original-branch
+git stash pop              # hope nothing conflicts
+
+# With worktrees (instant):
+# main branch → ~/projects/myapp/
+# feature branch → ~/projects/myapp-feature/
+# Both exist simultaneously. No stashing. No switching.</code></pre></figure></section><section class="block" id="module-1-d2"><div class="section-label">Type it</div><h2>Create your first worktree</h2><p class="section-intro">Run this in your project on the main branch. <code>-b feature/payments</code> creates the branch from the current HEAD. <code>../myapp-payments/</code> is the new directory.</p><figure class="tw-codebox tw-cmd" id="module-1-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create a worktree for a new feature</span><button class="tw-copy" type="button" aria-label="Copy: Create a worktree for a new feature">Copy</button></figcaption><pre class="sq-code"><code># You&#x27;re in your project on main branch
+cd ~/projects/myapp
+
+# Create a worktree for a new feature
+git worktree add ../myapp-payments -b feature/payments
+
+# Verify:
+git worktree list</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git worktree list</code> shows two lines: <code>/Users/you/projects/myapp</code> on <code>[main]</code> and <code>/Users/you/projects/myapp-payments</code> on <code>[feature/payments]</code>.</p></figure><p class="tw-text">Two directories. Two branches. Both fully functional. Same git history: no cloning, no disk waste.</p></section><section class="block" id="module-1-d3"><div class="section-label">Type it</div><h2>Work in the worktree</h2><p class="section-intro">Changes here only affect <code>feature/payments</code>. Main in <code>../myapp/</code> stays untouched.</p><figure class="tw-codebox tw-cmd" id="module-1-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Step into the new folder</span><button class="tw-copy" type="button" aria-label="Copy: Step into the new folder">Copy</button></figcaption><pre class="sq-code"><code>cd ../myapp-payments
+ls                        # same files, but this is the feature branch
+git branch                # confirms: feature/payments</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> shows the same files as main. <code>git branch</code> confirms <code>feature/payments</code>.</p></figure></section><section class="block" id="module-1-d4"><div class="section-label">Type it</div><h2>Different base branches</h2><p class="section-intro">Choose where the new branch starts.</p><figure class="tw-codebox tw-cmd" id="module-1-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Branch off main, a commit or a remote branch</span><button class="tw-copy" type="button" aria-label="Copy: Branch off main, a commit or a remote branch">Copy</button></figcaption><pre class="sq-code"><code># Branch off main (even if you&#x27;re currently on another branch):
+git worktree add ../myapp-auth -b feature/auth main
+
+# Branch off a specific commit:
+git worktree add ../myapp-fix -b hotfix/urgent abc1234
+
+# Check out an existing remote branch:
+git worktree add ../myapp-review origin/feature/someone-elses-pr</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Each command makes a new folder beside your project: <code>../myapp-auth</code>, <code>../myapp-fix</code> and <code>../myapp-review</code>.</p></figure></section><section class="block" id="module-1-d5"><div class="section-label">Type it</div><h2>Directory layout</h2><p class="section-intro">Each directory is a fully functional checkout with its own <code>node_modules</code>, <code>.venv</code> and build cache. They share the same <code>.git</code> object store.</p><figure class="tw-codebox tw-code" id="module-1-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">~/projects</span><span class="tw-code-title">Four worktrees side by side</span><button class="tw-copy" type="button" aria-label="Copy: Four worktrees side by side">Copy</button></figcaption><pre class="sq-code"><code>~/projects/
+├── my-service/              ← main worktree (main branch)
+├── my-service-feature-auth/ ← worktree (feature/auth)
+├── my-service-hotfix-123/   ← worktree (hotfix/123)
+└── my-service-refactor-db/  ← worktree (refactor/db)</code></pre></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Worktree commands</h2><details class="rule-card" id="module-1-r1" name="rules-1" open><summary><span><span class="num">01</span>Key commands</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">The six you need.</p><table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><td><code>git worktree add ../dir -b branch</code></td><td>Create worktree + new branch</td></tr><tr><td><code>git worktree add ../dir -b branch base</code></td><td>Create from specific base</td></tr><tr><td><code>git worktree add ../dir existing-branch</code></td><td>Checkout existing branch</td></tr><tr><td><code>git worktree list</code></td><td>List all worktrees</td></tr><tr><td><code>git worktree remove ../dir</code></td><td>Remove a worktree</td></tr><tr><td><code>git worktree prune</code></td><td>Clean up stale entries</td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r2" name="rules-1"><summary><span><span class="num">02</span>Worktree card</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">The same commands next to your shell aliases.</p><table><thead><tr><th>Command</th><th>Action</th></tr></thead><tbody><tr><td><code>git worktree add ../dir -b branch</code></td><td>Create</td></tr><tr><td><code>git worktree list</code></td><td>List</td></tr><tr><td><code>git worktree remove ../dir</code></td><td>Remove</td></tr><tr><td><code>gwa feature/name</code></td><td>Create + tmux window</td></tr><tr><td><code>gwl</code></td><td>List</td></tr><tr><td><code>gwr ../dir</code></td><td>Remove</td></tr></tbody></table></div></details></section><section class="block" id="module-1-worked"><div class="section-label">Worked application</div><h2>Start a feature without touching main</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You begin a payments feature and keep main exactly as it is.</p><p>You are in <code>~/projects/myapp</code> on the main branch.</p><figure class="tw-codebox tw-code" id="module-1-worked-code"><figcaption class="tw-code-head"><span class="tw-where">Example</span><span class="tw-code-title">Start a feature without touching main</span><button class="tw-copy" type="button" aria-label="Copy: Start a feature without touching main">Copy</button></figcaption><pre class="sq-code"><code>git worktree add ../myapp-payments -b feature/payments
+git worktree list</code></pre></figure><ol class="worked-steps"><li>Run <code>git worktree add ../myapp-payments -b feature/payments</code>.</li><li>Run <code>git worktree list</code>. Two folders, two branches.</li><li>Run <code>cd ../myapp-payments</code> and <code>git branch</code>. It confirms <code>feature/payments</code>.</li><li>Edit freely. <code>../myapp/</code> on main is untouched.</li></ol><div class="result-box"><strong>Why it matters:</strong> A branch becomes a place you can walk into. Switching branches is a <code>cd</code>.</div></div></section><section class="block" id="module-1-practice"><div class="section-label">Your turn</div><h2>Practice: worktrees</h2><div class="practice-card" id="module-1-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why is a worktree cheaper than cloning the repo again?</p><details class="hint"><summary>hint</summary><p>What is shared?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Every worktree shares the same <code>.git</code> object store.</li><li>Only the checked-out files are duplicated.</li></ol><div class="solution-final"><strong>Final answer:</strong> Same history, no cloning, no disk waste.</div></div></details></div><div class="practice-card" id="module-1-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which command makes <code>../myapp-auth</code> on a new branch <code>feature/auth</code> from main?</p><details class="hint"><summary>hint</summary><p>Add, then <code>-b</code>, then a base.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Start with <code>git worktree add</code>.</li><li>Add the folder <code>../myapp-auth</code>.</li><li>Add <code>-b feature/auth main</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git worktree add ../myapp-auth -b feature/auth main</code>.</div></div></details></div><div class="practice-card" id="module-1-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">A hotfix is urgent and you are mid-feature. Start it without stashing.</p><details class="hint"><summary>hint</summary><p>Branch off a specific commit or main.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>git worktree add ../myapp-fix -b hotfix/urgent abc1234</code>.</li><li><code>cd ../myapp-fix</code> and fix it there.</li></ol><div class="solution-final"><strong>Final answer:</strong> A second worktree. Your feature folder is untouched.</div></div></details></div><div class="practice-card" id="module-1-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You deleted a worktree folder by hand. What now?</p><details class="hint"><summary>hint</summary><p>Git still remembers it.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The entry is stale.</li><li>Run <code>git worktree prune</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git worktree prune</code>, then <code>git worktree list</code> to check.</div></div></details></div></section></section><section class="lesson sq-page" id="module-2" data-module="2" role="tabpanel" aria-labelledby="tab-2" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Worktrees and the agent loop · Page 2 of 4</div><h1>Worktrees in tmux</h1><p class="subtitle">One tmux window per worktree, helper aliases to create and remove them.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>One branch, one folder, one tmux window. Switching branches is one key.</p><ul class="kitchen-links"><li><strong>New window <span class="kl-nowrap">→ Ctrl-a c.</span></strong> Then cd into the worktree.</li><li><strong>Create + window <span class="kl-nowrap">→ gwa feature/auth.</span></strong> Worktree and tmux window in one go.</li><li><strong>List <span class="kl-nowrap">→ gwl.</span></strong> All worktrees.</li><li><strong>Clean up <span class="kl-nowrap">→ gwr ../dir.</span></strong> Removes the worktree.</li></ul></div></div><div class="block" id="module-2-problem"><div class="word-problem"><span class="tag">The problem</span><p>You create a worktree, then lose it: no window, no editor, and a long path to retype.</p><div class="result-box"><strong>The fix:</strong> Give each worktree its own tmux window, and let <code>gwa</code> create both in one command.</div></div></div><section class="block" id="module-2-d1"><div class="section-label">Type it</div><h2>tmux + worktrees</h2><p class="section-intro">Each worktree gets its own tmux window. No git stash, no waiting, no risk. Millisecond branch switching.</p><figure class="tw-codebox tw-cmd" id="module-2-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">A window for the feature worktree</span><button class="tw-copy" type="button" aria-label="Copy: A window for the feature worktree">Copy</button></figcaption><pre class="sq-code"><code># Window 0: main (you&#x27;re here)
+
+# Window 1: feature worktree
+Ctrl-a c
+cd ../myapp-payments
+nvim .
+
+# Now:
+# Ctrl-a 0 = main branch
+# Ctrl-a 1 = feature branch</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The feature branch opens in <code>nvim</code> in its own window. Switch between main and the feature with one prefix key.</p></figure><p class="tw-text">The lessons count windows from 0. In your config they start at 1 (<code>base-index 1</code>), so your first window is <code>Ctrl-a 1</code>.</p></section><section class="block" id="module-2-d2"><div class="section-label">Type it</div><h2>Multiple features in parallel</h2><p class="section-intro">Run tests on two branches at the same time.</p><figure class="tw-codebox tw-cmd" id="module-2-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Two more worktrees</span><button class="tw-copy" type="button" aria-label="Copy: Two more worktrees">Copy</button></figcaption><pre class="sq-code"><code>git worktree add ../myapp-auth -b feature/auth main
+git worktree add ../myapp-hotfix -b hotfix/urgent-fix main
+
+# 4 tmux windows:
+# 0: main
+# 1: feature/payments
+# 2: feature/auth
+# 3: hotfix/urgent-fix
+
+# Run tests on two branches at the same time. Compare performance. Zero friction.</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> You now have four tmux windows&#x27; worth of work: main, <code>feature/payments</code>, <code>feature/auth</code> and <code>hotfix/urgent-fix</code>.</p></figure></section><section class="block" id="module-2-d3"><div class="section-label">Type it</div><h2>Clean up</h2><p class="section-intro">Remove the worktree and the branch after the feature is merged.</p><figure class="tw-codebox tw-cmd" id="module-2-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Remove, delete the branch, check</span><button class="tw-copy" type="button" aria-label="Copy: Remove, delete the branch, check">Copy</button></figcaption><pre class="sq-code"><code># After feature is merged:
+git worktree remove ../myapp-payments
+git branch -d feature/payments
+
+# If you deleted the directory manually:
+git worktree prune
+
+# See what&#x27;s left:
+git worktree list</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git worktree list</code> shows what is left: no <code>myapp-payments</code>.</p></figure></section><section class="block" id="module-2-d4"><div class="section-label">Type it</div><h2>Real workflow</h2><p class="section-intro">The whole cycle, from first worktree to clean-up.</p><figure class="tw-codebox tw-cmd" id="module-2-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Start, push, PR, next feature, clean up</span><button class="tw-copy" type="button" aria-label="Copy: Start, push, PR, next feature, clean up">Copy</button></figcaption><pre class="sq-code"><code># 1. Start feature
+git worktree add ../myapp-payments -b feature/payments main
+
+# 2. Work in it (separate tmux window)
+cd ../myapp-payments
+# ... make changes, commit ...
+
+# 3. Push and PR
+git push -u origin feature/payments
+gh pr create --title &quot;Add payments&quot;
+
+# 4. While waiting for review, start next feature
+cd ../myapp
+git worktree add ../myapp-auth -b feature/auth main
+
+# 5. After PR merged, clean up
+git worktree remove ../myapp-payments
+git branch -d feature/payments</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git push -u origin feature/payments</code> publishes the branch, and <code>gh pr create</code> opens the pull request titled &quot;Add payments&quot;.</p></figure></section><section class="block" id="module-2-d5"><div class="section-label">Type it</div><h2>Helper aliases (add to ~/.zshrc)</h2><p class="section-intro"><code>gwa</code> creates a worktree and opens it in a new tmux window named after the branch.</p><figure class="tw-codebox tw-code" id="module-2-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">~/.zshrc</span><span class="tw-code-title">gwa, gwr and gwl</span><button class="tw-copy" type="button" aria-label="Copy: gwa, gwr and gwl">Copy</button></figcaption><pre class="sq-code"><code># Create worktree + open in new tmux window
+gwa() {
+  local branch=&quot;$1&quot;
+  local base=&quot;${2:-HEAD}&quot;
+  local dir=&quot;../$(basename $(pwd))-$(echo $branch | tr &#x27;/&#x27; &#x27;-&#x27;)&quot;
+  git worktree add &quot;$dir&quot; -b &quot;$branch&quot; &quot;$base&quot; &amp;&amp; \
+  tmux new-window -n &quot;$(echo $branch | sed &#x27;s/.*\///&#x27;)&quot; -c &quot;$dir&quot;
+}
+
+# Remove worktree
+gwr() {
+  git worktree remove &quot;$1&quot; &amp;&amp; echo &quot;Removed: $1&quot;
+}
+
+# List worktrees
+alias gwl=&#x27;git worktree list&#x27;</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-2-d5-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Use the helpers</span><button class="tw-copy" type="button" aria-label="Copy: Use the helpers">Copy</button></figcaption><pre class="sq-code"><code>gwa feature/auth            # worktree from HEAD + new tmux window
+gwa feature/auth main       # worktree from main + new tmux window
+gwl                         # list all
+gwr ../myapp-feature-auth   # clean up</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>gwa feature/auth</code> makes <code>../myapp-feature-auth</code> and opens a tmux window named <code>auth</code> in it. <code>gwl</code> lists every worktree.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Aliases at a glance</h2><details class="rule-card" id="module-2-r1" name="rules-2" open><summary><span><span class="num">01</span>Helper usage</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Four lines to remember.</p><figure class="tw-codebox tw-code" id="module-2-r1-code"><figcaption class="tw-code-head"><span class="tw-where">Example</span><span class="tw-code-title">Helper usage</span><button class="tw-copy" type="button" aria-label="Copy: Helper usage">Copy</button></figcaption><pre class="sq-code"><code>gwa feature/auth            # worktree from HEAD + new tmux window
+gwa feature/auth main       # worktree from main + new tmux window
+gwl                         # list all
+gwr ../myapp-feature-auth   # clean up</code></pre></figure></div></details><details class="rule-card" id="module-2-r2" name="rules-2"><summary><span><span class="num">02</span>What gwa builds</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Both names come from the branch.</p><table><thead><tr><th>Piece</th><th>Result for `gwa feature/auth`</th></tr></thead><tbody><tr><td>Folder</td><td><code>../myapp-feature-auth</code></td></tr><tr><td>Window name</td><td><code>auth</code></td></tr><tr><td>Base</td><td><code>HEAD</code>, or the second argument</td></tr></tbody></table></div></details></section><section class="block" id="module-2-worked"><div class="section-label">Worked application</div><h2>Spin up a feature in one command</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You are in <code>~/projects/myapp</code> and want a feature branch with its own editor window.</p><p><code>gwa</code>, <code>gwr</code> and <code>gwl</code> are in your <code>~/.zshrc</code>.</p><figure class="tw-codebox tw-code" id="module-2-worked-code"><figcaption class="tw-code-head"><span class="tw-where">Example</span><span class="tw-code-title">Spin up a feature in one command</span><button class="tw-copy" type="button" aria-label="Copy: Spin up a feature in one command">Copy</button></figcaption><pre class="sq-code"><code>gwa feature/auth
+gwl</code></pre></figure><ol class="worked-steps"><li>Run <code>gwa feature/auth</code>. Git makes <code>../myapp-feature-auth</code> and tmux opens a window named <code>auth</code> there.</li><li>Run <code>nvim .</code> in the new window.</li><li>Run <code>gwl</code> to see every worktree.</li><li>After the merge, run <code>gwr ../myapp-feature-auth</code>.</li></ol><div class="result-box"><strong>Why it matters:</strong> Two chores become one command, so you actually use a worktree for every feature.</div></div></section><section class="block" id="module-2-practice"><div class="section-label">Your turn</div><h2>Practice: worktrees and tmux</h2><div class="practice-card" id="module-2-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why one tmux window per worktree?</p><details class="hint"><summary>hint</summary><p>What do you keep apart?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Each branch has its own editor, shell and tests.</li><li>Switching is a key, not a checkout.</li></ol><div class="solution-final"><strong>Final answer:</strong> Each branch keeps its own state.</div></div></details></div><div class="practice-card" id="module-2-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which command creates a worktree from main and opens a tmux window?</p><details class="hint"><summary>hint</summary><p>The helper alias, with a base.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Use <code>gwa</code>.</li><li>Add the branch, then <code>main</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>gwa feature/auth main</code>.</div></div></details></div><div class="practice-card" id="module-2-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Remove <code>../myapp-feature-auth</code> after the merge.</p><details class="hint"><summary>hint</summary><p>The remove helper.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>gwr ../myapp-feature-auth</code>.</li><li>Check with <code>gwl</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>gwr ../myapp-feature-auth</code>.</div></div></details></div><div class="practice-card" id="module-2-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You ran <code>gwa</code> outside tmux and got an error on the window step. Why?</p><details class="hint"><summary>hint</summary><p>What does <code>gwa</code> call at the end?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>gwa</code> ends with <code>tmux new-window</code>.</li><li>Start or attach tmux first.</li></ol><div class="solution-final"><strong>Final answer:</strong> The helper needs tmux. Run <code>tmux attach</code> first.</div></div></details></div></section></section><section class="lesson sq-page" id="module-3" data-module="3" role="tabpanel" aria-labelledby="tab-3" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Worktrees and the agent loop · Page 3 of 4</div><h1>The three-window pattern</h1><p class="subtitle">Main, your editor and an AI agent: three windows, one feature branch.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>One worktree, two windows on it: you in one, the agent in the other.</p><ul class="kitchen-links"><li><strong>Main <span class="kl-nowrap">→ Ctrl-a 0.</span></strong> PR reviews, releases, rebases.</li><li><strong>Editor <span class="kl-nowrap">→ Ctrl-a 1.</span></strong> You: nvim, tests, review.</li><li><strong>Agent <span class="kl-nowrap">→ Ctrl-a 2.</span></strong> The coding agent generates code.</li><li><strong>Workspace <span class="kl-nowrap">→ git worktree add ../my-service-payments -b feature/payments main.</span></strong> The feature folder.</li></ul></div></div><div class="block" id="module-3-problem"><div class="word-problem"><span class="tag">The problem</span><p>The agent and your editor fight over the same checkout, and half-finished edits land on your main branch.</p><div class="result-box"><strong>The fix:</strong> Give the feature its own worktree. You and the agent edit the same branch from different terminals.</div></div></div><section class="block" id="module-3-d1"><div class="section-label">Type it</div><h2>Create the workspace</h2><p class="section-intro">Window 0 is main. Window 1 is your editor. Window 2 is your AI coding agent, on the same feature branch.</p><figure class="tw-codebox tw-cmd" id="module-3-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Worktree and two windows</span><button class="tw-copy" type="button" aria-label="Copy: Worktree and two windows">Copy</button></figcaption><pre class="sq-code"><code># Start in your project on main
+cd ~/projects/my-service
+
+# Create the feature worktree
+git worktree add ../my-service-payments -b feature/payments main
+
+# Window 0: main (you&#x27;re here already)
+
+# Window 1: your editor on the feature branch
+Ctrl-a c
+cd ../my-service-payments
+nvim .
+
+# Window 2: your AI coding agent on the same feature branch
+Ctrl-a c
+cd ../my-service-payments
+&lt;agent&gt;                         # your agent&#x27;s CLI command</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>../my-service-payments</code> exists on <code>feature/payments</code>. Window 1 runs <code>nvim .</code> and Window 2 runs your agent, both in that folder.</p></figure><p class="tw-text">The lessons count windows from 0. In your config they start at 1 (<code>base-index 1</code>), so your first window is <code>Ctrl-a 1</code>. Main is <code>Ctrl-a 1</code>, the editor <code>Ctrl-a 2</code>, the agent <code>Ctrl-a 3</code>.</p></section><section class="block" id="module-3-d2"><div class="section-label">Type it</div><h2>Give the agent a task</h2><p class="section-intro">Switch to Window 2 (<code>Ctrl-a 2</code>) and type the task. Do not wait for the agent to finish: switch to your editor.</p><figure class="tw-codebox tw-code" id="module-3-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Prompt to the agent</span><span class="tw-code-title">The task</span><button class="tw-copy" type="button" aria-label="Copy: The task">Copy</button></figcaption><pre class="sq-code"><code>Add a POST /payments endpoint. Validate the request body (amount, currency,
+customer_id required). Call Stripe to create a payment intent. Return the
+client_secret. Follow the patterns in src/routes/orders.ts.</code></pre></figure></section><section class="block" id="module-3-d3"><div class="section-label">Type it</div><h2>Work in parallel</h2><p class="section-intro">While the agent writes the implementation, you write tests. You and the agent edit the same branch in different terminals. No conflicts: you are on different files.</p><figure class="tw-codebox tw-cmd" id="module-3-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Switch to the editor and start the tests</span><button class="tw-copy" type="button" aria-label="Copy: Switch to the editor and start the tests">Copy</button></figcaption><pre class="sq-code"><code>Ctrl-a 1                        # switch to Window 1 (editor)
+&lt;Space&gt;sf                       # find/create tests/payments.test.ts
+i                               # start writing tests</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> You are in the editor window, finding or creating <code>tests/payments.test.ts</code>, in insert mode.</p></figure></section><section class="block" id="module-3-d4"><div class="section-label">Type it</div><h2>Review the agent&#x27;s work</h2><p class="section-intro">Go to the editor window, then check what the agent changed.</p><figure class="tw-codebox tw-cmd" id="module-3-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Back to the editor</span><button class="tw-copy" type="button" aria-label="Copy: Back to the editor">Copy</button></figcaption><pre class="sq-code"><code>Ctrl-a 1                        # your editor window</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> You are in your editor window.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">In Neovim</span><button class="tw-copy" type="button" aria-label="Copy: In Neovim">Copy</button></figcaption><pre class="sq-code"><code>&lt;Space&gt;sg                       # grep for &quot;payments&quot; — see all new files
+&lt;Space&gt;gd                       # diffview — all changes side-by-side</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The grep lists every new file mentioning &quot;payments&quot;. The diff view shows all changes side by side.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">From the terminal (Ctrl-\)</span><button class="tw-copy" type="button" aria-label="Copy: From the terminal (Ctrl-\)">Copy</button></figcaption><pre class="sq-code"><code>git diff --stat                 # quick overview
+git diff src/routes/payments.ts # inspect the agent&#x27;s file</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git diff --stat</code> gives a quick overview. <code>git diff src/routes/payments.ts</code> shows the agent&#x27;s file.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>The pattern at a glance</h2><details class="rule-card" id="module-3-r1" name="rules-3" open><summary><span><span class="num">01</span>The three windows</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Who works where.</p><table><thead><tr><th>Window</th><th>Branch</th><th>Job</th></tr></thead><tbody><tr><td>Window 0 <code>main</code></td><td><code>main</code></td><td>PR reviews, releases, rebases</td></tr><tr><td>Window 1 <code>editor</code></td><td><code>feature/payments</code></td><td>You: nvim, write tests, review changes, manual testing</td></tr><tr><td>Window 2 <code>agent</code></td><td><code>feature/payments</code></td><td>Agent: generates code, refactors, fixes lint issues</td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r2" name="rules-3"><summary><span><span class="num">02</span>Combined workflow</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">The loop from the quick start.</p><table><thead><tr><th>Step</th><th>Keys</th></tr></thead><tbody><tr><td>Edit code</td><td><code>Ctrl-a 0</code></td></tr><tr><td>Save</td><td><code>:w</code></td></tr><tr><td>Run tests</td><td><code>Ctrl-a 1</code></td></tr><tr><td>Ask the agent if stuck</td><td><code>Ctrl-a 2</code></td></tr><tr><td>Repeat</td><td>Back to step one</td></tr></tbody></table></div></details></section><section class="block" id="module-3-worked"><div class="section-label">Worked application</div><h2>Hand the agent a task and keep working</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You want the agent coding while you write tests.</p><p>The worktree exists and the agent runs in Window 2.</p><ol class="worked-steps"><li>Switch to the agent window and paste the task.</li><li>Do not wait. Switch to the editor window.</li><li>Press <code>&lt;Space&gt;sf</code> to find or create <code>tests/payments.test.ts</code>. Press <code>i</code> and write tests.</li><li>Use <code>&lt;Space&gt;sg</code> and <code>&lt;Space&gt;gd</code> to review the agent&#x27;s changes.</li></ol><div class="result-box"><strong>Why it matters:</strong> The agent and you share one branch but touch different files, so work runs in parallel with no conflicts.</div></div></section><section class="block" id="module-3-practice"><div class="section-label">Your turn</div><h2>Practice: the three windows</h2><div class="practice-card" id="module-3-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does the agent not break your editor session?</p><details class="hint"><summary>hint</summary><p>Where does it work?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The agent runs in its own tmux window.</li><li>The branch lives in its own worktree.</li></ol><div class="solution-final"><strong>Final answer:</strong> It edits a separate folder, so your session stays intact.</div></div></details></div><div class="practice-card" id="module-3-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which keys open a new tmux window for the agent?</p><details class="hint"><summary>hint</summary><p>Prefix, then one letter.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>Ctrl-a</code>.</li><li>Press <code>c</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-a c</code>.</div></div></details></div><div class="practice-card" id="module-3-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Create the feature workspace for <code>feature/payments</code> from main.</p><details class="hint"><summary>hint</summary><p>One command from your project.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>cd ~/projects/my-service</code>.</li><li>Run <code>git worktree add ../my-service-payments -b feature/payments main</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git worktree add ../my-service-payments -b feature/payments main</code>.</div></div></details></div><div class="practice-card" id="module-3-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You and the agent keep overwriting each other. What is wrong?</p><details class="hint"><summary>hint</summary><p>Who edits which file?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>You are probably on the same files.</li><li>You write tests while the agent writes the implementation.</li></ol><div class="solution-final"><strong>Final answer:</strong> Split the work by file.</div></div></details></div></section></section><section class="lesson sq-page" id="module-4" data-module="4" role="tabpanel" aria-labelledby="tab-4" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Worktrees and the agent loop · Page 4 of 4</div><h1>Test, ship, clean up</h1><p class="subtitle">Run the tests, send fixes to the agent, open a PR and remove the worktree.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Test, fix, commit, push, open a PR, then remove the worktree. Main never gets dirty.</p><ul class="kitchen-links"><li><strong>Run tests <span class="kl-nowrap">→ npm test -- --grep payments.</span></strong> Or pytest tests/payments/ -v.</li><li><strong>Commit <span class="kl-nowrap">→ git commit -m &quot;Add payments endpoint with Stripe integration&quot;.</span></strong> On the feature branch.</li><li><strong>Open a PR <span class="kl-nowrap">→ gh pr create.</span></strong> Against the pushed branch.</li><li><strong>Clean up <span class="kl-nowrap">→ git worktree remove ../my-service-payments.</span></strong> After the merge.</li></ul></div></div><div class="block" id="module-4-problem"><div class="word-problem"><span class="tag">The problem</span><p>A failing test sits in one window while the agent sits idle in another. After the merge, dead worktrees pile up.</p><div class="result-box"><strong>The fix:</strong> Copy the failure to the agent, ship from the feature window, then remove the worktree and branch.</div></div></div><section class="block" id="module-4-d1"><div class="section-label">Type it</div><h2>Run tests</h2><p class="section-intro">In the Neovim terminal (<code>Ctrl-` or </code>&lt;Space&gt;1<code>), run the tests.</code></p><figure class="tw-codebox tw-cmd" id="module-4-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Run the payments tests</span><button class="tw-copy" type="button" aria-label="Copy: Run the payments tests">Copy</button></figcaption><pre class="sq-code"><code>npm test -- --grep payments     # or pytest tests/payments/ -v</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The payments tests run. A failure is your cue to tell the agent in Window 2.</p></figure><figure class="tw-codebox tw-code" id="module-4-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Prompt to the agent</span><span class="tw-code-title">Report a failing test</span><button class="tw-copy" type="button" aria-label="Copy: Report a failing test">Copy</button></figcaption><pre class="sq-code"><code>The test for invalid currency is failing — the endpoint returns 200 instead
+of 400 when currency is not one of [usd, eur, gbp]. Fix the validation.</code></pre></figure></section><section class="block" id="module-4-d2"><div class="section-label">Type it</div><h2>Meanwhile, back on main</h2><p class="section-intro">Window 0 is the main branch, untouched. You can review someone else&#x27;s PR (<code>gh pr checkout 789</code>), pull the latest (<code>git pull</code>) or start a hotfix (<code>gwa hotfix/fix-typo</code>). Main never gets dirty.</p><figure class="tw-codebox tw-cmd" id="module-4-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Jump to main</span><button class="tw-copy" type="button" aria-label="Copy: Jump to main">Copy</button></figcaption><pre class="sq-code"><code>Ctrl-a 0                        # Window 0 = main branch, untouched</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> You are on the main branch, untouched by the feature work.</p></figure><p class="tw-text">The lessons count windows from 0. In your config they start at 1 (<code>base-index 1</code>), so your first window is <code>Ctrl-a 1</code>.</p></section><section class="block" id="module-4-d3"><div class="section-label">Type it</div><h2>Commit, push, PR</h2><p class="section-intro">Run these in the editor window or a terminal on the feature branch.</p><figure class="tw-codebox tw-cmd" id="module-4-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Ship the feature</span><button class="tw-copy" type="button" aria-label="Copy: Ship the feature">Copy</button></figcaption><pre class="sq-code"><code># In Window 1 or terminal on feature branch:
+git add -A
+git status                      # review what&#x27;s staged
+git commit -m &quot;Add payments endpoint with Stripe integration&quot;
+git push -u origin feature/payments
+gh pr create --title &quot;Add /payments endpoint&quot; \
+  --body &quot;POST /payments with Stripe. Validates amount/currency/customer_id.&quot;</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git status</code> lists what is staged. <code>gh pr create</code> opens a pull request titled &quot;Add /payments endpoint&quot; from <code>feature/payments</code>.</p></figure></section><section class="block" id="module-4-d4"><div class="section-label">Type it</div><h2>Clean up after merge</h2><p class="section-intro">Pull the merge on main, then remove the worktree and the local branch. Close the two extra tmux windows.</p><figure class="tw-codebox tw-cmd" id="module-4-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Remove the feature workspace</span><button class="tw-copy" type="button" aria-label="Copy: Remove the feature workspace">Copy</button></figcaption><pre class="sq-code"><code>Ctrl-a 0                                    # switch to main
+git pull                                    # get the merge
+git worktree remove ../my-service-payments  # remove worktree
+git branch -d feature/payments              # delete local branch
+
+# Close tmux windows:
+Ctrl-a 1
+exit
+Ctrl-a 1
+exit</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The worktree folder and the local branch are gone, and the two extra tmux windows are closed.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Tips and the daily loop</h2><details class="rule-card" id="module-4-r1" name="rules-4" open><summary><span><span class="num">01</span>The daily loop</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Seven steps, every feature.</p><figure class="tw-codebox tw-code" id="module-4-r1-code"><figcaption class="tw-code-head"><span class="tw-where">Example</span><span class="tw-code-title">The daily loop</span><button class="tw-copy" type="button" aria-label="Copy: The daily loop">Copy</button></figcaption><pre class="sq-code"><code>1. gwa feature/new-thing          # create worktree + tmux window
+2. Ctrl-a c → cd → &lt;agent&gt;       # agent window on same branch
+3. Give the agent a task          # it works while you work
+4. Ctrl-a 1 → nvim .             # you code in parallel
+5. Review, test, iterate          # Ctrl-a 0/1/2 to switch
+6. Commit, push, PR              # from terminal
+7. gwr ../dir                    # clean up after merge</code></pre></figure></div></details><details class="rule-card" id="module-4-r2" name="rules-4"><summary><span><span class="num">02</span>Pro tips</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Why this setup holds up.</p><table><thead><tr><th>Tip</th><th>Why</th></tr></thead><tbody><tr><td>The agent can edit freely</td><td>It is in its own worktree and cannot mess up your editor session</td></tr><tr><td>Test both branches</td><td>Run benchmarks on main and feature side by side</td></tr><tr><td>Multiple features</td><td>3 features = 3 worktrees = 3 tmux windows</td></tr><tr><td>Rebase without fear</td><td>Rebase the feature worktree while main stays clean</td></tr><tr><td>Name your windows</td><td><code>Ctrl-a ,</code> then type <code>editor</code> / <code>agent</code> / <code>tests</code></td></tr></tbody></table></div></details></section><section class="block" id="module-4-worked"><div class="section-label">Worked application</div><h2>From failing test to merged PR</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">A payments test fails and you want it fixed, shipped and cleaned up.</p><p>The agent runs in Window 2 and your editor in Window 1.</p><ol class="worked-steps"><li>Run the tests in the editor window. One fails: invalid currency returns 200.</li><li>Switch to the agent window and paste the failure with the expected behaviour.</li><li>Run the tests again. They pass.</li><li>Run <code>git add -A</code>, <code>git status</code>, <code>git commit</code>, <code>git push -u origin feature/payments</code>, then <code>gh pr create</code>.</li><li>After the merge, go to main, run <code>git pull</code>, then <code>git worktree remove ../my-service-payments</code> and <code>git branch -d feature/payments</code>.</li></ol><div class="result-box"><strong>Why it matters:</strong> The loop is test, tell the agent, retest, ship, clean up. Each step lives in the window built for it.</div></div></section><section class="block" id="module-4-practice"><div class="section-label">Your turn</div><h2>Practice: ship and clean up</h2><div class="practice-card" id="module-4-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why remove the worktree after the merge?</p><details class="hint"><summary>hint</summary><p>What would linger?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The folder and its branch no longer have a job.</li><li>Stale worktrees pile up.</li></ol><div class="solution-final"><strong>Final answer:</strong> Remove the folder and delete the branch, so nothing stale remains.</div></div></details></div><div class="practice-card" id="module-4-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which command pushes the new branch and sets its upstream?</p><details class="hint"><summary>hint</summary><p>Push with <code>-u</code>.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Use <code>git push</code>.</li><li>Add <code>-u origin feature/payments</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git push -u origin feature/payments</code>.</div></div></details></div><div class="practice-card" id="module-4-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">A test fails with 200 instead of 400. What do you do?</p><details class="hint"><summary>hint</summary><p>Who writes the fix?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Switch to the agent window.</li><li>Describe the failure and the expected result.</li><li>Re-run the tests.</li></ol><div class="solution-final"><strong>Final answer:</strong> Tell the agent exactly what failed and what should happen.</div></div></details></div><div class="practice-card" id="module-4-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You removed the worktree before merging the PR. What went wrong?</p><details class="hint"><summary>hint</summary><p>Order matters.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Cleanup comes after the merge.</li><li>Go to main, run <code>git pull</code>, then remove the worktree.</li></ol><div class="solution-final"><strong>Final answer:</strong> Merge first, then pull, then remove.</div></div></details></div></section></section>
+    </main>
+    <nav class="tabbar" aria-label="Page navigation">
+      <div class="tabbar-inner">
+        <button id="prevBtn" class="nav-arrow" type="button" aria-label="Previous page">‹</button>
+        <div id="tabs" class="tabs sq-tabs" role="tablist" aria-label="Pages"></div>
+        <button id="nextBtn" class="nav-arrow" type="button" aria-label="Next page">›</button>
+        <span id="progressMini" class="progress-mini" aria-live="polite">1/4</span>
+      </div>
+    </nav>
+    <nav class="group-nav" aria-label="Course modules">
+      <a rel="prev" href="../m3-power-editing/m3-power-editing.html">← Power editing</a>
+      <a rel="next" href="../m5-lsp-git/m5-lsp-git.html">Code intelligence and git →</a>
+    </nav>
+    <footer>
+      <strong>Module 4 · Worktrees and the agent loop</strong><br />Git worktrees, one tmux window per branch, the three-window pattern with an AI agent, shipping and clean-up
+    </footer>
+    <script>window.TW_GLOSSARY = [{"id": "tw-prefix", "label": "Prefix key", "forms": ["prefix key", "prefix"], "definition": "The key you press first to tell tmux that the next key is a tmux command. Here: Ctrl-a."}, {"id": "tw-session", "label": "Session", "forms": ["session", "sessions"], "definition": "A tmux workspace that keeps running when you close the terminal window. You re-attach to it later."}, {"id": "tw-pane", "label": "Pane", "forms": ["pane", "panes"], "definition": "One rectangle inside a tmux window. Each pane runs its own shell."}, {"id": "tw-buffer", "label": "Buffer", "forms": ["buffer", "buffers"], "definition": "A file loaded into Neovim's memory. You edit the buffer, and saving writes it to disk."}, {"id": "tw-register", "label": "Register", "forms": ["register", "registers"], "definition": "A named slot in Neovim that holds text: yanked, deleted or typed."}, {"id": "tw-worktree", "label": "Worktree", "forms": ["worktree", "worktrees"], "definition": "A second folder checked out from the same git repository, on its own branch."}, {"id": "tw-leader", "label": "Leader key", "forms": ["leader key", "leader"], "definition": "A key you press first to start your own Neovim shortcuts. Here: Space."}, {"id": "tw-picker", "label": "Picker", "forms": ["picker", "pickers"], "definition": "A pop-up list you filter by typing, such as the file finder."}, {"id": "tw-hunk", "label": "Hunk", "forms": ["hunk", "hunks"], "definition": "One block of changed lines in a git diff."}, {"id": "tw-quickfix", "label": "Quickfix list", "forms": ["quickfix list", "quickfix"], "definition": "A list of locations, such as search hits or errors, that you step through one by one."}, {"id": "tw-lsp", "label": "LSP", "forms": ["LSP"], "definition": "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."}];</script>
+    <script src="../_shared/search-index.js?v=6de6753e2c"></script>
+    <script>
+/* Course page behaviour: tabs, hash links, rule cards, glossary. Base from the SQL course. */
+
+"use strict";
+document.documentElement.classList.add("js-ready");
+const lessons = Array.from(document.querySelectorAll(".lesson"));
+const tabsHost = document.getElementById("tabs");
+const previousButton = document.getElementById("prevBtn");
+const nextButton = document.getElementById("nextBtn");
+const progress = document.getElementById("progressMini");
+let activeLesson = 0;
+const tabs = lessons.map((lesson, index) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "tab";
+  button.id = `tab-${index + 1}`;
+  button.setAttribute("role", "tab");
+  button.setAttribute("aria-controls", lesson.id);
+  button.setAttribute("aria-label", `Open page ${index + 1}`);
+  button.textContent = String(index + 1);
+  button.addEventListener("click", () => goTo(index));
+  tabsHost.append(button);
+  return button;
+});
+function showLesson(index, options = {}) {
+  activeLesson = Math.max(0, Math.min(index, lessons.length - 1));
+  lessons.forEach((lesson, position) => {
+    const selected = position === activeLesson;
+    lesson.classList.toggle("active", selected);
+    lesson.setAttribute("aria-hidden", String(!selected));
+    tabs[position].classList.toggle("active", selected);
+    tabs[position].setAttribute("aria-selected", String(selected));
+    tabs[position].tabIndex = selected ? 0 : -1;
+  });
+  previousButton.disabled = activeLesson === 0;
+  nextButton.disabled = activeLesson === lessons.length - 1;
+  progress.textContent = `${activeLesson + 1}/${lessons.length}`;
+  if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
+}
+// Tab moves rewrite the hash without a new history entry, so reload and shared links keep the page.
+function goTo(index) {
+  showLesson(index);
+  history.replaceState(null, "", `#${lessons[activeLesson].id}`);
+}
+previousButton.addEventListener("click", () => goTo(activeLesson - 1));
+nextButton.addEventListener("click", () => goTo(activeLesson + 1));
+tabsHost.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight") { event.preventDefault(); goTo(activeLesson + 1); tabs[activeLesson].focus(); }
+  if (event.key === "ArrowLeft") { event.preventDefault(); goTo(activeLesson - 1); tabs[activeLesson].focus(); }
+});
+
+const HIT_FLASH_MS = 1600;
+// Any id inside a page works as a deep link: open its tab, open its details, then scroll to it.
+function routeToHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const target = id && document.getElementById(id);
+  const lesson = target && target.closest(".lesson");
+  if (!lesson) return false;
+  showLesson(lessons.indexOf(lesson), { scroll: false });
+  for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: "start" });
+    if (target === lesson) return;
+    target.classList.add("tw-hit");
+    setTimeout(() => target.classList.remove("tw-hit"), HIT_FLASH_MS);
+  });
+  return true;
+}
+addEventListener("hashchange", routeToHash);
+if (!routeToHash()) showLesson(0);
+
+if (!("name" in HTMLDetailsElement.prototype)) {
+  document.querySelectorAll(".rule-card").forEach((card) => {
+    card.addEventListener("toggle", () => {
+      if (!card.open || !card.getAttribute("name")) return;
+      const name = card.getAttribute("name");
+      document.querySelectorAll(`.rule-card[name="${name}"]`).forEach((other) => {
+        if (other !== card && other.open) other.open = false;
+      });
+    });
+  });
+}
+
+(function () {
+  const glossaryEntries = window.TW_GLOSSARY || [];
+      const glossaryFormMap = new Map();
+      glossaryEntries.forEach(function (entry) {
+        entry.forms.forEach(function (form) {
+          glossaryFormMap.set(form.toLowerCase(), entry);
+        });
+      });
+      const glossaryForms = [...glossaryFormMap.keys()].sort(function (a, b) {
+        return b.length - a.length;
+      });
+      const glossaryPattern = new RegExp(
+        "\\b(" +
+          glossaryForms
+            .map(function (term) {
+              return term.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+            })
+            .join("|") +
+          ")\\b",
+        "gi",
+      );
+      const glossarySkip =
+        "button,a,summary,label,input,select,option,textarea,code,pre,script,style,noscript,svg,.tw-codebox,.tw-search,.tw-search-btn,kbd,.glossary-popover,.glossary-term,.eyebrow,.kitchen-strip";
+      const glossarySection = 'section[id^="module-"]';
+
+      function applyGlossary(scope) {
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode: function (node) {
+            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest(glossarySkip))
+              return NodeFilter.FILTER_REJECT;
+            glossaryPattern.lastIndex = 0;
+            return glossaryPattern.test(node.nodeValue)
+              ? NodeFilter.FILTER_ACCEPT
+              : NodeFilter.FILTER_REJECT;
+          },
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function (node) {
+          const text = node.nodeValue;
+          // One link per term per page. The DOM is the record: the observer below re-runs this on every caption change.
+          const section = node.parentElement.closest(glossarySection);
+          const linkedHere = new Set();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          glossaryPattern.lastIndex = 0;
+          let match;
+          while ((match = glossaryPattern.exec(text))) {
+            const entry = glossaryFormMap.get(match[0].toLowerCase());
+            if (
+              section &&
+              (linkedHere.has(entry.id) ||
+                section.querySelector(
+                  '.glossary-term[data-glossary="' + entry.id + '"]',
+                ))
+            )
+              continue;
+            if (match.index > cursor)
+              fragment.append(
+                document.createTextNode(text.slice(cursor, match.index)),
+              );
+            const term = document.createElement("button");
+            term.type = "button";
+            term.className = "glossary-term";
+            term.dataset.glossary = entry.id;
+            term.setAttribute("aria-haspopup", "dialog");
+            term.setAttribute("aria-expanded", "false");
+            term.setAttribute("aria-label", match[0] + ": open definition");
+            term.textContent = match[0];
+            fragment.append(term);
+            linkedHere.add(entry.id);
+            cursor = match.index + match[0].length;
+          }
+          // Nothing linked: leave the node alone, or the observer would loop forever.
+          if (!linkedHere.size) return;
+          if (cursor < text.length)
+            fragment.append(document.createTextNode(text.slice(cursor)));
+          node.replaceWith(fragment);
+        });
+      }
+
+      const glossaryPopover = document.createElement("aside");
+      glossaryPopover.className = "glossary-popover";
+      glossaryPopover.id = "glossary-popover";
+      glossaryPopover.hidden = true;
+      glossaryPopover.setAttribute("role", "dialog");
+      glossaryPopover.setAttribute("aria-label", "Term definition");
+      glossaryPopover.innerHTML =
+        '<button class="glossary-close" type="button" aria-label="Close definition">×</button><strong class="glossary-title"></strong><p class="glossary-definition"></p><span class="glossary-meta">Definition · Press Esc or click elsewhere to close</span>';
+      document.body.append(glossaryPopover);
+
+      let activeGlossaryTerm = null;
+      function closeGlossary() {
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = null;
+        glossaryPopover.hidden = true;
+      }
+      function positionGlossary(term) {
+        const gap = 13,
+          margin = 12,
+          termRect = term.getBoundingClientRect();
+        glossaryPopover.classList.remove("below");
+        glossaryPopover.hidden = false;
+        const popRect = glossaryPopover.getBoundingClientRect();
+        const left = Math.max(
+          margin,
+          Math.min(
+            innerWidth - popRect.width - margin,
+            termRect.left + termRect.width / 2 - popRect.width / 2,
+          ),
+        );
+        let top = termRect.top - popRect.height - gap;
+        if (top < margin) {
+          top = termRect.bottom + gap;
+          glossaryPopover.classList.add("below");
+        }
+        const pointer = Math.max(
+          16,
+          Math.min(
+            popRect.width - 16,
+            termRect.left + termRect.width / 2 - left,
+          ),
+        );
+        glossaryPopover.style.left = left + "px";
+        glossaryPopover.style.top =
+          Math.min(top, innerHeight - popRect.height - margin) + "px";
+        glossaryPopover.style.setProperty("--pointer-x", pointer + "px");
+      }
+      function openGlossary(term) {
+        const entry = glossaryEntries.find(function (item) {
+          return item.id === term.dataset.glossary;
+        });
+        if (!entry) return;
+        if (activeGlossaryTerm === term && !glossaryPopover.hidden) {
+          closeGlossary();
+          return;
+        }
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = term;
+        term.setAttribute("aria-expanded", "true");
+        glossaryPopover.querySelector(".glossary-title").textContent =
+          entry.label;
+        glossaryPopover.querySelector(".glossary-definition").textContent =
+          entry.definition;
+        positionGlossary(term);
+      }
+      document.addEventListener("click", function (event) {
+        const term = event.target.closest(".glossary-term");
+        if (term) {
+          event.preventDefault();
+          event.stopPropagation();
+          openGlossary(term);
+          return;
+        }
+        if (event.target.closest(".glossary-close")) {
+          closeGlossary();
+          return;
+        }
+        if (!event.target.closest(".glossary-popover")) closeGlossary();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !glossaryPopover.hidden) {
+          const term = activeGlossaryTerm;
+          closeGlossary();
+          if (term) term.focus();
+        }
+      });
+      addEventListener("resize", closeGlossary);
+      addEventListener("scroll", closeGlossary, true);
+
+      const glossaryRoot = document.querySelector("main");
+      applyGlossary(glossaryRoot);
+      let glossaryQueued = false;
+      new MutationObserver(function () {
+        if (glossaryQueued) return;
+        glossaryQueued = true;
+        requestAnimationFrame(function () {
+          glossaryQueued = false;
+          applyGlossary(glossaryRoot);
+        });
+      }).observe(glossaryRoot, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+    })();
+
+    </script>
+    <script>
+/* Site behaviour shared by every page: copy buttons and site-wide search. */
+"use strict";
+(function () {
+  const MAX_RESULTS = 40;
+  const COPY_RESET_MS = 1500;
+  const KIND_LABEL = { p: "Page", h: "Section", c: "Command", k: "Key", t: "Text" };
+  const KIND_WEIGHT = { c: 30, k: 30, h: 20, p: 15, t: 0 };
+  const PHRASE_BONUS = 100, START_BONUS = 50, SAME_FILE_BONUS = 5;
+  const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
+  const root = document.body.dataset.root || "";
+  const here = document.body.dataset.file || "index.html";
+  const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
+
+  // Vim and tmux spellings of the same key must meet: "<C-w>v" and "Ctrl-w v" both become "ctrl-w v".
+  function norm(s) {
+    return String(s).toLowerCase()
+      .replace(/<c-([^>]+)>/g, " ctrl-$1 ")
+      .replace(/<leader>/g, "<space>")
+      .replace(/\bctrl\+/g, "ctrl-")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  // ---- copy
+  function legacyCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    area.remove();
+    return ok;
+  }
+  async function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+    }
+    return legacyCopy(text);
+  }
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".tw-copy");
+    if (!button) return;
+    const box = button.closest(".tw-codebox");
+    const source = box && (box.querySelector(".tw-copy-src code") || box.querySelector("pre.sq-code code"));
+    if (!source) return;
+    const ok = await copyText(source.textContent);
+    button.textContent = ok ? "Copied" : "Copy failed";
+    clearTimeout(button._twReset);
+    button._twReset = setTimeout(() => { button.textContent = "Copy"; }, COPY_RESET_MS);
+  });
+
+  // ---- search
+  const dialog = document.getElementById("tw-search");
+  const input = document.getElementById("tw-q");
+  const list = document.getElementById("tw-results");
+  const openButton = document.querySelector(".tw-search-btn");
+  if (!dialog || !input || !list) return;
+
+  let cache = null;
+  let active = -1;
+  let shown = [];
+  let lastFocus = null;
+
+  function index() {
+    const data = window.TW_SEARCH;
+    if (!data) return null;
+    if (!cache) {
+      cache = {
+        both: data.items.map((it) => norm(it[4] + " " + it[5])),
+        text: data.items.map((it) => norm(it[5])),
+      };
+    }
+    return cache;
+  }
+
+  function isOpen() { return !dialog.hidden; }
+
+  function openSearch() {
+    if (isOpen()) return;
+    lastFocus = document.activeElement;
+    dialog.hidden = false;
+    document.body.classList.add("tw-search-open");
+    input.focus();
+    input.select();
+  }
+
+  function closeSearch() {
+    if (!isOpen()) return;
+    dialog.hidden = true;
+    document.body.classList.remove("tw-search-open");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function search(q) {
+    const data = window.TW_SEARCH;
+    const c = index();
+    if (!data || !c) return [];
+    const tokens = q.split(" ");
+    const hits = [];
+    data.items.forEach((it, i) => {
+      const hay = c.both[i];
+      if (!tokens.every((t) => hay.includes(t))) return;
+      let score = KIND_WEIGHT[it[0]] || 0;
+      if (hay.includes(q)) score += PHRASE_BONUS;
+      if (c.text[i].startsWith(q)) score += START_BONUS;
+      if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
+      score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
+      hits.push({ i, score });
+    });
+    hits.sort((a, b) => b.score - a.score || a.i - b.i);
+    return hits.slice(0, MAX_RESULTS).map((h) => data.items[h.i]);
+  }
+
+  // Mark every case-insensitive literal occurrence of a token, using text nodes only.
+  function highlight(host, text, tokens) {
+    const lower = text.toLowerCase();
+    const marked = new Array(text.length).fill(false);
+    tokens.forEach((t) => {
+      if (!t) return;
+      for (let at = lower.indexOf(t); at !== -1; at = lower.indexOf(t, at + t.length)) {
+        for (let k = at; k < at + t.length; k++) marked[k] = true;
+      }
+    });
+    let start = 0;
+    while (start < text.length) {
+      let end = start;
+      while (end < text.length && marked[end] === marked[start]) end++;
+      const piece = text.slice(start, end);
+      if (marked[start]) {
+        const mark = document.createElement("mark");
+        mark.textContent = piece;
+        host.append(mark);
+      } else {
+        host.append(document.createTextNode(piece));
+      }
+      start = end;
+    }
+  }
+
+  function setActive(next) {
+    const options = list.querySelectorAll('[role="option"]');
+    if (!options.length) return;
+    active = (next + options.length) % options.length;
+    options.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    input.setAttribute("aria-activedescendant", options[active].id);
+    options[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function render(q) {
+    list.replaceChildren();
+    input.removeAttribute("aria-activedescendant");
+    shown = [];
+    active = -1;
+    if (!q) { input.setAttribute("aria-expanded", "false"); return; }
+    input.setAttribute("aria-expanded", "true");
+    shown = search(q);
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "tw-r-text";
+      li.textContent = "No match. Try a key like Ctrl-w or a command like git worktree.";
+      list.append(li);
+      return;
+    }
+    const data = window.TW_SEARCH;
+    const tokens = q.split(" ");
+    shown.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.id = `tw-r-${i}`;
+      li.setAttribute("role", "option");
+      const mod = data.mods[it[1]];
+      const meta = document.createElement("div");
+      meta.className = "tw-r-meta";
+      const kind = document.createElement("span");
+      kind.className = "tw-r-kind";
+      kind.textContent = KIND_LABEL[it[0]] || it[0];
+      meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
+      const title = document.createElement("div");
+      title.className = "tw-r-title";
+      title.textContent = it[4];
+      const snippet = document.createElement("div");
+      snippet.className = "tw-r-text";
+      highlight(snippet, it[5], tokens);
+      li.append(meta, title, snippet);
+      li.addEventListener("click", () => go(it));
+      list.append(li);
+    });
+    setActive(0);
+  }
+
+  function go(it) {
+    const file = window.TW_SEARCH.files[it[1]];
+    const target = it[3];
+    closeSearch();
+    if (file === here) {
+      if (location.hash === "#" + target) dispatchEvent(new HashChangeEvent("hashchange"));
+      else location.hash = target;
+    } else {
+      location.href = root + file + "#" + target;
+    }
+  }
+
+  input.addEventListener("input", () => render(norm(input.value)));
+  if (openButton) openButton.addEventListener("click", openSearch);
+  dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
+
+  document.addEventListener("keydown", (event) => {
+    if (isOpen()) {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSearch(); }
+      else if (event.key === "ArrowDown") { event.preventDefault(); setActive(active + 1); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); setActive(active - 1); }
+      else if (event.key === "Enter" && shown[active]) { event.preventDefault(); go(shown[active]); }
+      return;
+    }
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+    event.preventDefault();
+    openSearch();
+  }, true);
+})();
+
+    </script>
+  </body>
+</html>
