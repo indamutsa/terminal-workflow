@@ -51,7 +51,7 @@ STYLE = """
 """
 
 
-def write(course, mods, version):
+def write(course, mods, version, cheat):
     css = open(os.path.join(course, "_shared", "course.css"), encoding="utf-8").read().replace("../_shared/fonts/", "_shared/fonts/")
     site_js = open(os.path.join(course, "_shared", "site.js"), encoding="utf-8").read()
     cards = []
@@ -78,6 +78,7 @@ def write(course, mods, version):
   </head>
   <body data-root="" data-file="index.html">
     {kit.search_ui()}
+    {kit.cheat_ui()}
     <main>
       <header class="cm-hero">
         <div class="eyebrow">Course map · {len(mods)} modules · {total} pages</div>
@@ -95,6 +96,7 @@ def write(course, mods, version):
         <h2>One command to begin</h2>
         <p class="section-intro">You need iTerm2, Neovim 0.12+ and an AI coding agent CLI. Open a terminal and type this.</p>
         {kit.cmd("start", START)}
+        {kit.practice_setup("setup")}
       </section>
       <section class="block">
         <div class="section-label">Learning path</div>
@@ -109,6 +111,7 @@ def write(course, mods, version):
     </main>
     <footer><strong>Terminal Workflow</strong><br />Press / on any page to search every command and key.</footer>
     <script src="_shared/search-index.js?v={version}"></script>
+    <script src="_shared/cheatsheet.js?v={cheat}"></script>
     <script>
 {site_js}
     </script>

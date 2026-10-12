@@ -86,12 +86,10 @@ def entries(mods):
             w = page["worked"]
             wa = anchor(n, "worked")
             add("h", fi, n, wa, w["h2"], w["frame"])
-            if w.get("code"):
-                for ln in _lines(w["code"]):
-                    add("c", fi, n, wa, w["h2"], ln, code=True)
-            add("t", fi, n, wa, w["h2"], w["given"])
-            for s in w["steps"]:
-                add("t", fi, n, wa, w["h2"], s)
+            for ln in _lines(w["open"]):
+                add("c", fi, n, wa, w["h2"], ln, code=True)
+            for _cursor, keys, effect in w["steps"]:
+                add("t", fi, n, wa, w["h2"], f"{keys} {effect}")
             add("t", fi, n, wa, w["h2"], w["meaning"])
             pr = page["practice"]
             add("h", fi, n, anchor(n, "practice"), pr["h2"], "Practice questions")

@@ -1,4 +1,4 @@
-/* Site behaviour shared by every page: copy buttons and site-wide search. */
+/* Site behaviour shared by every page: copy buttons, the cheat sheet drawer and site-wide search. */
 "use strict";
 (function () {
   const MAX_RESULTS = 40;
@@ -51,6 +51,119 @@
     clearTimeout(button._twReset);
     button._twReset = setTimeout(() => { button.textContent = "Copy"; }, COPY_RESET_MS);
   });
+
+  // ---- cheat sheet
+  const STORE_KEY = "tw-cheat";
+  const drawer = document.getElementById("tw-cheat");
+  const cheatBtn = document.querySelector(".tw-cheat-btn");
+  const cheatQ = document.getElementById("tw-cheat-q");
+  const cheatTabs = document.getElementById("tw-cheat-tabs");
+  const cheatBody = document.getElementById("tw-cheat-body");
+  const searchDialog = document.getElementById("tw-search");
+  const cheatState = { open: false, tab: "" };
+  let cheatNorm = null;
+
+  function loadCheatState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      cheatState.open = saved.open === true;
+      cheatState.tab = typeof saved.tab === "string" ? saved.tab : "";
+    } catch (e) { /* storage unavailable or corrupt: use defaults */ }
+  }
+  function saveCheatState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(cheatState)); } catch (e) { /* storage unavailable */ }
+  }
+
+  function cheatTable(rows) {
+    const table = document.createElement("table");
+    table.className = "tw-keytable";
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      const keyCell = document.createElement("td");
+      const kbd = document.createElement("kbd");
+      kbd.className = "tw-key";
+      kbd.textContent = row[0];
+      keyCell.append(kbd);
+      const actionCell = document.createElement("td");
+      actionCell.textContent = row[1];
+      tr.append(keyCell, actionCell);
+      table.append(tr);
+    });
+    return table;
+  }
+
+  function renderCheat() {
+    const sheets = window.TW_CHEAT;
+    if (!drawer || !Array.isArray(sheets) || !sheets.length) return;
+    if (!sheets.some((s) => s.id === cheatState.tab)) cheatState.tab = sheets[0].id;
+    if (!cheatNorm) cheatNorm = sheets.map((s) => s.rows.map((r) => norm(r[0] + " " + r[1])));
+    const q = norm(cheatQ.value);
+    cheatTabs.replaceChildren();
+    sheets.forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tw-cheat-tab";
+      b.textContent = s.title;
+      b.setAttribute("aria-pressed", String(!q && s.id === cheatState.tab));
+      b.addEventListener("click", () => {
+        cheatState.tab = s.id;
+        cheatQ.value = "";
+        saveCheatState();
+        renderCheat();
+      });
+      cheatTabs.append(b);
+    });
+    cheatBody.replaceChildren();
+    if (!q) {
+      cheatBody.append(cheatTable(sheets.find((s) => s.id === cheatState.tab).rows));
+      return;
+    }
+    const tokens = q.split(" ");
+    let found = 0;
+    sheets.forEach((s, si) => {
+      const rows = s.rows.filter((_, ri) => tokens.every((t) => cheatNorm[si][ri].includes(t)));
+      if (!rows.length) return;
+      found += rows.length;
+      const h = document.createElement("h3");
+      h.className = "tw-cheat-group";
+      h.textContent = s.title;
+      cheatBody.append(h, cheatTable(rows));
+    });
+    if (!found) {
+      const p = document.createElement("p");
+      p.className = "tw-cheat-empty";
+      p.textContent = "No match.";
+      cheatBody.append(p);
+    }
+  }
+
+  function setCheatOpen(open) {
+    if (!drawer) return;
+    cheatState.open = open;
+    drawer.hidden = !open;
+    document.body.classList.toggle("tw-cheat-open", open);
+    if (cheatBtn) cheatBtn.setAttribute("aria-expanded", String(open));
+    saveCheatState();
+  }
+
+  if (drawer && cheatBtn && cheatQ && cheatTabs && cheatBody) {
+    loadCheatState();
+    renderCheat();
+    setCheatOpen(cheatState.open);
+    cheatBtn.addEventListener("click", () => setCheatOpen(!cheatState.open));
+    drawer.querySelector(".tw-cheat-close").addEventListener("click", () => setCheatOpen(false));
+    cheatQ.addEventListener("input", renderCheat);
+    document.addEventListener("keydown", (event) => {
+      if (searchDialog && !searchDialog.hidden) return;
+      if (event.key === "Escape" && cheatState.open) {
+        setCheatOpen(false);
+      } else if (event.key === "?" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+        event.preventDefault();
+        setCheatOpen(!cheatState.open);
+      }
+    });
+  }
 
   // ---- search
   const dialog = document.getElementById("tw-search");

@@ -7,6 +7,7 @@ With numbers only those module files are written; the index and search index are
 Content lives in _tools/content/m*.py; shared CSS and JS in _shared/ are inlined into each file.
 Only the fonts (_shared/fonts) and the search index stay as separate local files.
 """
+import hashlib
 import importlib
 import json
 import os
@@ -18,7 +19,8 @@ COURSE = os.path.dirname(TOOLS)
 sys.path.insert(0, TOOLS)
 import kit  # noqa: E402
 import search  # noqa: E402
-from content.common import MODULE_META, SITE_GLOSSARY  # noqa: E402
+from content.cheatsheet import CHEATSHEET  # noqa: E402
+from content.common import MODULE_META, PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, PRACTICE_MAX_LINES, SITE_GLOSSARY  # noqa: E402
 
 SITE_NAME = "Terminal Workflow"
 PAGES_MIN, PAGES_MAX, PRACTICE_COUNT = 2, 4, 4
@@ -26,6 +28,69 @@ CARDS_MIN, CARDS_MAX = 2, 4
 # Split in two so verify.py's scan of this folder does not match the definition itself.
 BANNED_PHRASES = ("nothing to " + "type",)
 BLOCK_TYPES = ("cmd", "keys", "code", "text")
+CHEAT_REL = "_shared/cheatsheet.js"
+CHEAT_VERSION_LEN = 10
+LINE_REF = re.compile(r"\bline (\d+)")
+
+
+def cheat_version():
+    """Content hash of the written cheat sheet data, or "" when it has not been built yet."""
+    path = os.path.join(COURSE, CHEAT_REL)
+    if not os.path.exists(path):
+        return ""
+    with open(path, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()[:CHEAT_VERSION_LEN]
+
+
+def write_cheat():
+    sheets = [{"id": s["id"], "title": s["title"], "rows": [list(r) for r in s["rows"]]} for s in CHEATSHEET]
+    body = "window.TW_CHEAT = " + json.dumps(sheets, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + ";\n"
+    path = os.path.join(COURSE, CHEAT_REL)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(body)
+    print(f"wrote {CHEAT_REL} ({sum(len(s['rows']) for s in sheets)} rows in {len(sheets)} sheets)")
+    return cheat_version()
+
+
+def write_practice():
+    """Write the shared practice files byte for byte so a visitor can download them."""
+    for name, body in PRACTICE_FILES.items():
+        if len(body.splitlines()) > PRACTICE_MAX_LINES:
+            raise SystemExit(f"{name}: more than {PRACTICE_MAX_LINES} lines")
+    folder = os.path.join(COURSE, PRACTICE_DIR)
+    os.makedirs(folder, exist_ok=True)
+    for name, body in PRACTICE_FILES.items():
+        with open(os.path.join(folder, name), "w", encoding="utf-8", newline="") as f:
+            f.write(body)
+    print(f"wrote {PRACTICE_DIR}/ ({len(PRACTICE_FILES)} files)")
+
+
+def opened_practice_file(command):
+    """The PRACTICE_FILES name a command opens, or None."""
+    for token in str(command).split():
+        name = token[len(PRACTICE_HOME) + 1:] if token.startswith(PRACTICE_HOME + "/") else token
+        if name in PRACTICE_FILES:
+            return name
+    return None
+
+
+def validate_worked(where, w):
+    for key in ("open", "steps", "after"):
+        if not w.get(key):
+            raise SystemExit(f"{where}: worked needs {key}")
+    name = opened_practice_file(w["open"])
+    if not name:
+        return
+    text = PRACTICE_FILES[name]
+    if w.get("before") and w["before"].rstrip("\n") not in text:
+        raise SystemExit(f"{where}: worked before is not verbatim in {name}")
+    count = len(text.splitlines())
+    for cursor, _keys, _effect in w["steps"]:
+        if not cursor:
+            continue
+        for ln in LINE_REF.findall(cursor[0] if isinstance(cursor, tuple) else cursor):
+            if int(ln) > count:
+                raise SystemExit(f"{where}: worked cursor names line {ln}, {name} has {count}")
 
 
 def read(rel):
@@ -90,6 +155,7 @@ def validate(mod):
                         raise SystemExit(f"{where}: keys {b.get('title')!r} needs non-empty (key, action) rows")
                     if b.get("try") and not str(b.get("expect", "")).strip():
                         raise SystemExit(f"{where}: keys {b.get('title')!r} has try but no expect")
+        validate_worked(where, page["worked"])
         if not has_expect:
             raise SystemExit(f"{where}: no cmd block with an expect")
         if len(page["practice"]["qs"]) != PRACTICE_COUNT:
@@ -112,6 +178,7 @@ def page_html(mod, i, page):
         f'aria-labelledby="tab-{n}" aria-hidden="{"false" if i == 0 else "true"}">',
         kit.header(mod["title"], n, len(mod["pages"]), page["h1"], page["subtitle"]),
         kit.one_idea(*page["idea"]),
+        f'<div class="block">{kit.practice_setup(kit.anchor(n, "setup"))}</div>' if i == 0 else "",
         kit.problem(n, page["problem"]),
         kit.drills(n, page["drills"]),
         kit.rules(n, page["rules"]),
@@ -130,7 +197,7 @@ def glossary(mod):
     return own + [g for g in SITE_GLOSSARY if g[0] not in ids and not any(f.lower() in forms for f in g[2])]
 
 
-def module_html(mod, prev, nxt, version):
+def module_html(mod, prev, nxt, version, cheat):
     css = read("_shared/course.css")
     js = read("_shared/course.js")
     site_js = read("_shared/site.js")
@@ -151,6 +218,7 @@ def module_html(mod, prev, nxt, version):
   </head>
   <body data-root="../" data-file="{mod["folder"]}/{mod["folder"]}.html">
     {kit.search_ui()}
+    {kit.cheat_ui()}
     <main id="lessonRoot">
 {pages}
     </main>
@@ -171,6 +239,7 @@ def module_html(mod, prev, nxt, version):
     </footer>
     <script>window.TW_GLOSSARY = {gloss};</script>
     <script src="../_shared/search-index.js?v={version}"></script>
+    <script src="../_shared/cheatsheet.js?v={cheat}"></script>
     <script>
 {js}
     </script>
@@ -184,12 +253,12 @@ def module_html(mod, prev, nxt, version):
     return html
 
 
-def write_module(mod, prev, nxt, version):
+def write_module(mod, prev, nxt, version, cheat):
     folder = os.path.join(COURSE, mod["folder"])
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, mod["folder"] + ".html")
     with open(path, "w", encoding="utf-8") as f:
-        f.write(module_html(mod, prev, nxt, version))
+        f.write(module_html(mod, prev, nxt, version, cheat))
     print(f"wrote {os.path.relpath(path, COURSE)} ({len(mod['pages'])} pages)")
 
 
@@ -200,15 +269,18 @@ def main():
     for m in chosen:
         validate(m)
     version = search.version(COURSE) if only else search.write(COURSE, mods)
+    cheat = cheat_version() if only else write_cheat()
+    if not only:
+        write_practice()
     for k, mod in enumerate(mods):
         if mod not in chosen:
             continue
-        write_module(mod, mods[k - 1] if k > 0 else None, mods[k + 1] if k + 1 < len(mods) else None, version)
+        write_module(mod, mods[k - 1] if k > 0 else None, mods[k + 1] if k + 1 < len(mods) else None, version, cheat)
     if only:
         print("partial build: index and search index not rebuilt")
         return
     import index
-    index.write(COURSE, mods, version)
+    index.write(COURSE, mods, version, cheat)
 
 
 if __name__ == "__main__":

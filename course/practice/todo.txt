@@ -1,0 +1,16 @@
+item 1: pending
+item 2: pending
+item 3: pending
+item 4: pending
+item 5: pending
+item 6: pending
+item 7: pending
+item 8: pending
+item 9: pending
+item 10: pending
+
+TODO call the carrier
+buy tape
+TODO print labels
+buy boxes
+TODO reply to Sam

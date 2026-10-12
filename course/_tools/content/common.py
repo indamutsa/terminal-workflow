@@ -24,3 +24,64 @@ SITE_GLOSSARY = [
     ("tw-quickfix", "Quickfix list", ["quickfix list", "quickfix"], "A list of locations, such as search hits or errors, that you step through one by one."),
     ("tw-lsp", "LSP", ["LSP"], "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."),
 ]
+
+SITE_URL = "https://nvim-workflow.vercel.app"
+PRACTICE_HOME = "~/tw"
+PRACTICE_DIR = "practice"
+
+# The only files the Neovim examples open. Each is at most PRACTICE_MAX_LINES lines and is written byte for byte to course/practice/.
+PRACTICE_MAX_LINES = 20
+PRACTICE_FILES = {
+    "orders.py": '''TAX_RATE = 0.08
+ORDERS = ["A1", "A2", "A3"]
+PRICES = {"A1": 2.50, "A2": 4.00, "A3": 1.25}
+
+
+def calc_totl(price, qty):
+    return price * qty * (1 + TAX_RATE)
+
+
+def report(codes):
+    for code in codes:
+        print(code, calc_totl(PRICES[code], 2))
+
+
+name = "pen"
+qty = 3
+price = 2.50
+note = "rush"
+total = calc_totl(price, qty)
+print(name, qty, price, note, total)
+''',
+    "notes.md": '''# Shipping notes
+
+Orders ship within two days. Rush orders ship the same day, but only before noon.
+
+If an order is late, tell the customer first. Then check the carrier.
+
+## Checklist
+
+Pack the box. Print the label. Hand it to the carrier.
+
+## Contacts
+
+Support answers email within one day. Call the carrier about lost parcels.
+''',
+    "todo.txt": '''item 1: pending
+item 2: pending
+item 3: pending
+item 4: pending
+item 5: pending
+item 6: pending
+item 7: pending
+item 8: pending
+item 9: pending
+item 10: pending
+
+TODO call the carrier
+buy tape
+TODO print labels
+buy boxes
+TODO reply to Sam
+''',
+}

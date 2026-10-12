@@ -14,6 +14,8 @@ from urllib.parse import unquote
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 COURSE = os.path.dirname(TOOLS)
+sys.path.insert(0, TOOLS)
+from content.common import PRACTICE_DIR, PRACTICE_FILES  # noqa: E402
 
 QUERIES = ["split pane", "<C-w>v", "fzf --preview", "git worktree add"]
 NEGATIVE = [r"pglite", r"sql-console", r"sqc-", r"SQL_GLOSSARY", r"Northgate", r"course-quest-premium", r"_vendor",
@@ -185,6 +187,13 @@ def main():
         m = re.search(EXTERNAL, text)
         if m and not rel.startswith(os.path.join("_shared", "fonts")):
             fails.append(f"{rel}: external reference {m.group(0)!r}")
+
+    for name, body in PRACTICE_FILES.items():
+        path = os.path.join(COURSE, PRACTICE_DIR, name)
+        if not os.path.exists(path):
+            fails.append(f"{PRACTICE_DIR}/{name}: missing")
+        elif open(path, "rb").read() != body.encode("utf-8"):
+            fails.append(f"{PRACTICE_DIR}/{name}: differs from PRACTICE_FILES")
 
     for line in fails:
         print(line)
