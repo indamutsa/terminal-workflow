@@ -1,0 +1,20 @@
+# Backup trigger: Vercel's GitHub app occasionally misses a push to main.
+# A duplicate deploy of the same commit is harmless.
+name: Deploy course
+
+on:
+  push:
+    branches: [main]
+    paths: ["course/**"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel deploy hook
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          test -n "$HOOK" || { echo "VERCEL_DEPLOY_HOOK secret is empty"; exit 1; }
+          curl -fsS -X POST "$HOOK" > /dev/null

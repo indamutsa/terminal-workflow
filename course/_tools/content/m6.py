@@ -829,7 +829,9 @@ MODULE = {
                     "intro": "Scroll and fold control.",
                     "blocks": [
                         K("Scrolling (reposition the screen, cursor stays)", Z_SCROLL),
-                        K("Folding", Z_FOLD),
+                        K("Folding", Z_FOLD, **{"try": "`nvim ~/tw/orders.py`, then `10G` (the `def report` line) and `zc`. Then `zM`, then `zR`.",
+                          "expect": "`zc` hides lines 11–12 behind `def report(codes):`. `zM` leaves only signatures and top-level lines. `zR` opens everything."}),
+                        {"type": "text", "body": "Folds here come from treesitter, so every function and block folds on its own. To fold lines you pick, run `:setlocal foldmethod=manual`, select with `V`, press `zf`; `zd` removes it. Without that, `zf` stops with `E350`."},
                         K("Spelling", Z_SPELL),
                     ],
                 },
