@@ -7,7 +7,7 @@
 tmux for sessions, Neovim for editing, git worktrees for parallel branches, and an AI coding agent
 working beside you. Every lesson is a set of drills on a real, deliberately broken project.
 
-**[Open the course →](https://terminal-workflow.vercel.app)** · press `/` on any page to search every command and key
+**[Open the course →](https://nvim-workflow.vercel.app)** · press `/` on any page to search every command and key
 
 ![tmux](https://img.shields.io/badge/tmux-prefix_Ctrl--a-8FC9A8?style=flat-square&logo=tmux&logoColor=8FC9A8&labelColor=1C2B24)
 ![Neovim](https://img.shields.io/badge/Neovim-0.12+_·_LazyVim-8FC9A8?style=flat-square&logo=neovim&logoColor=8FC9A8&labelColor=1C2B24)

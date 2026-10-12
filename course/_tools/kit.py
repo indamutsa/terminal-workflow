@@ -5,6 +5,8 @@ shared CSS and JS drive: copyable command boxes with a stated result, key tables
 """
 from html import escape as _esc
 
+from content.common import PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, SITE_URL
+
 WHERE = {"shell": "Shell", "tmux": "tmux", "nvim": "Neovim", "lazygit": "LazyGit", "fzf": "fzf"}
 
 
@@ -59,7 +61,7 @@ def _head(label, title):
 def codebox(aid, kind, label, title, code, expect=None):
     """kind "cmd" shows a result line; kind "code" is a file or script with no result."""
     tail = ""
-    if kind == "cmd":
+    if kind == "cmd" and expect:
         tail = f'<p class="tw-expect"><span class="tw-expect-label">You should see</span> {_rich(expect)}</p>'
     return (f'<figure class="tw-codebox tw-{kind}" id="{aid}">{_head(label, title)}'
             f'<pre class="sq-code"><code>{esc(code)}</code></pre>{tail}</figure>')
@@ -123,13 +125,38 @@ def rules(page_n, r):
     return "".join(out)
 
 
+def practice_setup(aid):
+    """One command that downloads the shared practice files into PRACTICE_HOME."""
+    urls = " -O ".join(f"{SITE_URL}/{PRACTICE_DIR}/{name}" for name in PRACTICE_FILES)
+    code = f"mkdir -p {PRACTICE_HOME} && cd {PRACTICE_HOME} && curl -fsSO {urls}"
+    expect = f"`ls` shows {', '.join(PRACTICE_FILES)}."
+    return codebox(aid, "cmd", WHERE["shell"], "Get the practice files", code, expect)
+
+
+def _step(cursor, keys, effect):
+    parts = []
+    if cursor:
+        where, how = cursor if isinstance(cursor, tuple) else (cursor, "")
+        via = f" ({_rich(how)})" if how else ""
+        parts.append(f'<span><em>Cursor:</em> {_rich(where)}{via}</span>')
+    parts.append(f'<span><em>Keys:</em> {_rich(keys)}</span>')
+    parts.append(f'<span>{_rich(effect)}</span>')
+    return "<li>" + " · ".join(parts) + "</li>"
+
+
+def _pane(label, text):
+    return f'<div class="ws-pane"><span class="ws-label">{label}</span><pre class="sq-code"><code>{esc(text)}</code></pre></div>'
+
+
 def worked(page_n, w):
-    """w: h2, frame, given, steps [..], code (optional), meaning"""
-    box = codebox(anchor(page_n, "worked", "code"), "code", "Example", w["h2"], w["code"]) if w.get("code") else ""
-    steps = "".join(f"<li>{_rich(s)}</li>" for s in w["steps"])
+    """w: h2, frame, open, steps [(cursor_or_None, keys, effect)], before (optional), after, meaning"""
+    box = codebox(anchor(page_n, "worked", "open"), "cmd", WHERE[w.get("where", "shell")], "Open it", w["open"])
+    steps = "".join(_step(*s) for s in w["steps"])
+    panes = (_pane("Before", w["before"]) if w.get("before") else "") + _pane("After" if w.get("before") else "You see", w["after"])
+    one = "" if w.get("before") else " ws-one"
     return (f'<section class="block" id="{anchor(page_n, "worked")}"><div class="section-label">Worked application</div><h2>{esc(w["h2"])}</h2>'
             f'<div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">{_rich(w["frame"])}</p>'
-            f'<p>{_rich(w["given"])}</p>{box}<ol class="worked-steps">{steps}</ol>'
+            f'{box}<ol class="worked-steps ws-steps">{steps}</ol><div class="ws-pair{one}">{panes}</div>'
             f'<div class="result-box"><strong>Why it matters:</strong> {_rich(w["meaning"])}</div></div></section>')
 
 
@@ -155,4 +182,17 @@ def search_ui():
         'aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" />'
         '<ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul>'
         '<p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>'
+    )
+
+
+def cheat_ui():
+    return (
+        '<button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false">'
+        '<span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button>'
+        '<aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet">'
+        '<header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2>'
+        '<button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header>'
+        '<input id="tw-cheat-q" class="tw-q" type="search" autocomplete="off" spellcheck="false" aria-label="Filter the cheat sheet" placeholder="Filter keys and actions" />'
+        '<div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div>'
+        '<div id="tw-cheat-body" class="tw-cheat-body"></div></aside>'
     )

@@ -281,15 +281,14 @@ alias tk='tmux kill-session -t'
             "worked": {
                 "h2": "Park a session and come back",
                 "frame": "You stop for the day and want your work to wait.",
-                "given": "A session called `work` is running.",
-                "code": "tmux ls\ntmux attach",
+                "open": "tmux new -s work",
                 "steps": [
-                    "Press `Ctrl-a d` to detach.",
-                    "Close the terminal. The session keeps running.",
-                    "Open a new terminal and run `tmux ls`. The session is listed.",
-                    "Run `tmux attach` to return to it.",
+                    (None, "`Ctrl-a d`", "Detaches. You are back at the shell; close the terminal if you like."),
+                    (None, "`tmux ls`", "In a new terminal, lists `work` as still running."),
+                    (None, "`tmux attach`", "Returns to the session."),
                 ],
-                "meaning": "Closing a window never ends the work. Only killing the session, or restarting the computer, does.",
+                "after": "work: 1 windows (created Mon Oct 12 09:00:00 2026)",
+                "meaning": "Closing a window never ends the work; only killing the session or restarting does.",
             },
             "practice": {
                 "h2": "Practice: sessions",
@@ -432,14 +431,15 @@ tmux capture-pane -t 1 -p | tail -10
             "worked": {
                 "h2": "Editor, tests and agent in one session",
                 "frame": "Three jobs, three windows, one session.",
-                "given": "You are in the `main` session with one window.",
+                "open": "tmux new -s main",
                 "steps": [
-                    "Press `Ctrl-a ,` and name this window `editor`.",
-                    "Press `Ctrl-a c`, then `Ctrl-a ,` and name it `tests`.",
-                    "Press `Ctrl-a c` again and name it `agent`.",
-                    "Press `Ctrl-a w` to see all three with a preview.",
+                    (None, "`Ctrl-a ,` then `editor` then `Enter`", "Names this window."),
+                    (None, "`Ctrl-a c` then `Ctrl-a ,` then `tests` then `Enter`", "New window, named."),
+                    (None, "`Ctrl-a c` then `Ctrl-a ,` then `agent` then `Enter`", "Third window, named."),
+                    (None, "`Ctrl-a w`", "Lists all three with a preview."),
                 ],
-                "meaning": "The status bar now shows `editor`, `tests` and `agent`, so a jump is one keystroke away.",
+                "after": "[main]  1:editor   2:tests   3:agent",
+                "meaning": "A jump is now one keystroke away.",
             },
             "practice": {
                 "h2": "Practice: windows and panes",
@@ -608,13 +608,12 @@ fzf  # Should work now
             "worked": {
                 "h2": "Find a file and open it",
                 "frame": "You know part of a name, not the path.",
-                "given": "The alias `ff` from the fzf aliases is loaded.",
-                "code": "ff",
+                "open": "cd ~/tw && ff",
                 "steps": [
-                    "Run `ff`.",
-                    "Type a few letters of the name. The list narrows and `bat` shows a preview.",
-                    "Press Enter. `nvim` opens the file.",
+                    (None, "`ord`", "The list narrows to one file and `bat` shows a preview."),
+                    (None, "`Enter`", "`nvim` opens the file."),
                 ],
+                "after": "  orders.py\n  1/3\n> ord",
                 "meaning": "One alias replaces a find, a read and an open.",
             },
             "practice": {
@@ -750,14 +749,15 @@ fzf  # Should work now
             "worked": {
                 "h2": "Show the session name and the time",
                 "frame": "You want the bar to say where you are and what time it is.",
-                "given": "Open `~/.config/tmux/tmux.conf` and add two lines.",
-                "code": 'set -g status-left "[#S] "\nset -g status-right "%H:%M"',
+                "open": "nvim ~/.config/tmux/tmux.conf",
                 "steps": [
-                    "Save the file.",
-                    "Press `Ctrl-a r` to reload.",
-                    "Look at the bar: `[main]` on the left, the time on the right.",
+                    (None, "`G` `o` then `set -g status-left \"[#S] \"` then `Esc`", "Adds the left side."),
+                    (None, "`o` then `set -g status-right \"%H:%M\"` then `Esc`", "Adds the right side."),
+                    (None, "`:w`", "Saves the file."),
+                    (None, "`Ctrl-a r`", "Reloads the config."),
                 ],
-                "meaning": "`#S` and `%H:%M` are filled in live, so the bar always shows the current session and time.",
+                "after": "[main]                          09:41",
+                "meaning": "`#S` and `%H:%M` fill in live, so the bar always shows the session and the time.",
             },
             "practice": {
                 "h2": "Practice: your config",
