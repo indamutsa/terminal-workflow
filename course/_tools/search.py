@@ -4,6 +4,7 @@ import json
 import os
 import re
 
+from content.common import module_path
 from kit import anchor
 
 SNIPPET_MAX = 200
@@ -101,7 +102,7 @@ def entries(mods):
 def payload(mods):
     return {
         "v": INDEX_VERSION,
-        "files": [f"{m['folder']}/{m['folder']}.html" for m in mods],
+        "files": [module_path(m["folder"]) for m in mods],
         "mods": [{"n": m["n"], "title": m["title"], "pages": [p["h1"] for p in m["pages"]]} for m in mods],
         "items": entries(mods),
     }

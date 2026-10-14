@@ -9,6 +9,8 @@
   const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
   const root = document.body.dataset.root || "";
   const here = document.body.dataset.file || "index.html";
+  // A module lives at <folder>/index.html but is linked as <folder>/.
+  const MODULE_FILE_RE = /(^|\/)index\.html$/;
   const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
 
   // Vim and tmux spellings of the same key must meet: "<C-w>v" and "Ctrl-w v" both become "ctrl-w v".
@@ -311,7 +313,7 @@
       if (location.hash === "#" + target) dispatchEvent(new HashChangeEvent("hashchange"));
       else location.hash = target;
     } else {
-      location.href = root + file + "#" + target;
+      location.href = root + file.replace(MODULE_FILE_RE, "$1") + "#" + target;
     }
   }
 

@@ -4,6 +4,8 @@ Transcribed from the lessons' reference cards. The first sheet is the global mus
 Live-config notes: the tmux prefix is Ctrl-a, windows start at 1, and <Space>T* maps are not in the current config.
 """
 
+from content.common import FZF_HELPERS
+
 CHEATSHEET = [
     {"id": "essentials", "title": "Essentials", "rows": [
         ("Ctrl-a c", "tmux: new window"),
@@ -251,6 +253,7 @@ CHEATSHEET = [
         ("fzf -i", "Case-insensitive"),
         ("fzf --preview 'cat {}'", "Preview files"),
     ]},
+    {"id": "fzf-helpers", "title": "fzf helpers", "rows": FZF_HELPERS},
     {"id": "worktree", "title": "Git worktree", "rows": [
         ("git worktree add ../dir -b branch", "Create worktree and new branch"),
         ("git worktree add ../dir -b branch base", "Create from a specific base"),

@@ -25,10 +25,6 @@ u                Undo
 .                Repeat last change
 ''')
 
-VP_FUNC = C(r'''
-vp() { cd "$1" && nvim . ; }
-''')
-
 MODULE = {
     "n": 2,
     "folder": "m2-nvim-essentials",
@@ -39,6 +35,7 @@ MODULE = {
     "coverage_allow": [
         ('cd "Terminal Workflow/practice/nvim-drills"', "folder renamed to Terminal-Workflow"),
         ("demo-project/", "file tree shown as the expected result of the demo-project commit"),
+        ('vp() { cd "$1" && nvim . ; }', "definition replaced by usage; installed in user's config"),
     ],
     "pages": [
         # ============================================================ page 1
@@ -613,7 +610,14 @@ dd
                         ], "try": "Press `<Space>`, wait for the popup, press `s`, then press `g` and grep for `qualifies_for_free_shipping`.",
                          "expect": "The grep finds 4 matches: the definition in `src/orders.py`, and an import, a comment and the test call in `tests/test_orders.py`."},
                         {"type": "text", "body": "Forgot a key? Press `<Space>` and read the menu, or `<Space>sk` to fuzzy-search every keymap by description."},
-                        {"type": "code", "file": "~/.zshrc", "title": "Open Neovim in a folder", "code": VP_FUNC},
+                        {"type": "cmd", "where": "shell", "title": "Open Neovim in a folder", "code": "vp ~/tw",
+                         "expect": "Your shell moves to `~/tw` and Neovim opens the folder in its file explorer. After you quit, you are still in `~/tw`."},
+                        {"type": "cmd", "where": "shell", "title": "Open the current folder or one file", "code": C('''
+cd ~/tw
+v.
+v orders.py
+'''),
+                         "expect": "`v.` opens the current folder in Neovim and `v orders.py` opens that file. `v` is a shortcut for `nvim`, and `vim` and `vi` run it too."},
                     ],
                 },
             ],

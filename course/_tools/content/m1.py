@@ -1,4 +1,5 @@
 """Module 1: tmux and the shell. Sources: lessons 01 tmux.md, fzf.md and the quick-start guide."""
+from content.common import FZF_HELPERS
 
 
 def C(s):
@@ -7,122 +8,6 @@ def C(s):
 
 
 TMUX_CONF = "~/.config/tmux/tmux.conf"
-
-STATUS_STYLE = C(r'''
-# Colors (tokyonight theme)
-set -g status-style "bg=#1a1b26,fg=#a9b1d6"
-set -g window-status-current-style "bg=#7aa2f7,fg=#1a1b26,bold"
-set -g window-status-style "bg=#1a1b26,fg=#565f89"
-
-# Format: show index:name
-set -g window-status-format " #I:#W "
-set -g window-status-current-format " #I:#W "
-
-# Left side: session name
-set -g status-left "[#S] "
-
-# Right side: time
-set -g status-right "%H:%M"
-
-# Right side with more info:
-set -g status-right "#(whoami)@#H | %H:%M"
-''')
-
-STATUS_POSITION = C(r'''
-set -g status-position top       # bar at top instead of bottom
-set -g status-justify centre     # center the window list
-''')
-
-PANE_BORDERS = C(r'''
-set -g pane-border-style "fg=#565f89"
-set -g pane-active-border-style "fg=#7aa2f7"
-''')
-
-ACTIVITY = C(r'''
-# Highlight windows with activity
-setw -g monitor-activity on
-set -g visual-activity off       # don't show a message, just highlight
-
-# Highlight style for windows with activity
-set -g window-status-activity-style "fg=#e0af68"
-''')
-
-USEFUL_OPTIONS = C(r'''
-# Start window numbering at 1 (not 0)
-set -g base-index 1
-setw -g pane-base-index 1
-
-# Renumber windows when one is closed
-set -g renumber-windows on
-
-# Bigger scrollback history
-set -g history-limit 50000
-
-# Mouse support (scroll, click to select pane, resize)
-set -g mouse on
-
-# No delay after pressing Esc (important for nvim)
-set -sg escape-time 0
-
-# Auto-rename windows based on running command
-setw -g automatic-rename on
-''')
-
-PLUGINS = C(r'''
-# Plugins
-set -g @plugin 'tmux-plugins/tpm'
-set -g @plugin 'tmux-plugins/tmux-sensible'      # sane defaults
-set -g @plugin 'tmux-plugins/tmux-resurrect'     # save/restore sessions across reboots
-set -g @plugin 'tmux-plugins/tmux-continuum'     # auto-save sessions every 15 min
-set -g @plugin 'tmux-plugins/tmux-yank'          # better copy to clipboard
-
-# Initialize TPM (keep at bottom)
-run '~/.tmux/plugins/tpm/tpm'
-''')
-
-CONTINUUM = C(r'''
-set -g @continuum-save-interval '10'          # auto-save every 10 minutes
-set -g @continuum-restore 'off'               # OFF on purpose — see "the pileup trap"
-set -g @resurrect-capture-pane-contents 'on'  # restore scrollback contents
-set -g @resurrect-strategy-nvim 'session'     # restore nvim sessions too
-''')
-
-RESTORE_ONCE = C(r'''
-#!/usr/bin/env bash
-LOCK="/tmp/tmux-resurrect-restored-$(id -u)"
-[ -f "$LOCK" ] && exit 0          # already restored this boot → do nothing
-touch "$LOCK"
-"$HOME/.tmux/plugins/tmux-resurrect/scripts/restore.sh"
-''')
-
-BOOT_RESTORE = C(r'''
-#!/usr/bin/env bash
-# launchd has a minimal PATH; resurrect's scripts call bare `tmux`, so add Homebrew.
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
-TMUX_BIN="/opt/homebrew/bin/tmux"
-rm -f "/tmp/tmux-resurrect-restored-$(id -u)"   # fresh boot → clear stale lock
-# Anchor the server with a session named to MATCH the save ("main") — a bare
-# start-server with no session can exit immediately, and restore expects "main".
-"$TMUX_BIN" has-session 2>/dev/null || "$TMUX_BIN" new-session -d -s main
-sleep 1
-"$HOME/.config/tmux/restore-once.sh"
-''')
-
-PLIST = C(r'''
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.indamutsa.tmux-restore</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/Users/YOU/.config/tmux/boot-restore.sh</string>
-    </array>
-    <key>RunAtLoad</key><true/>
-</dict>
-</plist>
-''')
 
 BINDINGS = C(r'''
 # Quick window swap
@@ -142,34 +27,6 @@ bind S choose-tree -s    # interactive session+window tree
 bind Tab last-window
 ''')
 
-SCHEMES = C(r'''
-# tokyonight (matches nvim)
-set -g status-style "bg=#1a1b26,fg=#a9b1d6"
-set -g window-status-current-style "bg=#7aa2f7,fg=#1a1b26,bold"
-
-# catppuccin
-set -g status-style "bg=#1e1e2e,fg=#cdd6f4"
-set -g window-status-current-style "bg=#89b4fa,fg=#1e1e2e,bold"
-
-# gruvbox
-set -g status-style "bg=#282828,fg=#ebdbb2"
-set -g window-status-current-style "bg=#fabd2f,fg=#282828,bold"
-''')
-
-FZF_ALIASES = C(r'''
-# Find file and open in editor
-alias ff='fzf --preview "bat --color=always {}" | xargs nvim'
-
-# Find directory and cd
-alias fd='cd $(find . -type d | fzf)'
-
-# Search git commits
-alias fgl='git log --oneline | fzf --preview "git show {1}"'
-
-# Search running processes
-alias fkill='ps aux | fzf | awk "{print \$2}" | xargs kill -9'
-''')
-
 MODULE = {
     "n": 1,
     "folder": "m1-tmux",
@@ -177,7 +34,78 @@ MODULE = {
     "footer": "Sessions, windows and panes; copy mode and fzf; status bar, plugins and restore after reboot",
     "tagline": "Sessions that survive, panes that split, a config that restores.",
     "glossary": [],
-    "coverage_allow": [],
+    "coverage_allow": [
+        ('if [ -z "$TMUX" ]; then', "definition replaced by usage; installed in user's config"),
+        ('tmux attach || tmux new -s main', "definition replaced by usage; installed in user's config"),
+        ('set -g status-style "bg=#1a1b26,fg=#a9b1d6"', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-current-style "bg=#7aa2f7,fg=#1a1b26,bold"', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-style "bg=#1a1b26,fg=#565f89"', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-format " #I:#W "', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-current-format " #I:#W "', "definition replaced by usage; installed in user's config"),
+        ('set -g status-right "#(whoami)@#H | %H:%M"', "definition replaced by usage; installed in user's config"),
+        ('set -g status-position top', "definition replaced by usage; installed in user's config"),
+        ('set -g status-justify centre', "definition replaced by usage; installed in user's config"),
+        ('set -g pane-border-style "fg=#565f89"', "definition replaced by usage; installed in user's config"),
+        ('set -g pane-active-border-style "fg=#7aa2f7"', "definition replaced by usage; installed in user's config"),
+        ('setw -g monitor-activity on', "definition replaced by usage; installed in user's config"),
+        ('set -g visual-activity off', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-activity-style "fg=#e0af68"', "definition replaced by usage; installed in user's config"),
+        ('set -g renumber-windows on', "definition replaced by usage; installed in user's config"),
+        ('set -g history-limit 50000', "definition replaced by usage; installed in user's config"),
+        ('set -g mouse on', "definition replaced by usage; installed in user's config"),
+        ('set -sg escape-time 0', "definition replaced by usage; installed in user's config"),
+        ('setw -g automatic-rename on', "definition replaced by usage; installed in user's config"),
+        ('git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm', "definition replaced by usage; installed in user's config"),
+        ("set -g @plugin 'tmux-plugins/tpm'", "definition replaced by usage; installed in user's config"),
+        ("set -g @plugin 'tmux-plugins/tmux-sensible'", "definition replaced by usage; installed in user's config"),
+        ("set -g @plugin 'tmux-plugins/tmux-resurrect'", "definition replaced by usage; installed in user's config"),
+        ("set -g @plugin 'tmux-plugins/tmux-continuum'", "definition replaced by usage; installed in user's config"),
+        ("set -g @plugin 'tmux-plugins/tmux-yank'", "definition replaced by usage; installed in user's config"),
+        ("run '~/.tmux/plugins/tpm/tpm'", "definition replaced by usage; installed in user's config"),
+        ("set -g @continuum-save-interval '10'", "definition replaced by usage; installed in user's config"),
+        ("set -g @continuum-restore 'off'", "definition replaced by usage; installed in user's config"),
+        ("set -g @resurrect-capture-pane-contents 'on'", "definition replaced by usage; installed in user's config"),
+        ("set -g @resurrect-strategy-nvim 'session'", "definition replaced by usage; installed in user's config"),
+        ('LOCK="/tmp/tmux-resurrect-restored-$(id -u)"', "definition replaced by usage; installed in user's config"),
+        ('[ -f "$LOCK" ] && exit 0', "definition replaced by usage; installed in user's config"),
+        ('touch "$LOCK"', "definition replaced by usage; installed in user's config"),
+        ('"$HOME/.tmux/plugins/tmux-resurrect/scripts/restore.sh"', "definition replaced by usage; installed in user's config"),
+        ('export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"', "definition replaced by usage; installed in user's config"),
+        ('TMUX_BIN="/opt/homebrew/bin/tmux"', "definition replaced by usage; installed in user's config"),
+        ('rm -f "/tmp/tmux-resurrect-restored-$(id -u)"', "definition replaced by usage; installed in user's config"),
+        ('"$TMUX_BIN" has-session 2>/dev/null || "$TMUX_BIN" new-session -d -s main', "definition replaced by usage; installed in user's config"),
+        ('sleep 1', "definition replaced by usage; installed in user's config"),
+        ('"$HOME/.config/tmux/restore-once.sh"', "definition replaced by usage; installed in user's config"),
+        ('<?xml version="1.0" encoding="UTF-8"?>', "definition replaced by usage; installed in user's config"),
+        ('<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">', "definition replaced by usage; installed in user's config"),
+        ('<plist version="1.0">', "definition replaced by usage; installed in user's config"),
+        ('<dict>', "definition replaced by usage; installed in user's config"),
+        ('<key>Label</key>', "definition replaced by usage; installed in user's config"),
+        ('<string>com.indamutsa.tmux-restore</string>', "definition replaced by usage; installed in user's config"),
+        ('<key>ProgramArguments</key>', "definition replaced by usage; installed in user's config"),
+        ('<array>', "definition replaced by usage; installed in user's config"),
+        ('<string>/Users/YOU/.config/tmux/boot-restore.sh</string>', "definition replaced by usage; installed in user's config"),
+        ('</array>', "definition replaced by usage; installed in user's config"),
+        ('<key>RunAtLoad</key><true/>', "definition replaced by usage; installed in user's config"),
+        ('</dict>', "definition replaced by usage; installed in user's config"),
+        ('</plist>', "definition replaced by usage; installed in user's config"),
+        ('launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.indamutsa.tmux-restore.plist', "definition replaced by usage; installed in user's config"),
+        ('set -g status-style "bg=#1a1b26,fg=#a9b1d6"', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-current-style "bg=#7aa2f7,fg=#1a1b26,bold"', "definition replaced by usage; installed in user's config"),
+        ('set -g status-style "bg=#1e1e2e,fg=#cdd6f4"', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-current-style "bg=#89b4fa,fg=#1e1e2e,bold"', "definition replaced by usage; installed in user's config"),
+        ('set -g status-style "bg=#282828,fg=#ebdbb2"', "definition replaced by usage; installed in user's config"),
+        ('set -g window-status-current-style "bg=#fabd2f,fg=#282828,bold"', "definition replaced by usage; installed in user's config"),
+        ('alias ff=\'fzf --preview "bat --color=always {}" | xargs nvim\'', "definition replaced by usage; installed in user's config"),
+        ("alias fd='cd $(find . -type d | fzf)'", "definition replaced by usage; installed in user's config"),
+        ('alias fgl=\'git log --oneline | fzf --preview "git show {1}"\'', "definition replaced by usage; installed in user's config"),
+        ('alias fkill=\'ps aux | fzf | awk "{print \\$2}" | xargs kill -9\'', "definition replaced by usage; installed in user's config"),
+        ('source ~/.zshrc', "definition replaced by usage; installed in user's config"),
+        ("alias tl='tmux list-sessions'", "definition replaced by usage; installed in user's config"),
+        ("alias tk='tmux kill-session -t'", "definition replaced by usage; installed in user's config"),
+        ('if [ -z "$TMUX" ]; then', "definition replaced by usage; installed in user's config"),
+        ('tmux attach || tmux new -s main', "definition replaced by usage; installed in user's config"),
+    ],
     "pages": [
         # ============================================================ page 1
         {
@@ -246,19 +174,17 @@ tmux kill-session -t old  # kill a session
                     ],
                 },
                 {
-                    "h2": "Auto-attach",
-                    "intro": "Already in your `~/.zshrc`: every new terminal connects to tmux. No manual `tmux attach`.",
+                    "h2": "Start in tmux, list and kill sessions",
+                    "intro": "Open a new terminal and it lands in tmux. These shortcuts check where you are, list your sessions, attach to one by name and kill one you are done with.",
                     "blocks": [
-                        {"type": "code", "file": "~/.zshrc", "title": "Auto-attach", "code": C('''
-if [ -z "$TMUX" ]; then
-  tmux attach || tmux new -s main
-fi
-''')},
-                        {"type": "code", "file": "~/.zshrc", "title": "Session aliases", "code": C('''
-alias tl='tmux list-sessions'
-alias tk='tmux kill-session -t'
-''')},
-                        {"type": "text", "body": "In the live config the kill alias is named `tkss`, not `tk`."},
+                        {"type": "cmd", "where": "shell", "title": "Check that you are inside tmux", "code": "tmux display -p '#S'",
+                         "expect": "The name of your session prints, for example `main`. An error such as `no server running` means you are not inside tmux."},
+                        {"type": "cmd", "where": "shell", "title": "List your sessions", "code": "tl",
+                         "expect": "One line per session, for example `main: 2 windows (created Mon Oct 12 09:00:00 2026)`."},
+                        {"type": "cmd", "where": "shell", "title": "Attach to a session by name, or create it", "code": "to work",
+                         "expect": "The `work` session fills the terminal. If it did not exist, tmux creates it. `ta work` attaches only if it exists."},
+                        {"type": "cmd", "where": "shell", "title": "Kill a session by name", "code": "tkss work",
+                         "expect": "`work` is gone from `tl`. Your other sessions keep running."},
                     ],
                 },
             ],
@@ -552,11 +478,76 @@ kill -9 **<TAB>
                     ],
                 },
                 {
-                    "h2": "Aliases, pipes and options",
-                    "intro": "Add the aliases to `~/.zshrc`.",
+                    "h2": "Find files, folders and text",
+                    "intro": "Find a file, open it, search for a word in the project, jump to a folder or copy a path. Each helper opens a filterable list: type to narrow it, Enter to pick, Esc to cancel.",
                     "blocks": [
-                        {"type": "code", "file": "~/.zshrc", "title": "fzf aliases", "code": FZF_ALIASES},
-                        {"type": "text", "body": "The `fd` alias hides the `fd` program. Rename it if you use that program."},
+                        {"type": "cmd", "where": "shell", "title": "Open a file by part of its name", "code": "cd ~/tw && ff",
+                         "expect": "A list of files with a `bat` preview on the right. Type `ord` and press Enter: `nvim` opens `orders.py`. Press Tab on several files to open them all."},
+                        {"type": "cmd", "where": "shell", "title": "Find a PDF anywhere in your home folder", "code": "ffh pdf",
+                         "expect": "Every `.pdf` under `~` is listed with a preview. Enter opens the pick in your editor. `ffh` alone lists every file type."},
+                        {"type": "cmd", "where": "shell", "title": "Open a file at once when one name matches", "code": "cd ~/tw && fe todo",
+                         "expect": "`todo.txt` is the only match, so `nvim` opens it with no list. With several matches a list appears, pre-filtered to `todo`."},
+                        {"type": "cmd", "where": "shell", "title": "Find a word in the project and jump to it", "code": "cd ~/tw && frg calc_totl",
+                         "expect": "Matching lines list as you type, each with its file and line number. The preview highlights the line. Enter opens `nvim` on that line of `orders.py`."},
+                        {"type": "cmd", "where": "shell", "title": "Jump to a folder", "code": "fdir",
+                         "expect": "Folders are listed with a tree preview. Enter picks one, and `pwd` shows you are now inside it."},
+                        {"type": "cmd", "where": "shell", "title": "Go up to a parent folder", "code": "fcd",
+                         "expect": "Your current folder and every folder above it are listed. Enter changes to the one you pick."},
+                        {"type": "cmd", "where": "shell", "title": "Open a file with its default app", "code": "cd ~/tw && fopen",
+                         "expect": "Pick `notes.md` and macOS opens it in the app set for Markdown. Tab picks several files."},
+                        {"type": "cmd", "where": "shell", "title": "Copy a file's path", "code": "cd ~/tw && fscp",
+                         "expect": "Pick `orders.py` and the terminal prints `Path copied: ` followed by the full path. Paste it anywhere with `Cmd-v`."},
+                        {"type": "text", "body": "`Ctrl-T` does nothing in this setup: it is unbound (`bindkey -r '^T'`) because it clashes with paste in some terminals. Use `ff` instead."},
+                    ],
+                },
+                {
+                    "h2": "Git and tmux with fzf",
+                    "intro": "Switch a git branch, stage a changed file, browse commits, switch to another tmux session or kill one. Run the git helpers inside a repository.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Switch to another git branch", "code": "fgb",
+                         "expect": "Local and remote branches are listed. Type part of a name and press Enter: `git checkout` switches to it."},
+                        {"type": "cmd", "where": "shell", "title": "Stage or unstage a changed file", "code": "fgs",
+                         "expect": "Changed files are listed with a diff preview. `Ctrl-a` stages the highlighted file and `Ctrl-r` unstages it. The list reloads each time. Esc leaves."},
+                        {"type": "cmd", "where": "shell", "title": "Browse the commit history", "code": "fgl",
+                         "expect": "A graph of commits with the commit's diff beside it. Enter opens the full diff in `less`; press `q` to come back. `fgl --all` includes every branch."},
+                        {"type": "cmd", "where": "shell", "title": "Switch to another tmux session", "code": "ftm",
+                         "expect": "Your sessions are listed with a preview of each one's pane. Enter moves you to the one you pick."},
+                        {"type": "cmd", "where": "shell", "title": "Kill tmux sessions you pick", "code": "ftmk",
+                         "expect": "Tab marks one or more sessions and Enter kills them at once, with no confirmation. `tl` no longer lists them."},
+                    ],
+                },
+                {
+                    "h2": "Processes, ports and help",
+                    "intro": "Kill a process, free a port that is already in use, look up an environment variable or search a command's help.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Kill a process by name", "code": "fkill",
+                         "expect": "Every process is listed under `[kill:process]`. Type `node` and press Enter to kill it with signal 9. `fkill 15` sends the gentler SIGTERM."},
+                        {"type": "cmd", "where": "shell", "title": "Kill whatever holds a port", "code": C('''
+python3 -m http.server 8000 &
+fport 8000
+'''),
+                         "expect": "The `python3` process holding port 8000 is listed under `[kill:port:8000]`. Press Enter and it stops. `fport` with no number asks you to type the port."},
+                        {"type": "cmd", "where": "shell", "title": "Look up an environment variable", "code": "fenv",
+                         "expect": "Every variable is listed. Type `PATH` and the matching variables show in full in the preview above the list."},
+                        {"type": "cmd", "where": "shell", "title": "Search a command's man page or help text", "code": "fchelp",
+                         "expect": "Pick a command such as `curl`, then `help` or `man`, then type to search the text. `Ctrl-b` goes back and `Ctrl-q` quits."},
+                        {"type": "cmd", "where": "shell", "title": "Show every helper with an example", "code": "fh",
+                         "expect": "A boxed reference lists each helper in this lesson with an example."},
+                        {"type": "cmd", "where": "shell", "title": "Find a dev command and put it on the prompt", "code": "devh --pick",
+                         "expect": "The dev cheat sheet opens as a list. Enter puts the chosen command on your prompt without running it, so you can fill in placeholders such as `<path>`."},
+                    ],
+                },
+                {
+                    "h2": "Every fzf helper at a glance",
+                    "intro": "What you want on the left, what to type on the right.",
+                    "blocks": [
+                        {"type": "keys", "where": "fzf", "title": "fzf helpers: what to type", "rows": FZF_HELPERS},
+                    ],
+                },
+                {
+                    "h2": "Pipe anything into fzf",
+                    "intro": "Any command's output becomes a filterable list.",
+                    "blocks": [
                         {"type": "cmd", "where": "fzf", "title": "With pipes", "code": C('''
 # Search history
 history | fzf
@@ -582,11 +573,6 @@ fzf -i
 fzf -e
 '''),
                          "expect": "`--preview` shows the file beside the list, `-m` lets you pick several with Tab, `-i` ignores case and `-e` matches exactly."},
-                        {"type": "cmd", "where": "shell", "title": "Reload the shell and test", "code": C('''
-source ~/.zshrc
-fzf  # Should work now
-'''),
-                         "expect": "`fzf` opens its list. Press `Esc` to cancel."},
                     ],
                 },
             ],
@@ -658,14 +644,23 @@ fzf  # Should work now
             },
             "drills": [
                 {
-                    "h2": "Status bar styling",
-                    "intro": "Your config lives at `~/.config/tmux/tmux.conf`. After any change, reload it.",
+                    "h2": "Reload tmux and check a setting",
+                    "intro": "tmux reads `~/.config/tmux/tmux.conf`. After you edit it, reload, then ask tmux which values it is using.",
                     "blocks": [
                         {"type": "keys", "where": "tmux", "title": "Reload the config", "rows": [("Ctrl-a r", "Reload tmux.conf")],
                          "try": "Edit the file, save, then press `Ctrl-a r`.",
-                         "expect": "The change applies to the running session."},
-                        {"type": "code", "file": TMUX_CONF, "title": "Colours, format and status text", "code": STATUS_STYLE},
-                        {"type": "text", "body": "With `status-left` set to `[#S] `, the left of the bar reads `[main]` in the session called main."},
+                         "expect": "`Config reloaded` flashes in the status bar and the change applies to the running session."},
+                        {"type": "cmd", "where": "tmux", "title": "Check that a setting is active", "code": C('''
+tmux show -g base-index
+tmux show -g history-limit
+tmux show -g mouse
+'''),
+                         "expect": "`base-index 1`, `history-limit 50000` and `mouse on` print, one per line."},
+                        {"type": "cmd", "where": "tmux", "title": "Check what the status bar shows", "code": C('''
+tmux show -g status-left
+tmux show -g status-style
+'''),
+                         "expect": "`status-left \"[#S] \"` prints, so the left of the bar reads `[main]` in the session called main. `status-style bg=#1a1b26,fg=#a9b1d6` is the bar colour."},
                         {"type": "keys", "where": "tmux", "title": "Status bar variables", "rows": [
                             ("#S", "Session name"),
                             ("#I", "Window index"),
@@ -676,55 +671,54 @@ fzf  # Should work now
                             ("%H:%M", "Time (24h)"),
                             ("%d/%m", "Date"),
                         ]},
-                        {"type": "code", "file": TMUX_CONF, "title": "Status bar position", "code": STATUS_POSITION},
-                        {"type": "code", "file": TMUX_CONF, "title": "Pane borders", "code": PANE_BORDERS},
-                        {"type": "code", "file": TMUX_CONF, "title": "Activity monitoring", "code": ACTIVITY},
-                        {"type": "code", "file": TMUX_CONF, "title": "Useful options", "code": USEFUL_OPTIONS},
                     ],
                 },
                 {
-                    "h2": "Plugins (TPM — tmux plugin manager)",
-                    "intro": "TPM installs the rest.",
+                    "h2": "Install and update plugins",
+                    "intro": "TPM, the tmux plugin manager, is already installed. List what it holds, and install new plugins with one key.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Install TPM", "code": "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
-                         "expect": "TPM is cloned into `~/.tmux/plugins/tpm`."},
-                        {"type": "code", "file": TMUX_CONF, "title": "Add to the bottom of tmux.conf", "code": PLUGINS},
+                        {"type": "cmd", "where": "shell", "title": "List your installed plugins", "code": "ls ~/.tmux/plugins",
+                         "expect": "One folder per plugin: `tpm`, `tmux-sensible`, `tmux-resurrect`, `tmux-continuum`, `tmux-yank` and `tmux-sidebar`."},
                         {"type": "keys", "where": "tmux", "title": "Install the plugins", "rows": [("Ctrl-a I", "Install plugins (capital I)")],
-                         "try": "Reload with `Ctrl-a r`, then press `Ctrl-a I`.", "expect": "TPM fetches the listed plugins."},
+                         "try": "Add a `set -g @plugin` line to `tmux.conf`, reload with `Ctrl-a r`, then press `Ctrl-a I`.", "expect": "TPM fetches the listed plugins."},
                     ],
                 },
                 {
-                    "h2": "tmux-resurrect (save/restore sessions)",
+                    "h2": "Save and restore your workspace",
                     "intro": "Your entire workspace survives reboots: windows, pane layouts, even running commands.",
                     "blocks": [
                         {"type": "keys", "where": "tmux", "title": "Save and restore", "rows": [
                             ("Ctrl-a Ctrl-s", "Save session (all windows, panes, layout)"),
                             ("Ctrl-a Ctrl-r", "Restore session (after reboot)"),
                         ]},
-                        {"type": "code", "file": TMUX_CONF, "title": "Auto-save every 10 minutes", "code": CONTINUUM},
+                        {"type": "cmd", "where": "shell", "title": "Check that tmux is saving your sessions", "code": C('''
+ls ~/.local/share/tmux/resurrect | tail -3
+tmux show -g @continuum-save-interval
+'''),
+                         "expect": "The newest saves are `tmux_resurrect_` files named with a date and time, no more than 10 minutes old while tmux runs. `@continuum-save-interval 10` is the save interval in minutes."},
                         {"type": "text", "body": "The reboot problem. Quitting and reopening iTerm2 is fine: the tmux server keeps running. A computer restart kills the server, and nothing restarts it, so nothing restores."},
                         {"type": "text", "body": "The pileup trap. resurrect is not idempotent: every restore trigger re-adds panes. With `@continuum-restore 'on'`, a boot agent and iTerm2 launching tmux, each fires a restore, and the same panes stack 3-6 times into slivers. The fix is exactly one restore, lock-guarded."},
                     ],
                 },
                 {
-                    "h2": "Restore once at login",
-                    "intro": "Two small scripts and one launch agent.",
+                    "h2": "Check the restore after a reboot",
+                    "intro": "A launch agent runs two small scripts at login so the restore happens exactly once. Check that each part is in place.",
                     "blocks": [
-                        {"type": "code", "file": "~/.config/tmux/restore-once.sh", "title": "Lock-guarded: runs at most once per server lifetime", "code": RESTORE_ONCE},
-                        {"type": "code", "file": "~/.config/tmux/boot-restore.sh", "title": "Runs at login", "code": BOOT_RESTORE},
-                        {"type": "cmd", "where": "shell", "title": "Make both executable", "code": "chmod +x ~/.config/tmux/{restore-once,boot-restore}.sh",
-                         "expect": "Both scripts are executable."},
-                        {"type": "code", "file": "~/Library/LaunchAgents/com.indamutsa.tmux-restore.plist", "title": "The launch agent", "code": PLIST},
-                        {"type": "cmd", "where": "shell", "title": "Load the launch agent", "code": "launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.indamutsa.tmux-restore.plist",
-                         "expect": "The agent is loaded and runs `boot-restore.sh` at every login."},
+                        {"type": "cmd", "where": "shell", "title": "Check that both restore scripts are executable", "code": "ls -l ~/.config/tmux/*.sh",
+                         "expect": "`boot-restore.sh` and `restore-once.sh` are listed, each starting with `-rwxr-xr-x`."},
+                        {"type": "cmd", "where": "shell", "title": "Check that the login launch agent is loaded", "code": "launchctl list | grep tmux-restore",
+                         "expect": "One line ending in `com.indamutsa.tmux-restore`. A `0` before the name means the last run exited cleanly."},
+                        {"type": "cmd", "where": "shell", "title": "Check that the restore ran once", "code": "ls /tmp/tmux-resurrect-restored-$(id -u)",
+                         "expect": "After login the lock file is listed: the restore already ran for this boot and will not run again. `No such file` means no restore has run since login."},
                     ],
                 },
                 {
-                    "h2": "Custom key bindings and colour schemes",
-                    "intro": "Add these to `tmux.conf` and reload.",
+                    "h2": "Add your own key binding",
+                    "intro": "Add a line to `tmux.conf`, reload, then ask tmux for the binding.",
                     "blocks": [
                         {"type": "code", "file": TMUX_CONF, "title": "Custom key bindings", "code": BINDINGS},
-                        {"type": "code", "file": TMUX_CONF, "title": "Colour schemes", "code": SCHEMES},
+                        {"type": "cmd", "where": "tmux", "title": "Check a key binding", "code": "tmux list-keys -T prefix r",
+                         "expect": "One `bind-key` line for the `prefix` table and key `r`: the reload binding, `source-file` followed by your `tmux.conf` path."},
                     ],
                 },
             ],

@@ -151,6 +151,8 @@ def main():
             target, _, frag = link.partition("#")
             target = unquote(target.split("?")[0])
             dest = os.path.normpath(os.path.join(os.path.dirname(path), target)) if target else path
+            if os.path.isdir(dest):
+                dest = os.path.join(dest, "index.html")
             if not os.path.exists(dest):
                 fails.append(f"{rel}: broken link {link}")
             elif frag and dest.endswith(".html"):

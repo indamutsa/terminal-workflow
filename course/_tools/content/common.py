@@ -27,6 +27,44 @@ SITE_GLOSSARY = [
 ]
 
 SITE_URL = "https://nvim-workflow.vercel.app"
+
+# Shell helpers from ~/.config/shell/fzf.zsh: (what to type, what you get). Shared by module 1 and the cheat sheet.
+FZF_HELPERS = [
+    ("ff", "Find a file by part of its name and open it in nvim"),
+    ("ffh pdf", "Find a file of one type anywhere under your home folder and open it"),
+    ("fe ord", "Open the file matching a name at once, or pick from the matches"),
+    ("frg word", "Search text in the project as you type and open nvim on the matching line"),
+    ("fdir", "Pick a folder and cd into it"),
+    ("fcd", "Pick a parent folder and cd up to it"),
+    ("fopen", "Open files with their default macOS app"),
+    ("fscp", "Copy a file's full path to the clipboard"),
+    ("fgb", "Pick a git branch and check it out"),
+    ("fgs", "Changed files with a diff; Ctrl-a stages, Ctrl-r unstages"),
+    ("fgl", "Browse the commit history with a diff preview"),
+    ("ftm", "Switch to another tmux session"),
+    ("ftmk", "Kill tmux sessions you pick"),
+    ("fkill", "Pick a process and kill it (fkill 15 sends SIGTERM)"),
+    ("fport 8000", "Kill whatever is listening on a port"),
+    ("fenv", "Browse environment variables"),
+    ("fchelp", "Search a command's man page or --help text"),
+    ("fh", "Print every helper with an example"),
+    ("devh --pick", "Search the dev cheat sheet and put the pick on the prompt"),
+]
+
+# Each module is served at /<folder>/ from <folder>/MODULE_FILE.
+MODULE_FILE = "index.html"
+
+
+def module_path(folder):
+    """File on disk and in the search index."""
+    return f"{folder}/{MODULE_FILE}"
+
+
+def module_href(folder):
+    """Link to a module: the folder URL, with no file name."""
+    return f"{folder}/"
+
+
 PRACTICE_HOME = "~/tw"
 PRACTICE_DIR = "practice"
 
