@@ -72,6 +72,7 @@ Ctrl-o
                         {"type": "keys", "where": "nvim", "title": "Line edits", "rows": [
                             ("gcc", "Cmd+/: comment or uncomment the line"),
                             ("Option+j / Option+k", "Option+Down / Option+Up: move the line down or up"),
+                            ("V, then Option+j / Option+k", "Option+Down / Option+Up on a selection: move all the selected lines; they stay selected"),
                             ("yyp", "Shift+Option+Down: copy the line below"),
                             ("dd", "Cmd+Shift+K: delete the line"),
                             ("V", "Cmd+L: select the line"),
