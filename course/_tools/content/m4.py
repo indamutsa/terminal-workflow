@@ -6,7 +6,7 @@ def C(s):
     return s.strip("\n")
 
 
-WINDOW_NOTE = "The lessons count windows from 0. In your config they start at 1 (`base-index 1`), so your first window is `Ctrl-a 1`."
+WINDOW_NOTE = "Windows start at 1 here (`base-index 1`): main is `Ctrl-a 1`, the editor `Ctrl-a 2` and the agent `Ctrl-a 3`."
 
 NO_WORKTREE = C('''
 # Without worktrees (painful):
@@ -59,16 +59,16 @@ LAYOUT = C('''
 ''')
 
 TMUX_WORKTREES = C('''
-# Window 0: main (you're here)
+# Window 1: main (you're here)
 
-# Window 1: feature worktree
+# Window 2: feature worktree
 Ctrl-a c
 cd ../myapp-payments
 nvim .
 
 # Now:
-# Ctrl-a 0 = main branch
-# Ctrl-a 1 = feature branch
+# Ctrl-a 1 = main branch
+# Ctrl-a 2 = feature branch
 ''')
 
 PARALLEL = C('''
@@ -76,10 +76,10 @@ git worktree add ../myapp-auth -b feature/auth main
 git worktree add ../myapp-hotfix -b hotfix/urgent-fix main
 
 # 4 tmux windows:
-# 0: main
-# 1: feature/payments
-# 2: feature/auth
-# 3: hotfix/urgent-fix
+# 1: main
+# 2: feature/payments
+# 3: feature/auth
+# 4: hotfix/urgent-fix
 
 # Run tests on two branches at the same time. Compare performance. Zero friction.
 ''')
@@ -150,14 +150,14 @@ cd ~/projects/my-service
 # Create the feature worktree
 git worktree add ../my-service-payments -b feature/payments main
 
-# Window 0: main (you're here already)
+# Window 1: main (you're here already)
 
-# Window 1: your editor on the feature branch
+# Window 2: your editor on the feature branch
 Ctrl-a c
 cd ../my-service-payments
 nvim .
 
-# Window 2: your AI coding agent on the same feature branch
+# Window 3: your AI coding agent on the same feature branch
 Ctrl-a c
 cd ../my-service-payments
 <agent>                         # your agent's CLI command
@@ -170,18 +170,18 @@ client_secret. Follow the patterns in src/routes/orders.ts.
 ''')
 
 PARALLEL_KEYS = C('''
-Ctrl-a 1                        # switch to Window 1 (editor)
+Ctrl-a 2                        # switch to Window 2 (editor)
 <Space>sf                       # find/create tests/payments.test.ts
 i                               # start writing tests
 ''')
 
 REVIEW_KEYS = C('''
-Ctrl-a 1                        # your editor window
+Ctrl-a 2                        # your editor window
 ''')
 
 REVIEW_NVIM = C('''
 <Space>sg                       # grep for "payments" — see all new files
-<Space>gd                       # diffview — all changes side-by-side
+<Space>gv                       # diffview — all changes side-by-side
 ''')
 
 REVIEW_GIT = C('''
@@ -199,11 +199,11 @@ of 400 when currency is not one of [usd, eur, gbp]. Fix the validation.
 ''')
 
 BACK_ON_MAIN = C('''
-Ctrl-a 0                        # Window 0 = main branch, untouched
+Ctrl-a 1                        # Window 1 = main branch, untouched
 ''')
 
 SHIP = C('''
-# In Window 1 or terminal on feature branch:
+# In Window 2 or terminal on feature branch:
 git add -A
 git status                      # review what's staged
 git commit -m "Add payments endpoint with Stripe integration"
@@ -213,15 +213,15 @@ gh pr create --title "Add /payments endpoint" \\
 ''')
 
 AFTER_MERGE = C('''
-Ctrl-a 0                                    # switch to main
+Ctrl-a 1                                    # switch to main
 git pull                                    # get the merge
 git worktree remove ../my-service-payments  # remove worktree
 git branch -d feature/payments              # delete local branch
 
 # Close tmux windows:
-Ctrl-a 1
+Ctrl-a 2
 exit
-Ctrl-a 1
+Ctrl-a 2
 exit
 ''')
 
@@ -229,8 +229,8 @@ DAILY_LOOP = C('''
 1. gwa feature/new-thing          # create worktree + tmux window
 2. Ctrl-a c → cd → <agent>       # agent window on same branch
 3. Give the agent a task          # it works while you work
-4. Ctrl-a 1 → nvim .             # you code in parallel
-5. Review, test, iterate          # Ctrl-a 0/1/2 to switch
+4. Ctrl-a 2 → nvim .             # you code in parallel
+5. Review, test, iterate          # Ctrl-a 1/2/3 to switch
 6. Commit, push, PR              # from terminal
 7. gwr ../dir                    # clean up after merge
 ''')
@@ -243,6 +243,7 @@ MODULE = {
     "tagline": "One folder per branch, one window per folder, an agent beside you.",
     "glossary": [],
     "coverage_allow": [
+        ("4. Ctrl-a 1 → nvim .", "lesson counts windows from 0; with base-index 1 the editor window is Ctrl-a 2"),
         ('local branch="$1"; local base="${2:-HEAD}"', "same gwa body, one statement per line"),
         ('gwr() { git worktree remove "$1" && echo "Removed: $1"; }', "same gwr body, one statement per line"),
     ],
@@ -321,9 +322,10 @@ MODULE = {
                         ["`git worktree add ../dir -b branch`", "Create"],
                         ["`git worktree list`", "List"],
                         ["`git worktree remove ../dir`", "Remove"],
-                        ["`gwa feature/name`", "Create + tmux window"],
-                        ["`gwl`", "List"],
-                        ["`gwr ../dir`", "Remove"],
+                        ["`gwt ../dir -b branch`", "Create + copy git-excluded files (installed)"],
+                        ["`gwa feature/name`", "Create + tmux window (add it first)"],
+                        ["`gwl`", "List (add it first)"],
+                        ["`gwr ../dir`", "Remove (add it first)"],
                     ]),
                 ],
             },
@@ -370,9 +372,9 @@ MODULE = {
                 "One branch, one folder, one tmux window. Switching branches is one key.",
                 [
                     ("New window", "Ctrl-a c", "Then cd into the worktree."),
-                    ("Create + window", "gwa feature/auth", "Worktree and tmux window in one go."),
-                    ("List", "gwl", "All worktrees."),
-                    ("Clean up", "gwr ../dir", "Removes the worktree."),
+                    ("Create + window", "gwa feature/auth", "Worktree and tmux window in one go. Add it first."),
+                    ("List", "gwl", "All worktrees. Add it first."),
+                    ("Clean up", "gwr ../dir", "Removes the worktree. Add it first."),
                 ],
                 None,
             ),
@@ -415,8 +417,16 @@ MODULE = {
                     ],
                 },
                 {
+                    "h2": "Create a worktree that keeps your ignored files",
+                    "intro": "`gwt` is installed on this Mac. It runs `git worktree add` with your arguments, then copies every path listed in the repository's `.git/info/exclude` into the new folder. The new folder must be the first argument.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Add a worktree and copy the excluded files", "code": "cd ~/tw && gwt ../tw-orders -b feature/orders",
+                         "expect": "Git prints `Preparing worktree (new branch 'feature/orders')`. `../tw-orders` exists on `feature/orders`, and any excluded path that exists in `~/tw` is copied into it with `cp -a`."},
+                    ],
+                },
+                {
                     "h2": "Helper aliases (add to ~/.zshrc)",
-                    "intro": "`gwa` creates a worktree and opens it in a new tmux window named after the branch.",
+                    "intro": "These three are not installed yet: add them to `~/.zshrc` first. `gwa` creates a worktree and opens it in a new tmux window named after the branch.",
                     "blocks": [
                         {"type": "code", "file": "~/.zshrc", "title": "gwa, gwr and gwl", "code": HELPERS},
                         {"type": "cmd", "where": "shell", "title": "Use the helpers", "code": HELPER_USAGE,
@@ -477,9 +487,9 @@ MODULE = {
             "idea": (
                 "One worktree, two windows on it: you in one, the agent in the other.",
                 [
-                    ("Main", "Ctrl-a 0", "PR reviews, releases, rebases."),
-                    ("Editor", "Ctrl-a 1", "You: nvim, tests, review."),
-                    ("Agent", "Ctrl-a 2", "The coding agent generates code."),
+                    ("Main", "Ctrl-a 1", "PR reviews, releases, rebases."),
+                    ("Editor", "Ctrl-a 2", "You: nvim, tests, review."),
+                    ("Agent", "Ctrl-a 3", "The coding agent generates code."),
                     ("Workspace", "git worktree add ../my-service-payments -b feature/payments main", "The feature folder."),
                 ],
                 None,
@@ -491,18 +501,26 @@ MODULE = {
             "drills": [
                 {
                     "h2": "Create the workspace",
-                    "intro": "Window 0 is main. Window 1 is your editor. Window 2 is your AI coding agent, on the same feature branch.",
+                    "intro": "Window 1 is main. Window 2 is your editor. Window 3 is your AI coding agent, on the same feature branch.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Worktree and two windows", "code": CREATE_WORKSPACE,
-                         "expect": "`../my-service-payments` exists on `feature/payments`. Window 1 runs `nvim .` and Window 2 runs your agent, both in that folder."},
-                        {"type": "text", "body": WINDOW_NOTE + " Main is `Ctrl-a 1`, the editor `Ctrl-a 2`, the agent `Ctrl-a 3`."},
+                         "expect": "`../my-service-payments` exists on `feature/payments`. Window 2 runs `nvim .` and Window 3 runs your agent, both in that folder."},
+                        {"type": "text", "body": WINDOW_NOTE},
                     ],
                 },
                 {
                     "h2": "Give the agent a task",
-                    "intro": "Switch to Window 2 (`Ctrl-a 2`) and type the task. Do not wait for the agent to finish: switch to your editor.",
+                    "intro": "Switch to Window 3 (`Ctrl-a 3`) and type the task. Do not wait for the agent to finish: switch to your editor.",
                     "blocks": [
                         {"type": "code", "file": "Prompt to the agent", "title": "The task", "code": AGENT_TASK},
+                    ],
+                },
+                {
+                    "h2": "Look up the agent's keys",
+                    "intro": "Forget a key inside the agent? Print its cheat sheet in any pane.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Show the agent's keys and slash commands", "code": "cch",
+                         "expect": "A table of KEY, ACTION and DESCRIPTION rows, then a SLASH COMMANDS list. For example `Ctrl+Enter` inserts a newline, `Esc` cancels, `Ctrl+C` interrupts the running task and `Shift+Tab` cycles the permission mode."},
                     ],
                 },
                 {
@@ -530,15 +548,15 @@ MODULE = {
                 "h2": "The pattern at a glance",
                 "cards": [
                     ("The three windows", "Who works where.", ["Window", "Branch", "Job"], [
-                        ["Window 0 `main`", "`main`", "PR reviews, releases, rebases"],
-                        ["Window 1 `editor`", "`feature/payments`", "You: nvim, write tests, review changes, manual testing"],
-                        ["Window 2 `agent`", "`feature/payments`", "Agent: generates code, refactors, fixes lint issues"],
+                        ["Window 1 `main`", "`main`", "PR reviews, releases, rebases"],
+                        ["Window 2 `editor`", "`feature/payments`", "You: nvim, write tests, review changes, manual testing"],
+                        ["Window 3 `agent`", "`feature/payments`", "Agent: generates code, refactors, fixes lint issues"],
                     ]),
                     ("Combined workflow", "The loop from the quick start.", ["Step", "Keys"], [
-                        ["Edit code", "`Ctrl-a 0`"],
+                        ["Edit code", "`Ctrl-a 2`"],
                         ["Save", "`:w`"],
-                        ["Run tests", "`Ctrl-a 1`"],
-                        ["Ask the agent if stuck", "`Ctrl-a 2`"],
+                        ["Run tests", "`Ctrl-a 2`"],
+                        ["Ask the agent if stuck", "`Ctrl-a 3`"],
                         ["Repeat", "Back to step one"],
                     ]),
                 ],
@@ -548,10 +566,10 @@ MODULE = {
                 "frame": "The agent renames `calc_totl` in `orders.py` while you add a line to `todo.txt`.",
                 "open": "cd ~/tw && git worktree add ../tw-payments -b feature/payments\ncd ../tw-payments && nvim .",
                 "steps": [
-                    (None, "`Ctrl-a 2` then paste the task", "The agent window. Do not wait for it."),
-                    (None, "`Ctrl-a 1`", "Back to the editor window."),
+                    (None, "`Ctrl-a 3` then paste the task", "The agent window. Do not wait for it."),
+                    (None, "`Ctrl-a 2`", "Back to the editor window."),
                     (None, "`<Space>sf` then `todo.txt`, then `G` `o` and type `buy glue`", "You edit a different file, so nothing collides."),
-                    (None, "`<Space>sg` then `calc_total`, then `<Space>gd`", "Grep shows the agent's rename. The diff shows both changes."),
+                    (None, "`<Space>sg` then `calc_total`, then `<Space>gv`", "Grep shows the agent's rename. The diff shows both changes."),
                 ],
                 "after": "orders.py  changed by the agent\ntodo.txt   changed by you",
                 "meaning": "The agent and you share one branch but touch different files, so work runs in parallel with no conflicts.",
@@ -599,16 +617,16 @@ MODULE = {
             "drills": [
                 {
                     "h2": "Run tests",
-                    "intro": "In the Neovim terminal (`Ctrl-\\` or `<Space>1`), run the tests.",
+                    "intro": "In the Neovim terminal (`Ctrl-\\` or `<Space>tf`), run the tests.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Run the payments tests", "code": RUN_TESTS,
-                         "expect": "The payments tests run. A failure is your cue to tell the agent in Window 2."},
+                         "expect": "The payments tests run. A failure is your cue to tell the agent in Window 3."},
                         {"type": "code", "file": "Prompt to the agent", "title": "Report a failing test", "code": FIX_PROMPT},
                     ],
                 },
                 {
                     "h2": "Meanwhile, back on main",
-                    "intro": "Window 0 is the main branch, untouched. You can review someone else's PR (`gh pr checkout 789`), pull the latest (`git pull`) or start a hotfix (`gwa hotfix/fix-typo`). Main never gets dirty.",
+                    "intro": "Window 1 is the main branch, untouched. You can review someone else's PR (`gh pr checkout 789`), pull the latest (`git pull`) or start a hotfix (`gwa hotfix/fix-typo`). Main never gets dirty.",
                     "blocks": [
                         {"type": "cmd", "where": "tmux", "title": "Jump to main", "code": BACK_ON_MAIN,
                          "expect": "You are on the main branch, untouched by the feature work."},
@@ -621,6 +639,33 @@ MODULE = {
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Ship the feature", "code": SHIP,
                          "expect": "`git status` lists what is staged. `gh pr create` opens a pull request titled \"Add /payments endpoint\" from `feature/payments`."},
+                    ],
+                },
+                {
+                    "h2": "Use LazyGit in a worktree",
+                    "intro": "LazyGit is a full-screen git panel with stock keys. Run it inside the worktree and it works on that branch only. Use it to stage, commit, amend, push and undo without typing git commands.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Open LazyGit on the feature branch", "code": "cd ../my-service-payments && lzy",
+                         "expect": "LazyGit fills the terminal. Five panels run down the left: `[1] Status` (the folder and branch, `feature/payments`), `[2] Files`, `[3] Local branches`, `[4] Commits` and `[5] Stash`. The right side shows details of the selection; a selected file shows its diff. The bottom line lists the main keys."},
+                        {"type": "keys", "where": "lazygit", "title": "Stage and commit", "rows": [
+                            ("Space", "Stage file: stage or unstage the highlighted file in the Files panel"),
+                            ("a", "Stage all files (press again to unstage all)"),
+                            ("c", "Commit: type the message, then Enter"),
+                            ("A", "Amend commit: add the staged changes to the last commit"),
+                            ("P", "Push to the remote"),
+                            ("p", "Pull from the remote"),
+                        ], "try": "Press `2` for the Files panel, `a`, then `c`, type `Fix the total` and press `Enter`.",
+                         "expect": "The Files panel empties and `Fix the total` heads the Commits panel."},
+                        {"type": "keys", "where": "lazygit", "title": "Undo, stash and look around", "rows": [
+                            ("z", "Undo the last action (reflog); right after a commit this is undo last commit, and the changes stay staged. Enter confirms"),
+                            ("s", "Stash changes from the Files panel"),
+                            ("d", "Discard change: a menu offers all changes or only unstaged"),
+                            ("n", "New branch, from the Branches panel"),
+                            ("]", "Next tab: in the Files panel it reaches the Worktrees tab"),
+                            ("?", "Open help: every key for the current panel"),
+                            ("q", "Quit LazyGit"),
+                        ], "try": "Press `z` after a commit.",
+                         "expect": "A box asks whether to soft reset to the previous commit (undo goes through the reflog, so right after a commit it undoes that commit). `Enter` confirms: the commit disappears from the Commits panel and its files are staged again. `Esc` cancels."},
                     ],
                 },
                 {
@@ -650,7 +695,7 @@ MODULE = {
                 "frame": "In `~/tw-payments` from the last page, a run fails and you want it fixed, shipped and cleaned up. Your repo has an `origin`.",
                 "open": "cd ~/tw-payments",
                 "steps": [
-                    (None, "`python3 orders.py`", "In the editor window. If it fails, paste the error to the agent in Window 2, then run it again."),
+                    (None, "`python3 orders.py`", "In the editor window. If it fails, paste the error to the agent in Window 3, then run it again."),
                     (None, "`git add -A`, `git status`, then `git commit -m \"Fix the total\"`", "Stages the fix, lists it and commits."),
                     (None, "`git push -u origin feature/payments`, then `gh pr create --fill`", "Publishes the branch and opens the PR."),
                     (None, "After the merge: `cd ~/tw`, `git pull`, `git worktree remove ../tw-payments`, `git branch -d feature/payments`", "Pulls the merge, then removes the folder and the branch."),

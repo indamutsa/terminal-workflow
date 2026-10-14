@@ -335,9 +335,9 @@ gg / G / /pattern    These DO add to jump list (for intentional navigation)
 '''
 
 QUICK_SWITCH = r'''
-Ctrl-^               Toggle between last two files (fastest switch)
-<Space><Space>       Fuzzy buffer list
-:b partial_name      Switch by partial filename
+Ctrl-^               Switch between the last two files (fastest switch)
+<Space><Space>       Find a file by name: a file picker (the buffer list is `<Space>,`)
+:b partial_name      Switch to a buffer by part of its name
 '''
 
 FIX_MOVE = r'''
@@ -389,7 +389,7 @@ MODULE = {
             "drills": [
                 {
                     "h2": "Open the practice project",
-                    "intro": "Every drill runs against `nvim-drills`. These are throwaway reps: undo with `u` or reload with `:e!` once you have seen the mechanic work. Lesson 6 makes the permanent fixes, but none of these drills depend on it.",
+                    "intro": "Every drill runs against `nvim-drills`. These are throwaway reps: undo with `u` once you have seen the mechanic work. Autosave writes a file about 3 seconds after you stop typing, and when you leave the buffer, so `:e!` cannot bring the original back. For a drill that must stay unsaved, run `:ASToggle` first and again after it. To reset one file, run `git checkout -- <file>`. Lesson 6 makes the permanent fixes, but none of these drills depend on it.",
                     "blocks": [
                         X("Start Neovim in nvim-drills", "cd Terminal-Workflow/practice/nvim-drills\nnvim .", "Neovim opens on the project, ready for the drills.", "shell"),
                     ],
@@ -494,7 +494,7 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                             (".", "Three times: matches 2, 3 and 4 become `queued`"),
                             ("n", "Twice, to skip match 5: the first `n` lands on it, the second hops to 6"),
                             (".", "Changes match 6; keep pressing for the other 4"),
-                        ], **{"try": "Press the keys in order. Discard with `:e!` afterwards: other lessons reuse this file.",
+                        ], **{"try": "Press the keys in order. Then press `u` until every line reads `pending` again: other lessons reuse this file.",
                               "expect": "`<Space>sg pending` returns exactly 1 result (the skipped one) and `<Space>sg queued` returns 9."}),
                     ],
                 },
@@ -525,7 +525,7 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                     (None, "`/pending` `Enter`, then `cgn` `queued` `Esc`", "Changes the first match, item 1."),
                     (None, "`.`", "Repeats on the next match, item 2."),
                     (None, "`n` `n`", "Passes over item 3, the one to keep."),
-                    (None, "`.` then `:e!`", "Changes item 4, then discards the file."),
+                    (None, "`.` then `u` three times", "Changes item 4, then undoes all three changes. Autosave writes the original back."),
                 ],
                 "before": "item 1: pending\nitem 2: pending\nitem 3: pending\nitem 4: pending",
                 "after": "item 1: queued\nitem 2: queued\nitem 3: pending\nitem 4: queued",
@@ -610,7 +610,7 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                             ("Vjjjjj", "Select all 6 lines"),
                             (":normal @a", "Run the macro on each selected line"),
                         ], **{"try": "Same result, different technique.",
-                              "expect": "`<Space>sg \"# reviewed\"` returns 6 hits. Discard with `:e!`: Lesson 6 depends on the exact structure of `orders.py`."}),
+                              "expect": "`<Space>sg \"# reviewed\"` returns 6 hits. Press `u` until the tags are gone: Lesson 6 depends on the exact structure of `orders.py`."}),
                     ],
                 },
                 {
@@ -741,7 +741,7 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                         {"type": "text", "body": "The power workflow: `<Space>/` to grep, `Ctrl-q` to send all results to quickfix, `:cdo s/old/new/g | w` to replace across all files, or `:cfdo %s/old/new/g | w` for the same per file (faster)."},
                         K("Location list", LOCLIST),
                         K("Find every TODO via quickfix", [
-                            ("<Space>/", "Or `<Space>sg`: search for `TODO`"),
+                            ("<Space>/", "Search text in all files: type `TODO` (or use `<Space>sg`)"),
                             ("Ctrl-q", "Send every hit to the quickfix list"),
                             (":copen", "See them all in one window"),
                             ("]q", "Step through the results, with `[q` back; Enter on a line jumps to it"),
@@ -783,8 +783,8 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                         K("Range modifiers", RANGE_MOD),
                         X("Rename a field with one regex", r":%s/item \(\d\+\)/entry \1/g", "Every `item N` becomes `entry N`, keeping the right number on each line."),
                         X("Count the matches without replacing", ":%s/item//gn\n:%s/entry//gn", "The first reports 0 matches and the second reports 10. `entry 7` still says `entry 7`: the backreference kept the number."),
-                        {"type": "text", "body": "Do not check with `<Space>sg item`. That greps the whole project, and `orders.py` and `messy.py` legitimately use `item` as a variable name. Run `:e!` to discard."},
-                        X("Title-case one line only", r":'<,'>s/\<\(\w\)/\u\1/g", "Select the `keep: this line matches a filter pattern` line with `V` first. It reads `Keep: This Line Matches A Filter Pattern` and every other line is unchanged. `:e!` to discard."),
+                        {"type": "text", "body": "Do not check with `<Space>sg item`. That greps the whole project, and `orders.py` and `messy.py` legitimately use `item` as a variable name. Press `u` to undo it."},
+                        X("Title-case one line only", r":'<,'>s/\<\(\w\)/\u\1/g", "Select the `keep: this line matches a filter pattern` line with `V` first. It reads `Keep: This Line Matches A Filter Pattern` and every other line is unchanged. Press `u` to undo it."),
                     ],
                 },
                 {
@@ -812,7 +812,8 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                         ["`'A`", "Jump to the file and line of mark A"],
                     ]),
                     ("Stay safe", "These drills are throwaway.", ["Situation", "Undo with"], [
-                        ["After a substitution", "`u` or `:e!`"],
+                        ["After a substitution", "`u`"],
+                        ["Autosave paused (`:ASToggle`), nothing saved", "`:e!` reloads from disk"],
                         ["After `:v/keep/d`", "Work on a `/tmp` copy"],
                     ]),
                 ],
@@ -918,7 +919,7 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                             ("gv", "Reselect the same block"),
                             ("g Ctrl-a", "Increments line 1 by 1, line 2 by 2, line 3 by 3"),
                         ], **{"try": "Leave `item 10` out of the column, since it has two digits.",
-                              "expect": "The three lines read `item 1: pending`, `item 2: pending`, `item 3: pending`: each line got a different increment. `:e!` to discard."}),
+                              "expect": "The three lines read `item 1: pending`, `item 2: pending`, `item 3: pending`: each line got a different increment. Press `u` twice to undo both steps."}),
                     ],
                 },
                 {
@@ -931,9 +932,9 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                             (":t.", "On the `A1` line in `RAW_ORDERS`: two identical `A1` entries"),
                             (":m$", "Moves the duplicate to the very end of the file, past `build_order_book()`"),
                             ("G", "Jump to the end of the file"),
-                            (":e!", "Discard both changes"),
+                            ("u", "Undo twice: the move, then the duplicate"),
                         ], **{"try": "Press the keys in order. `:m$` operates on the whole buffer, not the enclosing structure.",
-                              "expect": "The duplicated `A1` dict literal is the last line in `orders.py`, outside the list and outside `build_order_book()`. After `:e!`, `<Space>sg \"id.*A1\"` shows only 1 hit."}),
+                              "expect": "The duplicated `A1` dict literal is the last line in `orders.py`, outside the list and outside `build_order_book()`. After `u` twice and a moment for autosave to write the undo, `<Space>sg \"id.*A1\"` shows only 1 hit."}),
                     ],
                 },
                 {
@@ -946,10 +947,10 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                         K("The number trick", NUMBER_TRICK),
                         {"type": "text", "body": "On dates, versions and port numbers, the number trick is an instant update."},
                         K("Bounce between two files with zero typing", [
-                            ("<Space>sf", "Type `calculator`, Enter: open `src/calculator.py`"),
-                            ("<Space>sf", "Open `src/orders.py` the same way"),
-                            ("Ctrl-^", "Back to `calculator.py` instantly"),
-                            ("Ctrl-^", "Back to `orders.py`"),
+                            ("<Space>sf", "Find a file by name: type `calculator`, Enter to open `src/calculator.py`"),
+                            ("<Space>sf", "Find a file by name: open `src/orders.py` the same way"),
+                            ("Ctrl-^", "Switch back to `calculator.py` instantly"),
+                            ("Ctrl-^", "Switch back to `orders.py`"),
                         ], **{"try": "Nothing to undo: this is pure navigation.",
                               "expect": "Each `Ctrl-^` flips between the two files, faster than a fuzzy search."}),
                     ],
@@ -959,15 +960,16 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                     "intro": "Vim's undo is a tree, not a line. If you undo and make new changes, the old changes are a branch, and `g-` and `g+` walk the whole tree. Undo history is already persistent: it survives quitting Neovim.",
                     "blocks": [
                         K("Undo tree", UNDO_TREE),
-                        {"type": "text", "body": "This is the one exercise in this lesson that writes to disk, because `:earlier` and `:later` with an `f` count are save-based."},
+                        {"type": "text", "body": "This is the one exercise in this lesson that must write to disk, because `:earlier` and `:later` with an `f` count are save-based. Autosave would add saves of its own and spoil the count, so pause it first and turn it back on at the end."},
                         K("Time-travel through 3 saved states", [
+                            (":ASToggle", "Pause autosave: only your own `:w` counts as a save now"),
                             (":w", "In `src/messy.py`: add `# checkpoint 1` at the top, then save. Repeat for `# checkpoint 2` and `# checkpoint 3`"),
                             (":earlier 2f", "Back 2 saves: only `# checkpoint 1` is present"),
                             (":later 1f", "Forward 1 save: `# checkpoint 2` reappears"),
                             ("g-", "A few times, then `g+`: walk one micro-change at a time"),
                         ], **{"try": "At each step run `:%s/checkpoint//gn` (count only). Do not use `<Space>sg checkpoint`: ripgrep reads the file on disk.",
                               "expect": "The match count equals the checkpoint number you are at."}),
-                        X("Restore messy.py (required, it saved to disk)", "git checkout -- src/messy.py", "`src/messy.py` is back to its committed state. `:e!` alone would not help, since the dirty state is already on disk. From inside nvim use `:!git checkout -- %`.", where="shell"),
+                        X("Restore messy.py (required, it saved to disk)", "git checkout -- src/messy.py", "`src/messy.py` is back to its committed state. `:e!` alone would not help, since the dirty state is already on disk. From inside nvim use `:!git checkout -- %`. Reload with `:e!`, then run `:ASToggle` again to turn autosave back on.", where="shell"),
                     ],
                 },
             ],
@@ -994,9 +996,10 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                         ["Open last 2 files alternating", "`Ctrl-^`"],
                         ["Capitalize first letters", r"`:%s/\<\w/\u&/g`"],
                     ]),
-                    ("Undo or discard?", "Which one depends on whether the change reached the disk.", ["Situation", "Use"], [
-                        ["Nothing saved", "`u` or `:e!`"],
-                        ["Saved to disk", "`git checkout -- src/messy.py`"],
+                    ("Undo or discard?", "Autosave writes most edits within 3 seconds, so assume the change reached the disk.", ["Situation", "Use"], [
+                        ["Any edit you made this session", "`u`, step by step"],
+                        ["Autosave paused (`:ASToggle`), nothing saved", "`:e!` reloads from disk"],
+                        ["Saved to disk, want the committed file", "`git checkout -- src/messy.py`"],
                         ["Between saves", "`:earlier 2f` or `:later 1f`"],
                     ]),
                 ],
@@ -1009,7 +1012,7 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                     (("line 7, on the `7`", "`7G` `f7`"), "`Ctrl-v` then `2j`", "Selects the digit on lines 7 to 9."),
                     (None, "`r0`", "Zeroes the column."),
                     (None, "`gv`", "Reselects the same block."),
-                    (None, "`g` `Ctrl-a`, then `:e!`", "Adds 1, 2, 3 down the column, then discards."),
+                    (None, "`g` `Ctrl-a`, then `u` twice", "Adds 1, 2, 3 down the column, then undoes the add and the zeroing. Autosave writes the original back."),
                 ],
                 "before": "item 7: pending\nitem 8: pending\nitem 9: pending",
                 "after": "item 1: pending\nitem 2: pending\nitem 3: pending",
@@ -1030,9 +1033,9 @@ book.add_order(Order(raw["id"], raw["items"], raw["discount"]))
                      "Two ex commands.",
                      ["Run `:t.`.", "Run `:m$`."],
                      "`:t.` then `:m$`."),
-                    ("Common mistake", "You restored a file with `:e!` after `:w` and nothing changed. Why?",
+                    ("Common mistake", "You ran `:e!` to restore a file and nothing changed. Why?",
                      "Where is the dirty state now?",
-                     ["`:w` already wrote it to disk.", "`:e!` reloads from disk."],
+                     ["Autosave or `:w` already wrote it to disk.", "`:e!` reloads from disk."],
                      "Use `git checkout -- src/messy.py`."),
                 ],
             },

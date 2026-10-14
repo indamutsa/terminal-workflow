@@ -12,13 +12,61 @@ INDEX_REL = "_shared/search-index.js"
 VERSION_LEN = 10
 INDEX_VERSION = 1
 
+# Overlapping groups expand one level only: save means commit or write, but write
+# does not mean commit. Keep short navigation words out of unrelated groups.
+SYNONYMS: list[list[str]] = [
+    ["change", "switch", "move", "go", "jump", "navigate", "focus"],
+    ["pane", "split"],
+    ["window", "tab"],
+    ["session", "workspace"],
+    ["close", "kill", "delete", "remove", "quit", "exit"],
+    ["create", "new", "add", "open", "make"],
+    ["rename", "name"],
+    ["find", "search", "grep", "look", "locate"],
+    ["file", "files", "buffer"],
+    ["copy", "yank"],
+    ["paste", "put"],
+    ["undo", "revert", "reset"],
+    ["commit", "save"],
+    ["write", "save"],
+    ["resize", "size", "grow", "shrink"],
+    ["zoom", "maximize", "fullscreen"],
+    ["list", "show", "view", "see"],
+    ["scroll", "page"],
+    ["top", "start", "beginning"],
+    ["bottom", "end"],
+    ["up", "above", "previous", "prev", "back"],
+    ["down", "below", "next", "forward"],
+    ["select", "highlight", "mark", "visual"],
+    ["replace", "substitute", "rename"],
+    ["comment", "uncomment"],
+    ["indent", "outdent", "unindent"],
+    ["branch", "checkout"],
+    ["stage", "add"],
+    ["push", "upload"],
+    ["pull", "fetch", "update"],
+    ["diff", "changes", "compare"],
+    ["history", "log"],
+    ["terminal", "shell", "console"],
+    ["reload", "refresh", "source"],
+    ["help", "cheatsheet", "keys", "shortcut", "keymap"],
+    ["process", "port", "pid"],
+    ["line", "lines"],
+    ["word", "words"],
+    ["folder", "directory", "dir", "cd"],
+    ["vertical", "vertically"],
+    ["horizontal", "horizontally"],
+    ["nvim", "neovim", "lazyvim"],
+]
 
-def clean(text, code=False):
-    """Plain text for a snippet: no backticks (a backslash-backtick stays one), one space between words, capped length."""
+
+def clean(text, code=False, key_row=False):
+    """Capped plain text; key rows retain the first two-space key/description separator."""
     s = str(text).replace("\\`", "\x00")
     if not code:
         s = s.replace("`", "")
-    s = re.sub(r"\s+", " ", s.replace("\x00", "`")).strip()
+    parts = re.split(r" {2,}", s.replace("\x00", "`"), maxsplit=1) if key_row else [s.replace("\x00", "`")]
+    s = "  ".join(re.sub(r"\s+", " ", part).strip() for part in parts).strip()
     return s if len(s) <= SNIPPET_MAX else s[: SNIPPET_MAX - 1].rstrip() + "…"
 
 
@@ -30,7 +78,7 @@ def entries(mods):
     out, seen = [], set()
 
     def add(kind, fi, n, aid, title, text, code=False):
-        text = clean(text, code)
+        text = clean(text, code, key_row=kind == "k")
         if not text:
             return
         key = (fi, aid, text)
@@ -102,6 +150,7 @@ def entries(mods):
 def payload(mods):
     return {
         "v": INDEX_VERSION,
+        "syn": SYNONYMS,
         "files": [module_path(m["folder"]) for m in mods],
         "mods": [{"n": m["n"], "title": m["title"], "pages": [p["h1"] for p in m["pages"]]} for m in mods],
         "items": entries(mods),

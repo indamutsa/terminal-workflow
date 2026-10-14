@@ -928,8 +928,8 @@ body.tw-search-open{overflow:hidden}
       </section>
     </main>
     <footer><strong>Terminal Workflow</strong><br />Press / on any page to search every command and key.</footer>
-    <script src="_shared/search-index.js?v=d0dfd079af"></script>
-    <script src="_shared/cheatsheet.js?v=7e1f0f4d5a"></script>
+    <script src="_shared/search-index.js?v=7050f6f50e"></script>
+    <script src="_shared/cheatsheet.js?v=c77d46e8ab"></script>
     <script>
 /* Site behaviour shared by every page: copy buttons, the cheat sheet drawer and site-wide search. */
 "use strict";
@@ -939,9 +939,10 @@ body.tw-search-open{overflow:hidden}
   const KIND_LABEL = { p: "Page", h: "Section", c: "Command", k: "Key", t: "Text" };
   const KIND_WEIGHT = { c: 30, k: 30, h: 20, p: 15, t: 0 };
   const PHRASE_BONUS = 100, START_BONUS = 50, SAME_FILE_BONUS = 5;
+  const SYNONYM_START_BONUS = START_BONUS / 2;
   const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
-  const root = document.body.dataset.root || "";
-  const here = document.body.dataset.file || "index.html";
+  const ACTION_BONUS = PHRASE_BONUS + START_BONUS;
+  const WORD_BONUS = 40;
   // A module lives at <folder>/index.html but is linked as <folder>/.
   const MODULE_FILE_RE = /(^|\/)index\.html$/;
   const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
@@ -954,6 +955,102 @@ body.tw-search-open{overflow:hidden}
       .replace(/\bctrl\+/g, "ctrl-")
       .replace(/\s+/g, " ").trim();
   }
+
+  function stem(token) {
+    if (!/^[a-z]+$/.test(token)) return token;
+    const base = token.replace(/(?:ing|ed|es|s)$/, "");
+    return base.length >= 3 ? base : token;
+  }
+
+  function whole(hay, word) {
+    for (let at = hay.indexOf(word); at !== -1; at = hay.indexOf(word, at + word.length)) {
+      const tail = hay.slice(at + word.length).match(/^[a-z0-9]*/)[0];
+      if (!/[a-z0-9]/.test(hay[at - 1] || "") && /^(?:s|es|ed|ing)?$/.test(tail)) return true;
+    }
+    return false;
+  }
+
+  function createMatcher(groups) {
+    const aliases = new Map();
+    groups.forEach((group) => {
+      const words = [...new Set(group.flatMap((word) => [norm(word), stem(norm(word))]))];
+      words.forEach((word) => {
+        if (!aliases.has(word)) aliases.set(word, new Set());
+        words.forEach((variant) => aliases.get(word).add(variant));
+      });
+    });
+    function query(q) {
+      const normalized = norm(q);
+      return normalized ? normalized.split(" ").map((original) => {
+        const base = stem(original);
+        // saved -> sav must discover save's groups as well as literal sav matches.
+        const inflected = base === original ? [] : [...aliases.keys()]
+          .filter((word) => word.startsWith(base)).flatMap((word) => [...aliases.get(word)]);
+        return { original, variants: [...new Set([original, base,
+          ...(aliases.get(original) || []), ...(aliases.get(base) || []), ...inflected])] };
+      }) : [];
+    }
+    function match(hay, tokens) {
+      let exact = 0;
+      const variants = [];
+      for (const token of tokens) {
+        const variant = token.variants.find((word) => hay.includes(word));
+        if (!variant) return null;
+        if (hay.includes(token.original)) exact++;
+        variants.push(variant);
+      }
+      return { exact, variants };
+    }
+    return { query, match };
+  }
+
+  function createSearch(data) {
+    const matcher = createMatcher(data.syn || []);
+    const both = data.items.map((it) => norm(it[4] + " " + it[5]));
+    const text = data.items.map((it) => norm(it[5]));
+    const description = data.items.map((it) => it[0] === "k"
+      ? norm(it[5].split(/ {2,}/).slice(1).join("  ")) : "");
+    const title = data.items.map((it) => it[0] === "c" ? norm(it[4]) : "");
+    function search(q, here = "", limit = MAX_RESULTS) {
+      q = norm(q);
+      const tokens = matcher.query(q);
+      if (!tokens.length) return { items: [], total: 0 };
+      const hits = [];
+      data.items.forEach((it, i) => {
+        const matched = matcher.match(both[i], tokens);
+        if (!matched) return;
+        let score = KIND_WEIGHT[it[0]] || 0;
+        if (it[0] === "c" || it[0] === "k") score += ACTION_BONUS;
+        if (it[0] === "c" && /^\s*(#|\/\/)/.test(it[5])) score -= ACTION_BONUS * 2;
+        tokens.forEach((token) => {
+          if (token.variants.some((variant) => whole(both[i], variant))) score += WORD_BONUS;
+        });
+        if (both[i].includes(q)) score += PHRASE_BONUS;
+        // Task titles retain command relevance for multiword queries; single words prefer key actions.
+        const action = description[i] || (tokens.length > 1 ? title[i] : "");
+        const starts = (variant) => action.startsWith(variant) && whole(action.split(" ")[0], variant);
+        if (text[i].startsWith(q) || (action && (action.startsWith(q) || starts(tokens[0].original)))) {
+          score += START_BONUS;
+        } else if (action && tokens[0].variants.some(starts)) {
+          score += SYNONYM_START_BONUS;
+        }
+        if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
+        score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
+        hits.push({ i, score, exact: matched.exact });
+      });
+      hits.sort((a, b) => b.exact - a.exact || b.score - a.score || a.i - b.i);
+      return { items: hits.slice(0, limit).map((hit) => data.items[hit.i]), total: hits.length };
+    }
+    return { ...matcher, search };
+  }
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { norm, stem, createMatcher, createSearch, highlight };
+  }
+  if (typeof document === "undefined") return;
+  const root = document.body.dataset.root || "";
+  const here = document.body.dataset.file || "index.html";
+  const engine = createSearch(window.TW_SEARCH || { items: [], files: [] });
 
   // ---- copy
   function legacyCopy(text) {
@@ -1053,10 +1150,10 @@ body.tw-search-open{overflow:hidden}
       cheatBody.append(cheatTable(sheets.find((s) => s.id === cheatState.tab).rows));
       return;
     }
-    const tokens = q.split(" ");
+    const tokens = engine.query(q);
     let found = 0;
     sheets.forEach((s, si) => {
-      const rows = s.rows.filter((_, ri) => tokens.every((t) => cheatNorm[si][ri].includes(t)));
+      const rows = s.rows.filter((_, ri) => engine.match(cheatNorm[si][ri], tokens));
       if (!rows.length) return;
       found += rows.length;
       const h = document.createElement("h3");
@@ -1107,22 +1204,9 @@ body.tw-search-open{overflow:hidden}
   const openButton = document.querySelector(".tw-search-btn");
   if (!dialog || !input || !list) return;
 
-  let cache = null;
   let active = -1;
   let shown = [];
   let lastFocus = null;
-
-  function index() {
-    const data = window.TW_SEARCH;
-    if (!data) return null;
-    if (!cache) {
-      cache = {
-        both: data.items.map((it) => norm(it[4] + " " + it[5])),
-        text: data.items.map((it) => norm(it[5])),
-      };
-    }
-    return cache;
-  }
 
   function isOpen() { return !dialog.hidden; }
 
@@ -1143,33 +1227,43 @@ body.tw-search-open{overflow:hidden}
   }
 
   function search(q) {
-    const data = window.TW_SEARCH;
-    const c = index();
-    if (!data || !c) return [];
-    const tokens = q.split(" ");
-    const hits = [];
-    data.items.forEach((it, i) => {
-      const hay = c.both[i];
-      if (!tokens.every((t) => hay.includes(t))) return;
-      let score = KIND_WEIGHT[it[0]] || 0;
-      if (hay.includes(q)) score += PHRASE_BONUS;
-      if (c.text[i].startsWith(q)) score += START_BONUS;
-      if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
-      score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
-      hits.push({ i, score });
-    });
-    hits.sort((a, b) => b.score - a.score || a.i - b.i);
-    return hits.slice(0, MAX_RESULTS).map((h) => data.items[h.i]);
+    return engine.search(q, here).items;
   }
 
-  // Mark every case-insensitive literal occurrence of a token, using text nodes only.
+  // Preserve source offsets when key spellings or whitespace normalize differently.
+  function highlightSource(text) {
+    let chars = text.split("").flatMap((char, at) => char.toLowerCase().split("")
+      .map((value) => ({ value, start: at, end: at + 1 })));
+    function replace(pattern, replacement) {
+      const source = chars.map((char) => char.value).join("");
+      const next = [];
+      let at = 0;
+      for (const match of source.matchAll(pattern)) {
+        next.push(...chars.slice(at, match.index));
+        const value = typeof replacement === "function" ? replacement(match) : replacement;
+        const start = chars[match.index].start;
+        const end = chars[match.index + match[0].length - 1].end;
+        value.split("").forEach((letter) => next.push({ value: letter, start, end }));
+        at = match.index + match[0].length;
+      }
+      chars = next.concat(chars.slice(at));
+    }
+    replace(/<c-([^>]+)>/g, (match) => " ctrl-" + match[1] + " ");
+    replace(/<leader>/g, "<space>");
+    replace(/\bctrl\+/g, "ctrl-");
+    replace(/\s+/g, " ");
+    replace(/^\s+|\s+$/g, "");
+    return { lower: chars.map((char) => char.value).join(""), chars };
+  }
+
+  // Mark the actual matching variant using text nodes only.
   function highlight(host, text, tokens) {
-    const lower = text.toLowerCase();
+    const { lower, chars } = highlightSource(text);
     const marked = new Array(text.length).fill(false);
     tokens.forEach((t) => {
       if (!t) return;
       for (let at = lower.indexOf(t); at !== -1; at = lower.indexOf(t, at + t.length)) {
-        for (let k = at; k < at + t.length; k++) marked[k] = true;
+        for (let k = chars[at].start; k < chars[at + t.length - 1].end; k++) marked[k] = true;
       }
     });
     let start = 0;
@@ -1213,7 +1307,7 @@ body.tw-search-open{overflow:hidden}
       return;
     }
     const data = window.TW_SEARCH;
-    const tokens = q.split(" ");
+    const tokens = engine.query(q);
     shown.forEach((it, i) => {
       const li = document.createElement("li");
       li.id = `tw-r-${i}`;
@@ -1227,10 +1321,11 @@ body.tw-search-open{overflow:hidden}
       meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
       const title = document.createElement("div");
       title.className = "tw-r-title";
-      title.textContent = it[4];
+      const variants = engine.match(norm(it[4] + " " + it[5]), tokens).variants;
+      highlight(title, it[4], variants);
       const snippet = document.createElement("div");
       snippet.className = "tw-r-text";
-      highlight(snippet, it[5], tokens);
+      highlight(snippet, it[5], variants);
       li.append(meta, title, snippet);
       li.addEventListener("click", () => go(it));
       list.append(li);

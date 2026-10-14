@@ -26,46 +26,46 @@ def K(title, rows, where="nvim", **kw):
 
 
 SURROUND = r'''
-gsa{motion}{char}   Add surrounding (gsa + motion + char)
-gsd{char}           Delete surrounding
-gsr{old}{new}       Replace surrounding
-gsf / gsF           Find next / previous surrounding
-gsh                 Highlight surrounding
+gsa{motion}{char}   Surround text with a character: add surrounding (gsa + motion + char)
+gsd{char}           Remove the surrounding characters: delete surrounding
+gsr{old}{new}       Change the surrounding characters: replace surrounding
+gsf / gsF           Jump to the next / previous surrounding: find surrounding
+gsh                 Show the surrounding characters: highlight surrounding
 '''
 
 SURROUND_EX = r'''
-gsaiw"           Surround word with "
+gsaiw"           Surround the word with "
 gsa3w(           Surround 3 words with ()
-gsd(             Delete surrounding ()
-gsr({            Replace () with {}
+gsd(             Remove the surrounding ()
+gsr({            Change () to {}
 '''
 
 FLASH_JUMP = r'''
-s{chars}         Type 's' then start typing — labels appear on matches, press label to jump
-                 Works in normal, visual, and operator-pending mode
+s{chars}         Jump to any visible text: type s, then the first letters, then press the label that appears on the match
+                 Works in normal, visual and operator-pending mode
 '''
 
 FLASH_TS = r'''
-S                Select a treesitter node (function, block, class)
+S                Select a function, block or class: treesitter node
                  Press S → labels appear on code structures → pick one to select it
                  Chain: S → label → expand with S again for parent node
 '''
 
 FLASH_REMOTE = r'''
-yr{label}        Yank text at a remote location without moving cursor
-dr{label}        Delete text at a remote location without moving cursor
-cr{label}        Change text at a remote location
+yr{label}{motion}  Copy text from a far-away spot without moving the cursor: remote yank
+dr{label}{motion}  Delete text at a far-away spot without moving the cursor: remote delete
+cr{label}{motion}  Change text at a far-away spot: remote change
 '''
 
 FLASH_SEARCH = r'''
-/pattern         Normal search gets jump labels — press a label to jump directly
-f{char}          f/t motions get labels when multiple matches exist on line
-t{char}          Same — type the label to jump further
+/pattern         Search for text and jump to a match: Ctrl-s turns on jump labels during a / search, then press a label
+f{char}          Jump to a character on the line (f lands on it, t stops before it): ; repeats, , reverses
+t{char}          Jump to just before a character: ; repeats the jump, , reverses it
 '''
 
 HARPOON = r'''
-<Space>H         Add current file to harpoon list
-<Space>h         Open harpoon quick menu (see all marked files, reorder, delete)
+<Space>H         Add this file to the harpoon list
+<Space>h         Open the harpoon menu: see all marked files, reorder or delete them
 <Space>1         Jump to harpoon file 1
 <Space>2         Jump to harpoon file 2
 <Space>3         Jump to harpoon file 3
@@ -75,347 +75,350 @@ HARPOON = r'''
 '''
 
 AERIAL = r'''
-<Space>cs        Toggle aerial outline (symbols)
-{                Jump to previous symbol (function/class)
-}                Jump to next symbol (function/class)
+<Space>cs        Open or close the symbols outline: Aerial
+{                Jump to the previous function or class: symbol
+}                Jump to the next function or class: symbol
 '''
 
 AERIAL_PANEL = r'''
 Enter            Jump to that symbol
-o                Jump to symbol but keep aerial open
-l                Expand node
-h                Collapse node
-L                Expand all
-H                Collapse all
+o                Open or close the children of the symbol under the cursor: toggle
+p                Preview the symbol in the code and keep the cursor in Aerial: scroll
+l                Open the symbol's children: expand
+h                Close the symbol's children: collapse
+L                Open the symbol's children and everything below them: expand recursively
+H                Close the symbol's children and everything below them: collapse recursively
+zR               Open every symbol in the outline: expand all
+zM               Close every symbol in the outline: collapse all
 '''
 
 TS_SELECT = r'''
-vaf              Select around function (including def/signature)
-vif              Select inside function (body only)
-vac              Select around class
-vic              Select inside class
-vaa              Select around argument/parameter
-via              Select inside argument/parameter
-daf              Delete entire function
-yif              Yank function body
-caa              Change argument
+vaf              Select a whole function: around function (including def/signature)
+vif              Select a function body: inside function (body only)
+vac              Select a whole class: around class
+vic              Select a class body: inside class
+vaa              Select an argument with its comma: around argument
+via              Select an argument: inside argument
+daf              Delete the entire function
+yif              Copy the function body
+caa              Change an argument
 '''
 
 TS_MOVE = r'''
-]f               Jump to next function start
-[f               Jump to previous function start
-]c               Jump to next class start
-[c               Jump to previous class start
+]f               Jump to the next function start
+[f               Jump to the previous function start
+]c               Jump to the next class start
+[c               Jump to the previous class start
 '''
 
 MINI_AI = r'''
-af / if          Around / inside function
-ac / ic          Around / inside class
-ao / io          Around / inside a code block (treesitter)
-a) i) a] i] a} i}  Brackets — searches forward on the line if not inside one
-aq / iq          Around / inside any quote
-an / in          Next text object (e.g. cin) targets the next match)
-al / il          Last text object (previous match)
-g[ / g]          Jump to start / end of the text object under cursor
+af / if          Target a function: around / inside function
+ac / ic          Target a class: around / inside class
+ao / io          Target a code block: around / inside block (treesitter)
+a) i) a] i] a} i}  Target the text in brackets: searches forward on the line if the cursor is not inside one
+aq / iq          Target quoted text: around / inside any quote
+an / in          Target the next match: next text object (e.g. `cin)` changes the text in the next parens)
+al / il          Target the previous match: last text object
+g[ / g]          Jump to the start / end of the text object named next, e.g. g[f
 '''
 
 BUFFERLINE = [
-    ("L (Shift-L)", "Next buffer/tab"),
-    ("H (Shift-H)", "Previous buffer/tab"),
+    ("L (Shift-L)", "Go to the next buffer"),
+    ("H (Shift-H)", "Go to the previous buffer"),
 ] + R(r'''
-<Space>bp        Pin/unpin current buffer
-<Space>bP        Delete all non-pinned buffers
-<Space>bj        Pick a buffer by label
-<Space>bl        Delete buffers to the left
-<Space>br        Delete buffers to the right
-<Space>bd        Close current buffer (LazyVim default — verify in which-key)
+<Space>bp        Pin or unpin this buffer
+<Space>bP        Close all buffers that are not pinned
+<Space>bj        Go to a buffer by its label: pick
+<Space>bl        Close the buffers to the left
+<Space>br        Close the buffers to the right
+<Space>bd        Close this buffer
 ''')
 
 PERSISTENCE = r'''
-<Space>qs        Restore session for this directory
-<Space>ql        Restore last session
-<Space>qS        Select a session to restore
-<Space>qd        Don't save the current session (stop auto-save)
+<Space>qs        Restore the session for this directory
+<Space>ql        Restore the last session
+<Space>qS        Pick a session to restore
+<Space>qd        Stop saving the current session: don't save
 '''
 
 YANKY = r'''
-<Space>p         Open yank history picker (pick any past yank)
-p / P            Paste after / before (yanky-aware)
-]y / [y          Cycle forward / backward through yank history
-]p / [p          Paste with indent matched to current line
-gp / gP          Paste, leaving cursor after the pasted text
+<Space>p         Paste an earlier yank: open the yank history picker
+p / P            Paste after / before the cursor (yanky-aware)
+[y / ]y          Swap the pasted text for an older / newer yank: cycle the yank history
+]p / [p          Paste and match the indent of the current line
+gp / gP          Paste and leave the cursor after the pasted text
 '''
 
 TODO = r'''
-]t / [t          Jump to next / previous todo comment
-<Space>st        Search all todos (picker)
-<Space>sT        Search only TODO/FIX/FIXME
-<Space>xt        Todos in the Trouble panel
+]t / [t          Jump to the next / previous todo comment
+<Space>st        Search all todo comments in a picker
+<Space>sT        Search only TODO, FIX and FIXME comments
+<Space>xt        Show the todo comments in the Trouble panel
 '''
 
 DADBOD = r'''
-<Space>D         Toggle the DB UI (explorer of connections/tables)
+<Space>D         Open or close the database UI: explorer of connections and tables
 '''
 
 RENDER_MD = r'''
-<Space>um        Toggle inline rendering on/off (UI toggle)
+<Space>um        Turn inline Markdown rendering on or off: UI toggle
 '''
 
 MD_PREVIEW = r'''
-<Space>cp        Markdown Preview (opens live-refreshing browser view)
+<Space>cp        Preview the Markdown file in the browser: it refreshes live
 '''
 
 NAVIGATOR = r'''
-Ctrl-h           Move left (works across nvim ↔ tmux)
-Ctrl-j           Move down
-Ctrl-k           Move up
-Ctrl-l           Move right
+Ctrl-h           Change to the window or tmux pane on the left (works across nvim and tmux)
+Ctrl-j           Change to the window or tmux pane below
+Ctrl-k           Change to the window or tmux pane above
+Ctrl-l           Change to the window or tmux pane on the right
 '''
 
 WHICH_KEY = r'''
-<Space>           Wait → see all leader groups
-<Space>?          Buffer-local keymaps
-g                 Wait → see all g-prefix commands
-z                 Wait → see all z-prefix commands
-<Space>sk         Fuzzy-search ALL keymaps by description
+<Space>           Show all leader groups: press and wait
+<Space>?          Show the keymaps of this buffer
+g                 Show all g commands: press and wait
+z                 Show all z commands: press and wait
+<Space>sk         Find a key by what it does: fuzzy-search all keymaps by description
 '''
 
 G_NAV = r'''
-gg               First line of file
-G                Last line of file (not g prefix, but related)
-gi               Go to last insert position and enter insert mode
-gf               Go to file under cursor (opens the file path)
-gx               Open filepath or URL under cursor in system handler (browser, Finder)
-gO               Document symbols (LSP outline of current file)
-g,               Go to newer position in change list
-g;               Go to older position in change list
+gg               Go to the first line of the file
+G                Go to the last line of the file (not a g key, but related)
+gi               Go back to where you last typed and start inserting
+gf               Open the file whose path is under the cursor
+gx               Open the path or URL under the cursor in the system app (browser, Finder)
+gO               Show the outline of this file: document symbols (LSP)
+g,               Go to a newer position in the change list
+g;               Go to an older position in the change list
 '''
 
 G_SEARCH = r'''
-gn               Search forwards and select the match
-gN               Search backwards and select the match
+gn               Select the next match: search forwards and select it
+gN               Select the previous match: search backwards and select it
 '''
 
 G_CASE = r'''
-gu{motion}       Lowercase (e.g., `guiw` = lowercase word)
-gU{motion}       Uppercase (e.g., `gUiw` = uppercase word)
-g~{motion}       Toggle case (e.g., `g~iw` = toggle word)
-~                Toggle case of char under cursor
+gu{motion}       Make text lowercase (e.g., `guiw` = lowercase word)
+gU{motion}       Make text uppercase (e.g., `gUiw` = uppercase word)
+g~{motion}       Swap upper and lower case (e.g., `g~iw` = toggle word)
+~                Swap the case of the character under the cursor
 '''
 
 G_COMMENTS = r'''
-gc{motion}       Toggle comment (e.g., `gcip` = comment paragraph)
-gcc              Toggle comment on current line
-gcO              Add comment on line above
-gco              Add comment on line below
+gc{motion}       Comment or uncomment lines (e.g., `gcip` = comment paragraph)
+gcc              Comment line: toggle the comment on this line
+gcO              Add a comment line above
+gco              Add a comment line below
 '''
 
 G_LSP = r'''
 gd               Go to definition
-gr               Find all references
-gI               Go to implementation
-gy               Go to type definition
-gD               Go to declaration
-gK               Signature help
-gO               Document symbols
-K                Hover docs
+gr               Find every use: references
+gI               Go to the implementation
+gy               Go to the type definition
+gD               Go to the declaration
+gK               Show the function signature: signature help
+gO               Show the outline of this file: document symbols
+K                Show docs for the word under the cursor: hover
 '''
 
 G_FORMAT = r'''
-gw{motion}       Format text (wraps to textwidth)
-gq{motion}       Format text and move cursor to end
+gw{motion}       Wrap text to the text width: format text
+gq{motion}       Wrap text and move the cursor to the end: format text
 '''
 
 G_TABS = r'''
-gt               Go to next tab page
-gT               Go to previous tab page
+gt               Go to the next tab page
+gT               Go to the previous tab page
 '''
 
 G_MARKS = r'''
-g'{mark}         Jump to mark (like `'{mark}` but doesn't change jump list)
+g'{mark}         Jump to a mark without changing the jump list (like `'{mark}`)
 '''
 
 G_MISC = r'''
-ga               Show character code under cursor (ASCII, hex, octal)
-g8               Show UTF-8 byte sequence for char under cursor
-gv               Reselect last visual selection
-gJ               Join lines without adding space
-gf               Go to file under cursor
+ga               Show the character code under the cursor (ASCII, hex, octal)
+g8               Show the UTF-8 bytes of the character under the cursor
+gv               Select the last selection again: reselect
+gJ               Join lines without adding a space
+gf               Open the file whose path is under the cursor
 '''
 
 BRACKETS = r'''
-]d / [d          Next / previous diagnostic (error/warning)
-]h / [h          Next / previous git hunk
-]m / [m          Next / previous method/function start
-]M / [M          Next / previous method/function end
-]{ / [{          Next / previous unmatched {
-]] / [[          Next / previous reference to the word under the cursor
-]s / [s          Next / previous misspelled word
-]q / [q          Next / previous quickfix item
-]b / [b          Next / previous buffer
+]d / [d          Jump to the next / previous diagnostic (error or warning)
+]h / [h          Jump to the next / previous git hunk
+]m / [m          Jump to the next / previous method or function start
+]M / [M          Jump to the next / previous method or function end
+]{ / [{          Jump to the next / previous unmatched {
+]] / [[          Jump to the next / previous use of the word under the cursor
+]s / [s          Jump to the next / previous misspelled word
+]q / [q          Jump to the next / previous quickfix item
+]b / [b          Go to the next / previous buffer
 '''
 
 Z_SCROLL = r'''
-zz               Center current line on screen
-zt               Move current line to top of screen
-zb               Move current line to bottom of screen
-zH               Scroll half screen to the left
-zL               Scroll half screen to the right
+zz               Center this line on the screen
+zt               Move this line to the top of the screen
+zb               Move this line to the bottom of the screen
+zH               Scroll half a screen to the left
+zL               Scroll half a screen to the right
 '''
 
 Z_FOLD = r'''
-za               Toggle fold under cursor
-zA               Toggle fold recursively
-zo               Open fold
-zO               Open fold recursively
-zc               Close fold
-zC               Close fold recursively
-zM               Close ALL folds in file
-zR               Open ALL folds in file
-zj               Move to next fold
-zk               Move to previous fold
+za               Open or close the fold under the cursor
+zA               Open or close the fold and its inner folds
+zo               Open the fold
+zO               Open the fold and its inner folds
+zc               Close the fold
+zC               Close the fold and its outer folds
+zM               Close all folds in the file
+zR               Open all folds in the file
+zj               Go to the next fold
+zk               Go to the previous fold
 '''
 
 Z_SPELL = r'''
-z=               Show spelling suggestions for word under cursor
-zg               Mark word as good (add to dictionary)
-zw               Mark word as wrong
+z=               Fix a misspelled word: show spelling suggestions
+zg               Add the word to the dictionary: mark as good
+zw               Mark the word as wrong
 '''
 
 CTRL_NAV = r'''
-Ctrl-o           Jump back (in jump list — like browser back)
-Ctrl-i           Jump forward (in jump list)
-Ctrl-d           Half-page down
-Ctrl-u           Half-page up
-Ctrl-f           Full page down
-Ctrl-b           Full page up
+Ctrl-o           Jump back: go back in the jump list, like browser back
+Ctrl-i           Jump forward in the jump list
+Ctrl-d           Scroll half a page down
+Ctrl-u           Scroll half a page up
+Ctrl-f           Scroll a full page down
+Ctrl-b           Scroll a full page up
 Ctrl-e           Scroll down one line (cursor stays)
 Ctrl-y           Scroll up one line (cursor stays)
-Ctrl-]           Jump to definition (ctags — LSP uses gd instead)
-Ctrl-t           Jump back from definition
-Ctrl-^           Switch to alternate (last) file
+Ctrl-]           Jump to the definition (ctags; LSP uses gd instead)
+Ctrl-t           Jump back from a definition
+Ctrl-^           Switch to the alternate (last) file
 '''
 
 CTRL_NORMAL = r'''
-Ctrl-a           Increment number under cursor
-Ctrl-x           Decrement number under cursor
-Ctrl-r           Redo
+Ctrl-a           Add 1 to the number under the cursor: increment
+Ctrl-x           Subtract 1 from the number under the cursor: decrement
+Ctrl-r           Redo the undone change
 '''
 
 CTRL_INSERT = r'''
-Ctrl-w           Delete word backward (like Option+Delete)
-Ctrl-u           Delete to start of line (like Cmd+Delete)
-Ctrl-h           Delete character backward (like Backspace)
-Ctrl-t           Indent current line
-Ctrl-d           Unindent current line
-Ctrl-r "         Paste from register (e.g., Ctrl-r 0 = last yank)
-Ctrl-n           Autocomplete next match
-Ctrl-p           Autocomplete previous match
-Ctrl-o           Execute ONE normal mode command, then back to insert
+Ctrl-w           Delete the previous word (like Option+Delete)
+Ctrl-u           Delete to the start of the line (like Cmd+Delete)
+Ctrl-h           Delete the previous character (like Backspace)
+Ctrl-t           Indent this line
+Ctrl-d           Unindent this line
+Ctrl-r "         Paste from a register (e.g., Ctrl-r 0 = last yank)
+Ctrl-n           Complete the word: next match
+Ctrl-p           Complete the word: previous match
+Ctrl-o           Run one normal-mode command, then go back to insert
 '''
 
 CTRL_WINDOWS = r'''
-Ctrl-w h/j/k/l   Navigate between splits
-Ctrl-w s          Horizontal split
-Ctrl-w v          Vertical split
-Ctrl-w q          Close split
-Ctrl-w =          Equalize split sizes
-Ctrl-w _          Maximize height
-Ctrl-w |          Maximize width
-Ctrl-w o          Close all other splits (keep only current)
-Ctrl-w r          Rotate splits
-Ctrl-w T          Move current split to new tab
+Ctrl-w h/j/k/l   Change to the split on the left, below, above or right
+Ctrl-w s          Split the window horizontally: horizontal split
+Ctrl-w v          Split the window vertically: vertical split
+Ctrl-w q          Close this split
+Ctrl-w =          Make all splits the same size: equalize
+Ctrl-w _          Make this split as tall as possible: maximize height
+Ctrl-w |          Make this split as wide as possible: maximize width
+Ctrl-w o          Close all other splits: keep only this one
+Ctrl-w r          Swap the splits around: rotate
+Ctrl-w T          Move this split to a new tab
 '''
 
 L_FIND = r'''
-<Space><Space>   Find files (root dir)
-<Space>ff        Find files (root dir)
-<Space>fr        Recent files
-<Space>fg        Find git files
-<Space>fb        Buffers
-<Space>,         Buffers (quick switch)
+<Space><Space>   Find a file by name in the current working directory (a file picker)
+<Space>ff        Find a file by name in the current working directory
+<Space>fr        Open a recent file
+<Space>fg        Find a git-tracked file in the current working directory
+<Space>fb        Switch to an open buffer
+<Space>,         Switch to an open buffer: quick switch (the buffer list)
 '''
 
 L_SEARCH = r'''
-<Space>sf        Search files by name (added — your primary find-file)
-<Space>sF        Search files (cwd)
-<Space>sg        Grep (search file contents, root dir)
-<Space>sw        Grep word / selection under cursor
-<Space>sd        Diagnostics
-<Space>sR        Resume last picker
-<Space>sh        Help pages
-<Space>sk        Keymaps
-<Space>sC        Commands
-<Space>sm        Marks
-<Space>st        Todo comments
-<Space>sr        Search & replace (grug-far)   ← note: lowercase r = replace
+<Space>sf        Find a file by name in the current working directory (your primary find-file)
+<Space>sF        Find a file by name in the current working directory (same as <Space>sf)
+<Space>sg        Search text in all files: grep in the current working directory
+<Space>sw        Search for the word or selection under the cursor: grep in the current working directory
+<Space>sd        List the diagnostics
+<Space>sR        Reopen the last picker: resume
+<Space>sh        Search the help pages
+<Space>sk        Search the keymaps
+<Space>sC        Run a command by name: command list
+<Space>sm        Show the marks
+<Space>st        List the todo comments
+<Space>sr        Replace text across files: search and replace panel (grug-far). Lowercase r = replace
 '''
 
 L_GIT = r'''
-<Space>gg        LazyGit (repository root)
-<Space>gG        LazyGit (current working directory)
-<Space>gL        Git log (current working directory)
-<Space>gb        Commit history for current line
-<Space>gf        Commit history for current file
-<Space>gl        Git log (repository root)
-<Space>gB        Git browse (open on remote)
-<Space>gY        Git browse (copy remote URL)
-<Space>gs        Git status (picker)
-<Space>gS        Git stash
-<Space>gi / gI   Open / all GitHub issues
-<Space>gp / gP   Open / all GitHub pull requests
-<Space>gd        Git diff — hunks (Snacks picker)
-<Space>gD        Git diff against origin (Snacks picker)
-<Space>gv        Working-tree diff (Diffview)
-<Space>gV        Current-file history (Diffview)
+<Space>gg        Open LazyGit at the repository root
+<Space>gG        Open LazyGit in the current working directory
+<Space>gL        Show the git log for the current working directory
+<Space>gb        Show the commit history for this line
+<Space>gf        Show the commit history for this file
+<Space>gl        Show the git log for the repository root
+<Space>gB        Open this file on the remote: git browse
+<Space>gY        Copy the remote URL of this file: git browse
+<Space>gs        Show git status in a picker
+<Space>gS        Show the git stashes
+<Space>gi / gI   List GitHub issues: open / all
+<Space>gp / gP   List GitHub pull requests: open / all
+<Space>gd        Show the git diff, hunk by hunk (Snacks picker)
+<Space>gD        Show the git diff against origin (Snacks picker)
+<Space>gv        Open the working-tree diff (Diffview)
+<Space>gV        Open the history of this file (Diffview)
 '''
 
 L_TROUBLE = r'''
-<Space>xx        Diagnostics (Trouble)
-<Space>xX        Buffer diagnostics (Trouble)
-<Space>xt        Todo (Trouble)
-<Space>xT        Todo/Fix/Fixme (Trouble)
-<Space>xL        Location list (Trouble)
-<Space>xQ        Quickfix list (Trouble)
+<Space>xx        Show the diagnostics: Trouble
+<Space>xX        Show the diagnostics of this buffer: Trouble
+<Space>xt        Show the todo comments: Trouble
+<Space>xT        Show only Todo, Fix and Fixme comments: Trouble
+<Space>xL        Show the location list: Trouble
+<Space>xQ        Show the quickfix list: Trouble
 '''
 
 L_BUFFERS = r'''
-<Space>bp        Toggle pin
-<Space>bP        Delete non-pinned buffers
-<Space>bj        Pick buffer by label
-<Space>bl        Delete buffers to the left
-<Space>br        Delete buffers to the right
-<Space>bd        Delete buffer (LazyVim default — verify in which-key)
-<Space><Space>   Find files / switch (snacks)
-<Space>,         Switch between open buffers
+<Space>bp        Pin or unpin this buffer
+<Space>bP        Close all buffers that are not pinned
+<Space>bj        Go to a buffer by its label: pick
+<Space>bl        Close the buffers to the left
+<Space>br        Close the buffers to the right
+<Space>bd        Close this buffer
+<Space><Space>   Find a file by name: a file picker (the buffer list is <Space>,)
+<Space>,         Switch to an open buffer
 '''
 
 L_CODE = r'''
-<Space>cf        Format file
-<Space>cr        Rename (LSP)
-<Space>ca        Code action (LSP)
-<Space>cd        Line diagnostics
-<Space>cl        LSP info
-<Space>cs        Symbols outline (Aerial)
-<Space>cm        Mason (LSP/formatter installer)
+<Space>cf        Format the file
+<Space>cr        Rename a symbol (LSP)
+<Space>ca        Fix or refactor the code: code action (LSP)
+<Space>cd        Show the diagnostics for this line
+<Space>cl        Show LSP info: which servers are attached
+<Space>cs        Show the symbols outline: Aerial
+<Space>cm        Install LSP servers and formatters: Mason
 '''
 
 L_HUNKS = r'''
-<Space>ghs       Stage hunk
-<Space>ghr       Reset hunk
-<Space>ghp       Preview hunk
-<Space>ghb       Blame line
-<Space>ghS       Stage buffer
-<Space>ghR       Reset buffer
+<Space>ghs       Stage this hunk
+<Space>ghr       Discard this hunk: reset hunk
+<Space>ghp       Preview this hunk
+<Space>ghb       Show blame for this line
+<Space>ghS       Stage the whole buffer
+<Space>ghR       Discard every change in the buffer: reset buffer
 '''
 
 L_TERMINAL = r'''
-<Space>ft        Toggle floating terminal
-<Space>Tf        Terminal — float (split)
-<Space>Tv        Terminal — vertical split
-<Space>Th        Terminal — horizontal split
+<Space>ft        Open or hide the floating terminal
+<Space>tf        Open a floating terminal
+<Space>tv        Open a terminal on the right: vertical split
+<Space>th        Open a terminal at the bottom: horizontal split
 
-<Space>t         TEST prefix (neotest) — tt run file, tr run nearest, ts summary
+<Space>t         Run tests with neotest: tt runs this file, tr the nearest test, ts opens the summary
 '''
 
 X_FILES = r'''
@@ -464,7 +467,10 @@ MODULE = {
     "footer": "Surround, Flash, Harpoon, Aerial and text objects; sessions and yank history; the g, bracket, z, Ctrl, Space and colon maps",
     "tagline": "Jump anywhere, select by structure and learn every prefix map.",
     "glossary": [],
-    "coverage_allow": [],
+    "coverage_allow": [
+        ("]y / [y", "key order swapped to [y / ]y: in the live yanky config [y cycles forward to older yanks and ]y backward"),
+        ("a) i) a] i] a} i} Brackets — searches forward on the line if not inside one", "row reworded to start with the task in plain words; the keys are unchanged"),
+    ],
     "pages": [
         # ============================================================ page 1
         {
@@ -492,12 +498,12 @@ MODULE = {
                         K("Surround keys", SURROUND),
                         K("Examples", SURROUND_EX),
                         K("Surround a word, then undo it", [
-                            ("gsaiw\"", "Wrap the word in double quotes"),
-                            ("u", "Undo it: this is a motion drill, not a real edit"),
+                            ("gsaiw\"", "Surround the word with double quotes"),
+                            ("u", "Undo the change: this is a motion drill, not a real edit"),
                         ], **{"try": "Open `data/log.txt` and put the cursor on `pattern` in 'this line matches a filter pattern'.",
                               "expect": "The line reads exactly as it did before."}),
                         {"type": "cmd", "where": "shell", "title": "Prove nothing changed", "code": "git diff data/log.txt",
-                         "expect": "Nothing: the file has no diff."},
+                         "expect": "Nothing: the file has no diff, once autosave has written the undo (about 3 seconds)."},
                     ],
                 },
                 {
@@ -509,9 +515,9 @@ MODULE = {
                         K("Remote operations (operator-pending)", FLASH_REMOTE),
                         K("Enhanced search", FLASH_SEARCH),
                         K("Jump straight to a long function name", [
-                            ("gg", "Top of `orders.py`"),
-                            ("s", "Then type `qu`, the first two letters of `qualifies_for_free_shipping`"),
-                            ("label", "A label appears on the match: press it"),
+                            ("gg", "Go to the top of `orders.py`"),
+                            ("s", "Jump to text: type `qu`, the first two letters of `qualifies_for_free_shipping`"),
+                            ("label", "Jump to the match: press the label that appears on it"),
                         ], **{"try": "Press the keys in order.", "expect": "The cursor lands exactly on `def qualifies_for_free_shipping(order):`."}),
                     ],
                 },
@@ -521,9 +527,9 @@ MODULE = {
                     "blocks": [
                         K("Harpoon keys", HARPOON),
                         K("Mark the 4 files you keep bouncing between", [
-                            ("<Space>H", "In each of `src/calculator.py`, `src/orders.py`, `src/report.py` and `tests/test_orders.py`"),
-                            ("<Space>2", "From anywhere: jump straight to `orders.py`"),
-                            ("<Space>h", "Open the quick menu"),
+                            ("<Space>H", "Add the file to the harpoon list: in each of `src/calculator.py`, `src/orders.py`, `src/report.py` and `tests/test_orders.py`"),
+                            ("<Space>2", "Jump to harpoon file 2: from anywhere, straight to `orders.py`"),
+                            ("<Space>h", "Open the harpoon menu"),
                         ], **{"try": "Open each file and press `<Space>H`, then use the other two keys.",
                               "expect": "The quick menu lists all 4 files, in the order you added them."}),
                     ],
@@ -534,7 +540,7 @@ MODULE = {
                     "blocks": [
                         K("Aerial keys", AERIAL),
                         K("Inside the aerial panel", AERIAL_PANEL),
-                        K("Get the shape of a file without reading it", [("<Space>cs", "Open the outline in `orders.py`")],
+                        K("Get the shape of a file without reading it", [("<Space>cs", "Open the symbols outline in `orders.py`")],
                           **{"try": "Open `orders.py` and press `<Space>cs`.",
                              "expect": "2 classes (`Order`, `OrderBook`), 3 top-level functions (`calculate_total`, `qualifies_for_free_shipping`, `build_order_book`) and the `RAW_ORDERS` constant: 6 top-level symbols."}),
                     ],
@@ -546,13 +552,13 @@ MODULE = {
                         K("Selection (visual or operator-pending)", TS_SELECT),
                         K("Movement", TS_MOVE),
                         K("Select without deleting", [
-                            ("vif", "Inside `qualifies_for_free_shipping`: select the body only, then Esc"),
-                            ("vaf", "Select the whole def including the signature, then Esc"),
-                            ("vic", "Inside `OrderBook`: body only"),
-                            ("vac", "The whole class"),
-                            ("yif", "Back on `qualifies_for_free_shipping`: yank just the body"),
+                            ("vif", "Select a function body: inside `qualifies_for_free_shipping`, then Esc"),
+                            ("vaf", "Select a whole function with its signature, then Esc"),
+                            ("vic", "Select a class body: inside `OrderBook`"),
+                            ("vac", "Select a whole class"),
+                            ("yif", "Copy a function body: back on `qualifies_for_free_shipping`, yank just the body"),
                             (":new", "Open a scratch buffer"),
-                            ("p", "Paste and look"),
+                            ("p", "Paste the text and look"),
                             (":bd!", "Close the scratch buffer without saving"),
                         ], **{"try": "Press the keys in order.",
                               "expect": "The pasted text starts with `items = order.items` and ends with `return total_qty >= 5`: body only, no `def` line."}),
@@ -564,13 +570,13 @@ MODULE = {
                     "blocks": [
                         K("Mini.ai objects", MINI_AI),
                         K("Change inside parens you are not even touching", [
-                            ("ci)", "On `return` in `Order.subtotal`: finds the `sum(...)` parens ahead and enters insert mode inside them"),
-                            ("Esc", "Type anything first, then leave insert mode"),
-                            ("u", "Undo at once: this is a motion drill"),
+                            ("ci)", "Change the text inside parens: on `return` in `Order.subtotal`, it finds the `sum(...)` parens ahead and enters insert mode inside them"),
+                            ("Esc", "Leave insert mode, after typing anything first"),
+                            ("u", "Undo the change at once: this is a motion drill"),
                         ], **{"try": "Put the cursor on `return` in `return sum(item[\"price\"] * item[\"qty\"] for item in self.items)`.",
                               "expect": "The line shows no change once you undo."}),
                         {"type": "cmd", "where": "shell", "title": "Prove nothing changed", "code": "git diff src/orders.py",
-                         "expect": "No diff for that line."},
+                         "expect": "No diff for that line, once autosave has written the undo (about 3 seconds)."},
                     ],
                 },
             ],
@@ -668,11 +674,11 @@ MODULE = {
                     "blocks": [
                         K("Yank history keys", YANKY),
                         K("Recover an earlier yank", [
-                            ("yy", "In the `RAW_ORDERS` list: yank the \"A1\" line"),
-                            ("yy", "Move down and yank the \"A2\" line"),
+                            ("yy", "Copy a line: in the `RAW_ORDERS` list, yank the \"A1\" line"),
+                            ("yy", "Copy the next line: move down and yank the \"A2\" line"),
                             (":new", "Open a scratch buffer"),
-                            ("p", "Pastes the A2 line (most recent)"),
-                            ("[y", "Swaps the pasted text to the A1 line, without re-yanking"),
+                            ("p", "Paste the most recent yank: the A2 line"),
+                            ("[y", "Swap the pasted text for the A1 line, without re-yanking"),
                         ], **{"try": "Work in `orders.py`'s `RAW_ORDERS` list and press the keys in order.",
                               "expect": "The scratch buffer now shows the \"A1\" line, not \"A2\". Close it without saving with `:bd!`."}),
                     ],
@@ -682,7 +688,7 @@ MODULE = {
                     "intro": "Highlights `TODO`, `FIX`, `FIXME`, `HACK`, `NOTE` and `WARN`, and lets you jump to or search them.",
                     "blocks": [
                         K("Todo keys", TODO),
-                        K("Sweep for what is left", [("<Space>st", "Search all TODOs project-wide")],
+                        K("Sweep for what is left", [("<Space>st", "Search all TODO comments project-wide")],
                           **{"try": "Run it after the rename, import cleanup and debugger fix.",
                              "expect": "Exactly 5 results: the `average()` TODO in `calculator.py`, the 2 TODOs in `data/log.txt`, and 2 duplicates in `scripts/dirty.patch`. A 6th means an earlier exercise was not cleaned up."}),
                     ],
@@ -721,8 +727,8 @@ MODULE = {
                     ("Context savers", "Keys that bring your work back.", ["Keys", "Does"], [
                         ["`<Space>qs`", "Restore this directory's session"],
                         ["`<Space>ql`", "Restore the last session"],
-                        ["`[y` / `]y`", "Cycle yank history"],
-                        ["`<Space>p`", "Yank history picker"],
+                        ["`[y` / `]y`", "Swap the pasted text for an older / newer yank"],
+                        ["`<Space>p`", "Paste an earlier yank: yank history picker"],
                     ]),
                     ("No keymap needed", "These work on their own.", ["Plugin", "What you see"], [
                         ["Illuminate", "Other uses of the word under the cursor"],
@@ -751,7 +757,7 @@ MODULE = {
                      "Think of your project folder.",
                      ["It auto-saves a session per project directory."],
                      "One session per directory."),
-                    ("Keystrokes", "Cycle to the previous yank after a paste.",
+                    ("Keystrokes", "Swap a pasted line for the previous yank.",
                      "Square bracket, then y.",
                      ["Press `[y`."],
                      "`[y`."),
@@ -923,7 +929,7 @@ MODULE = {
                     "intro": "Press `<Space>` and wait for which-key. The main groups follow.",
                     "blocks": [
                         K("Find (<Space>f) and the quick-finders", L_FIND),
-                        {"type": "text", "body": "In the current config `<Space><Space>`, `<Space>ff` and `<Space>sf` search the current directory, not the root dir. The arrow keys are disabled in normal, visual and insert mode."},
+                        {"type": "text", "body": "In the current config the find keys (`<Space><Space>`, `<Space>ff`, `<Space>sf`) and the grep keys (`<Space>/`, `<Space>sg`, `<Space>sw`) search `:pwd`, not the project root. The arrow keys are disabled in normal, visual and insert mode."},
                         K("Search (<Space>s)", L_SEARCH),
                     ],
                 },
@@ -943,8 +949,8 @@ MODULE = {
                     "blocks": [
                         K("Code (<Space>c)", L_CODE),
                         K("Hunks and git signs (<Space>gh)", L_HUNKS),
-                        K("Terminal (<Space>f and <Space>T) and Test (<Space>t)", L_TERMINAL),
-                        {"type": "text", "body": "Do not confuse them: `<Space>t*` is test, `<Space>T*` is the split terminal (the lesson's mapping, not in the current config), and `<Space>ft`, `Ctrl-\\` and `Ctrl-/` are the floating terminal. The inlay-hints toggle lives under `<Space>u`: verify the subkey in which-key."},
+                        K("Terminals and tests (<Space>f and <Space>t)", L_TERMINAL),
+                        {"type": "text", "body": "`<Space>t` holds both: the test keys (neotest) and the terminals `<Space>tf`, `<Space>tv` and `<Space>th`. `<Space>ft` is the floating terminal, and `Ctrl-\\` and `Ctrl-/` toggle the last terminal you used. Every terminal opens in `:pwd`. The inlay-hints toggle lives under `<Space>u`: verify the subkey in which-key."},
                     ],
                 },
                 {
@@ -964,18 +970,18 @@ MODULE = {
                 "h2": "Map families at a glance",
                 "cards": [
                     ("Window keys", "Ctrl-w, then one letter.", ["Keys", "Does"], [
-                        ["`Ctrl-w v`", "Vertical split"],
-                        ["`Ctrl-w s`", "Horizontal split"],
-                        ["`Ctrl-w h/j/k/l`", "Move between splits"],
-                        ["`Ctrl-w q`", "Close split"],
-                        ["`Ctrl-w o`", "Keep only this split"],
+                        ["`Ctrl-w v`", "Split the window vertically"],
+                        ["`Ctrl-w s`", "Split the window horizontally"],
+                        ["`Ctrl-w h/j/k/l`", "Change to another split"],
+                        ["`Ctrl-w q`", "Close this split"],
+                        ["`Ctrl-w o`", "Close all other splits"],
                     ]),
                     ("Leader groups", "Each letter after Space opens one group.", ["Group", "Holds"], [
                         ["`<Space>f`", "Find files, buffers, recent"],
                         ["`<Space>s`", "Search and pickers"],
                         ["`<Space>g`", "Git"],
                         ["`<Space>c`", "Code actions"],
-                        ["`<Space>t`", "Tests"],
+                        ["`<Space>t`", "Tests and terminals"],
                         ["`<Space>x`", "Trouble lists"],
                     ]),
                     ("Quit variants", "Pick the right exit.", ["Command", "Does"], [
