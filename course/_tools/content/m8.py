@@ -42,19 +42,20 @@ MODULE = {
                     "intro": "These are the shortcuts you press all day. Cmd+D and Cmd+Shift+L live in Module 3, page 4.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Find and open", "rows": [
-                            ("<Space><Space>", "Cmd+P: open a file by name"),
-                            ("<Space>sC", "Cmd+Shift+P: run any command by name"),
-                            ("<Space>sk", "Cmd+K Cmd+S: search every key map"),
-                            ("<Space>ss", "Cmd+Shift+O: jump to a symbol in this file"),
-                            ("<Space>sS", "Cmd+T: jump to a symbol in the project"),
-                            ("<Space>/", "Cmd+Shift+F: search text in the project"),
-                            ("<Space>,", "Ctrl+Tab: switch to another open buffer"),
-                            ("<Space>e", "Cmd+B: show or hide the file tree"),
+                            ("<Space><Space>", "Open a file by name (VS Code Cmd+P)"),
+                            ("<Space>sC", "Run any command by name: command palette (VS Code Cmd+Shift+P)"),
+                            ("<Space>sk", "Search every key map (VS Code Cmd+K Cmd+S)"),
+                            ("<Space>ss", "Jump to a symbol in this file (VS Code Cmd+Shift+O)"),
+                            ("<Space>sS", "Jump to a symbol in the project (VS Code Cmd+T)"),
+                            ("<Space>/", "Search text in the project (VS Code Cmd+Shift+F)"),
+                            ("<Space>,", "Switch to another open buffer: files below `:pwd` (VS Code Ctrl+Tab)"),
+                            ("<Space>fB", "List every buffer, hidden ones too: files below `:pwd`"),
+                            ("<Space>e", "Show or hide the file explorer (VS Code Cmd+B)"),
                         ]},
                         {"type": "keys", "where": "nvim", "title": "Go to a line, go back", "rows": [
-                            ("12G", "Ctrl+G, then 12: go to line 12 (`:12` does the same)"),
-                            ("Ctrl-o", "Ctrl+-: jump back to where you were"),
-                            ("Ctrl-i", "Ctrl+Shift+-: jump forward again"),
+                            ("12G", "Go to line 12 (VS Code Ctrl+G, then 12; `:12` does the same)"),
+                            ("Ctrl-o", "Jump back to where you were (VS Code Ctrl+-)"),
+                            ("Ctrl-i", "Jump forward again (VS Code Ctrl+Shift+-)"),
                         ]},
                         {"type": "cmd", "where": "nvim", "title": "Jump to a line and come back", "code": C('''
 3G
@@ -62,27 +63,43 @@ MODULE = {
 Ctrl-o
 '''),
                          "expect": "`12G` puts the cursor on line 12, the `print(code, ...)` line in `report`. `Ctrl-o` takes you back to line 3."},
+                        {"type": "cmd", "where": "shell", "title": "Open a folder or file from the terminal (VS Code code .)", "code": C('''
+cd ~/tw
+v.
+v notes.md
+v --help
+'''),
+                         "expect": "`v.` opens the current folder in Neovim, and `v notes.md` opens that file. Quit each with `:q` to reach the next line. `v --help` prints the launcher's shortcut sheet and returns to the prompt without opening Neovim. `vi` and `vim` run `v` too."},
                         {"type": "text", "body": "Open `~/tw/orders.py` first. `Ctrl-o` follows jumps such as `G`, `gd` and searches. It does not follow `h`, `j`, `k` or `l`."},
                     ],
                 },
                 {
                     "h2": "Edit lines",
-                    "intro": "Line edits are one or two keys, and `.` repeats the last change.",
+                    "intro": "Line edits are one or two keys, and `.` repeats the last change. Autosave writes a file about 3 seconds after you stop typing, and when you leave the buffer, so `:e!` cannot bring the original back. Undo practice edits with `u`.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Line edits", "rows": [
-                            ("gcc", "Cmd+/: comment or uncomment the line"),
-                            ("Option+j / Option+k", "Option+Down / Option+Up: move the line down or up"),
-                            ("V, then Option+j / Option+k", "Option+Down / Option+Up on a selection: move all the selected lines; they stay selected"),
-                            ("yyp", "Shift+Option+Down: copy the line below"),
-                            ("dd", "Cmd+Shift+K: delete the line"),
-                            ("V", "Cmd+L: select the line"),
-                            ("o / O", "Cmd+Enter / Cmd+Shift+Enter: new line below or above"),
-                            (">> / <<", "Cmd+] / Cmd+[: indent or outdent the line"),
-                            ("u / Ctrl-r", "Cmd+Z / Cmd+Shift+Z: undo or redo"),
+                            ("gcc", "Comment or uncomment the line (VS Code Cmd+/)"),
+                            ("Option+j / Option+k", "Move the line down or up (VS Code Option+Down / Option+Up)"),
+                            ("V, then Option+j / Option+k", "Move all the selected lines; they stay selected (VS Code Option+Down / Option+Up on a selection)"),
+                            ("yyp", "Copy the line below (VS Code Shift+Option+Down)"),
+                            ("dd", "Delete the line (VS Code Cmd+Shift+K)"),
+                            ("V", "Select the line (VS Code Cmd+L)"),
+                            ("o / O", "Open a new line below or above (VS Code Cmd+Enter / Cmd+Shift+Enter)"),
+                            (">> / <<", "Indent or outdent the line (VS Code Cmd+] / Cmd+[)"),
+                            ("u / Ctrl-r", "Undo or redo (VS Code Cmd+Z / Cmd+Shift+Z)"),
                         ]},
+                        {"type": "keys", "where": "nvim", "title": "Stay on the keyboard in insert mode", "rows": [
+                            ("jk", "Leave insert mode: type `j` then `k` quickly (same as `Esc`)"),
+                            ("Option+h / j / k / l", "Move the cursor left, down, up or right without leaving insert mode (VS Code arrow keys)"),
+                        ], "try": "In `~/tw/notes.md` press `o`, type `hello`, then `jk`. Press `u` to remove the line.",
+                         "expect": "The `j` and `k` are not typed and you are back in normal mode. After `u`, the added line disappears."},
+                        {"type": "keys", "where": "nvim", "title": "Pause autosave", "rows": [
+                            (":ASToggle", "Pause autosave. Run it again to turn it back on"),
+                        ], "try": "Run `:ASToggle`, change a word, wait 5 seconds, run `:e!`, then run `:ASToggle` again.",
+                         "expect": "While paused, nothing is written until you save with `:w`, so `:e!` reloads the original word. After the second `:ASToggle`, autosave saves your edits again."},
                         {"type": "keys", "where": "nvim", "title": "Grow the selection", "rows": [
-                            ("Ctrl-Space", "Ctrl+Shift+Right: select the syntax node under the cursor"),
-                            ("Ctrl-Space", "Press again to grow to the next node out"),
+                            ("Ctrl-Space", "Select the syntax node under the cursor (VS Code Ctrl+Shift+Right)"),
+                            ("Ctrl-Space", "Grow the selection to the next node out: press again"),
                             ("<BS>", "Shrink the selection by one node"),
                         ]},
                         {"type": "cmd", "where": "nvim", "title": "Copy a line and comment out the copy", "code": C('''
@@ -90,14 +107,14 @@ Ctrl-o
 yyp
 gcc
 '''),
-                         "expect": "Line 16 is now `# name = \"pen\"`, a commented copy of line 15. `gcc` needs a file type, so it works in `orders.py` but not in an unnamed buffer. Discard with `:e!`."},
+                         "expect": "Line 16 is now `# name = \"pen\"`, a commented copy of line 15. `gcc` needs a file type, so it works in `orders.py` but not in an unnamed buffer. Press `u` twice to undo both edits."},
                         {"type": "cmd", "where": "nvim", "title": "Undo and redo the copy", "code": C('''
 15G
 yyp
 u
 Ctrl-r
 '''),
-                         "expect": "`yyp` adds a copy of line 15. `u` removes it. `Ctrl-r` brings it back, so lines 15 and 16 both read `name = \"pen\"`. Discard with `:e!`."},
+                         "expect": "`yyp` adds a copy of line 15. `u` removes it. `Ctrl-r` brings it back, so lines 15 and 16 both read `name = \"pen\"`. Press `u` once more to remove the copy."},
                     ],
                 },
                 {
@@ -105,15 +122,15 @@ Ctrl-r
                     "intro": "These need the language server from Module 5. Give it a second after opening the file.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Code keys", "rows": [
-                            ("gd", "F12: go to definition"),
-                            ("gr", "Shift+F12: find references"),
-                            ("<Space>cr", "F2: rename the symbol in every file"),
-                            ("<Space>ca", "Cmd+.: code actions and quick fixes"),
-                            ("K", "Hover: show the docs for the symbol"),
-                            ("gK", "Ctrl+Shift+Space: show the function signature"),
-                            ("]d", "F8: jump to the next problem"),
-                            ("<Space>xx", "Cmd+Shift+M: list every problem"),
-                            ("<Space>cf", "Shift+Option+F: format the file"),
+                            ("gd", "Go to definition (VS Code F12)"),
+                            ("gr", "Find references (VS Code Shift+F12)"),
+                            ("<Space>cr", "Rename the symbol in every file (VS Code F2)"),
+                            ("<Space>ca", "Show code actions and quick fixes (VS Code Cmd+.)"),
+                            ("K", "Show the docs for the symbol: hover"),
+                            ("gK", "Show the function signature (VS Code Ctrl+Shift+Space)"),
+                            ("]d", "Jump to the next problem (VS Code F8)"),
+                            ("<Space>xx", "List every problem (VS Code Cmd+Shift+M)"),
+                            ("<Space>cf", "Format the file (VS Code Shift+Option+F)"),
                         ]},
                         {"type": "cmd", "where": "nvim", "title": "Go to a definition and back", "code": C('''
 12G
@@ -157,7 +174,7 @@ Ctrl-o
                 "steps": [
                     (("line 17, on `price`", "`17G`"), "`yyp`", "Puts a copy of the line below it."),
                     (None, "`gcc`", "Comments out the copy, line 18."),
-                    (None, "`:e!`", "Discards the edit."),
+                    (None, "`u` twice", "Undoes the comment and the copy. Autosave writes the original back."),
                 ],
                 "before": 'price = 2.50\nnote = "rush"',
                 "after": 'price = 2.50\n# price = 2.50\nnote = "rush"',
@@ -209,14 +226,14 @@ Ctrl-o
                     "intro": "Hide the clutter, or close what you no longer need.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Focus", "rows": [
-                            ("<Space>uz", "Cmd+K Z: zen mode"),
+                            ("<Space>uz", "Turn zen mode on or off (VS Code Cmd+K Z)"),
                             ("<Space>wm", "Zoom the current window to fill the screen"),
-                            ("<Space>.", "New untitled file: open a scratch buffer"),
-                            ("<Space>su", "Timeline: browse the undo history as a list"),
+                            ("<Space>.", "Open a scratch buffer: a persistent scratch buffer for notes"),
+                            ("<Space>su", "Browse the undo history as a list: timeline"),
                         ]},
                         {"type": "keys", "where": "nvim", "title": "Close", "rows": [
-                            ("<Space>bd", "Cmd+W: close this buffer"),
-                            ("<Space>bo", "Close Others: close every buffer except this one"),
+                            ("<Space>bd", "Close this buffer (VS Code Cmd+W)"),
+                            ("<Space>bo", "Close every buffer except this one (VS Code Close Others)"),
                         ]},
                         {"type": "cmd", "where": "nvim", "title": "Zen mode on and off", "code": C('''
 <Space>uz
@@ -236,11 +253,11 @@ Ctrl-o
                     "intro": "Each toggle prints a short notification, so you can see which way it went.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Toggles", "rows": [
-                            ("<Space>uw", "Option+Z: wrap long lines"),
-                            ("<Space>uf", "Format on save: on or off for every file"),
-                            ("<Space>uF", "Format on save: on or off for this buffer only"),
-                            ("<Space>uh", "Inlay hints: show or hide the grey type hints"),
-                            ("<Space>us", "Spell check: on or off"),
+                            ("<Space>uw", "Wrap long lines, or stop wrapping (VS Code Option+Z)"),
+                            ("<Space>uf", "Turn format on save on or off for every file"),
+                            ("<Space>uF", "Turn format on save on or off for this buffer only"),
+                            ("<Space>uh", "Show or hide the grey type hints: inlay hints"),
+                            ("<Space>us", "Turn spell check on or off"),
                             ("<Space>n", "Open the notification history"),
                         ]},
                         {"type": "cmd", "where": "nvim", "title": "Flip line wrapping", "code": C('''
@@ -358,7 +375,7 @@ Esc
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Completion", "rows": [
                             ("Ctrl-Space", "Show the completion menu"),
-                            ("Ctrl-n / Ctrl-p", "Next or previous item"),
+                            ("Ctrl-n / Ctrl-p", "Go to the next or previous item"),
                             ("Enter / Ctrl-y", "Accept the item"),
                             ("Ctrl-e", "Close the menu without accepting"),
                         ], "try": "Go to the end of `~/tw/orders.py`, press `o`, type `calc` and press `Ctrl-Space`.",
@@ -390,23 +407,23 @@ Esc
 :e ~/tw/todo.txt
 :12,16sort
 '''),
-                         "expect": "Lines 12 to 16 read: `TODO call the carrier`, `TODO print labels`, `TODO reply to Sam`, `buy boxes`, `buy tape`. Capital letters sort before small ones. Discard with `:e!`."},
+                         "expect": "Lines 12 to 16 read: `TODO call the carrier`, `TODO print labels`, `TODO reply to Sam`, `buy boxes`, `buy tape`. Capital letters sort before small ones. Press `u` to undo the sort."},
                         {"type": "cmd", "where": "nvim", "title": "Sort and ignore case", "code": C('''
 :12,16sort i
 '''),
-                         "expect": "Lines 12 to 16 now read: `buy boxes`, `buy tape`, `TODO call the carrier`, `TODO print labels`, `TODO reply to Sam`. The `i` makes the sort ignore case, so `b` comes before `T`. Discard with `:e!`."},
+                         "expect": "Lines 12 to 16 now read: `buy boxes`, `buy tape`, `TODO call the carrier`, `TODO print labels`, `TODO reply to Sam`. The `i` makes the sort ignore case, so `b` comes before `T`. Press `u` to undo the sort."},
                         {"type": "cmd", "where": "nvim", "title": "Upper-case a word", "code": C('''
 :e ~/tw/orders.py
 15G
 gUiw
 '''),
-                         "expect": "Line 15 reads `NAME = \"pen\"`. `guiw` on the same word turns it back. Discard with `:e!`."},
+                         "expect": "Line 15 reads `NAME = \"pen\"`. `guiw` on the same word turns it back, or press `u`."},
                         {"type": "cmd", "where": "nvim", "title": "Join two lines", "code": C('''
 :e ~/tw/todo.txt
 1G
 J
 '''),
-                         "expect": "Lines 1 and 2 become one line: `item 1: pending item 2: pending`. Discard with `:e!`."},
+                         "expect": "Lines 1 and 2 become one line: `item 1: pending item 2: pending`. Press `u` to split them again."},
                     ],
                 },
                 {
@@ -418,6 +435,14 @@ J
                             (":diffthis", "Run in each window: start diff mode"),
                             (":diffoff!", "End diff mode in every window"),
                         ]},
+                        {"type": "keys", "where": "nvim", "title": "Open in another app", "rows": [
+                            ("<Space>oi", "Open this file in its default macOS app"),
+                        ], "try": "Open `~/tw/notes.md` and press `<Space>oi`.",
+                         "expect": "The file opens in the macOS app that is the default for `.md` files."},
+                        {"type": "keys", "where": "nvim", "title": "Copy with the mouse", "rows": [
+                            ("Drag, then release", "Copy the dragged text to the system clipboard (VS Code Cmd+C on a selection)"),
+                        ], "try": "In `~/tw/notes.md`, drag over a line, release, then press `Cmd+V` in another app.",
+                         "expect": "The highlight clears and the text is on the system clipboard."},
                         {"type": "keys", "where": "nvim", "title": "Paths and pasting", "rows": [
                             (":let @+ = expand('%:p')", "Copy the full path of the file"),
                             (":let @+ = expand('%')", "Copy the path as Neovim shows it"),
@@ -451,6 +476,7 @@ J
                         ["Compare Selected", "`:diffthis` in each window"],
                         ["Copy Path", "`:let @+ = expand('%:p')`"],
                         ["Paste", "`Ctrl-r +` in insert mode"],
+                        ["Open this file in its default macOS app", "`<Space>oi`"],
                     ]),
                     ("Completion keys", "The menu opens as you type.", ["Key", "Action"], [
                         ["`Ctrl-Space`", "Show the menu"],
@@ -472,7 +498,7 @@ J
                 "steps": [
                     (("line 12, first `TODO`", "`12G`"), "`V4j`", "Selects lines 12 to 16."),
                     (None, "`:sort` then `Enter`", "Sorts the selection. Neovim fills in `'<,'>` for you."),
-                    (None, "`:e!`", "Discards the edit."),
+                    (None, "`u`", "Undoes the sort. Autosave writes the original back."),
                 ],
                 "before": "TODO call the carrier\nbuy tape\nTODO print labels\nbuy boxes\nTODO reply to Sam",
                 "after": "TODO call the carrier\nTODO print labels\nTODO reply to Sam\nbuy boxes\nbuy tape",

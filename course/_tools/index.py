@@ -2,6 +2,7 @@
 import os
 
 import kit
+from content.common import module_href
 
 TIERS = {
     1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Intermediate", 5: "Advanced", 6: "Advanced", 7: "Expert", 8: "Reference",
@@ -57,7 +58,7 @@ def write(course, mods, version, cheat):
     site_js = open(os.path.join(course, "_shared", "site.js"), encoding="utf-8").read()
     cards = []
     for m in mods:
-        href = f'{m["folder"]}/{m["folder"]}.html'
+        href = module_href(m["folder"])
         pages = "".join(f'<li><a href="{href}#module-{i}">{kit.esc(p["h1"])}</a></li>' for i, p in enumerate(m["pages"], 1))
         cards.append(
             f'<article class="cm-card"><span class="cm-num">Module {m["n"]} · {TIERS[m["n"]]}</span>'

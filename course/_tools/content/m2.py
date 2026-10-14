@@ -11,7 +11,7 @@ PRACTICE_DIR = "Terminal-Workflow/practice/nvim-drills"
 QUICK_START = C(r'''
 nvim .                              # open project
 
-\                File tree (toggle)
+\                File explorer (Snacks, toggle)
 <Space>sf        Search files (fuzzy)
 <Space>sg        Search all file contents (grep)
 i                Insert mode (type)
@@ -25,10 +25,6 @@ u                Undo
 .                Repeat last change
 ''')
 
-VP_FUNC = C(r'''
-vp() { cd "$1" && nvim . ; }
-''')
-
 MODULE = {
     "n": 2,
     "folder": "m2-nvim-essentials",
@@ -37,8 +33,10 @@ MODULE = {
     "tagline": "Edit a real project from minute one, without the mouse.",
     "glossary": [],
     "coverage_allow": [
+        ("<Space>T...", "lesson maps terminals under capital <Space>T; the live config has lowercase <Space>tf/tv/th, which the leader-group card now lists"),
         ('cd "Terminal Workflow/practice/nvim-drills"', "folder renamed to Terminal-Workflow"),
         ("demo-project/", "file tree shown as the expected result of the demo-project commit"),
+        ('vp() { cd "$1" && nvim . ; }', "definition replaced by usage; installed in user's config"),
     ],
     "pages": [
         # ============================================================ page 1
@@ -69,7 +67,12 @@ cd {PRACTICE_DIR}
 ls
 '''),
                          "expect": "`ls` lists `data`, `scripts`, `src` and `tests`."},
-                        {"type": "text", "body": "The project has bad names, an unused import, an off-by-one bug and a failing test. You fix none of that here. Undo a throwaway edit with `u`, or discard it with `:e!`."},
+                        {"type": "text", "body": "The project has bad names, an unused import, an off-by-one bug and a failing test. You fix none of that here. Undo a throwaway edit with `u`."},
+                        {"type": "text", "body": "Autosave writes a file about 3 seconds after you stop typing, and when you leave the buffer. So `:e!` cannot bring back the original once that has happened. To make `:e!` work, run `:ASToggle` before a throwaway drill and again after it. With autosave paused, a changed file stays unsaved until you run `:w`."},
+                        {"type": "keys", "where": "nvim", "title": "Pause autosave", "rows": [
+                            (":ASToggle", "Pause autosave. Run it again to turn autosave back on"),
+                        ]},
+                        {"type": "text", "body": "A file ends up changed anyway? For `~/tw`, run the Get the practice files box at the top of this page again. For `nvim-drills`, run `git checkout -- <file>` in that folder."},
                         {"type": "cmd", "where": "shell", "title": "Smaller sandbox: the demo project", "code": C('''
 cd demo-project
 git init && git add -A && git commit -m "Initial commit"
@@ -83,6 +86,9 @@ git init && git add -A && git commit -m "Initial commit"
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Open the project", "code": "v .          # or: nvim .",
                          "expect": "The file explorer opens. Press `Enter` on `src/calculator.py` to open it."},
+                        {"type": "cmd", "where": "shell", "title": "See the launcher shortcuts", "code": "v --help",
+                         "expect": "The launcher prints its shortcut sheet and returns to the prompt. Neovim does not open."},
+                        {"type": "text", "body": "`v.` is the same as `v .`, and `vi` and `vim` run `v` too."},
                     ],
                 },
                 {
@@ -90,25 +96,25 @@ git init && git add -A && git commit -m "Initial commit"
                     "intro": "Learn `<Space>sf` and `<Space>sg`. You will use them a hundred times a day.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Find files and symbols", "rows": [
-                            ("\\", "Toggle the file tree sidebar (neo-tree)"),
-                            ("<Space>e", "Toggle the file explorer (snacks, the LazyVim default)"),
-                            ("<Space>sf", "Search files by name (fuzzy, your Cmd+P)"),
-                            ("<Space><Space>", "Find files (built-in alias for <Space>sf)"),
-                            ("<Space>sg", "Search inside all files (grep)"),
-                            ("<Space>/", "Grep (built-in alias for <Space>sg)"),
-                            ("<Space>fr", "Recent files"),
-                            ("<Space>fg", "Find git-tracked files"),
-                            ("<Space>,", "Switch between open buffers"),
-                            ("gd", "Go to definition of symbol under cursor"),
+                            ("\\", "Open or close the file explorer sidebar: Snacks Explorer on `:pwd`"),
+                            ("<Space>e", "Open or close the file explorer: Snacks Explorer on the project root (LazyVim default)"),
+                            ("<Space>sf", "Find a file by name: fuzzy search in `:pwd` (your Cmd+P)"),
+                            ("<Space><Space>", "Find a file by name: same as `<Space>sf`, in `:pwd`"),
+                            ("<Space>sg", "Search text in all files: grep in `:pwd`"),
+                            ("<Space>/", "Search text in all files: same as `<Space>sg`, in `:pwd`"),
+                            ("<Space>fr", "Open a recent file"),
+                            ("<Space>fg", "Find a git-tracked file in `:pwd`"),
+                            ("<Space>,", "Switch to another open buffer: files below `:pwd`"),
+                            ("gd", "Go to definition: jump to where the symbol under the cursor is defined"),
                             ("gr", "Find all references"),
-                            ("gO", "Outline of functions/classes in current file"),
+                            ("gO", "Show the outline of functions and classes in this file"),
                             ("Ctrl-o", "Jump back after going to a definition"),
                         ], "try": "Press `<Space>sf`, type `orders`, press `Enter`.",
                          "expect": "`src/orders.py` opens."},
                         {"type": "text", "body": "The `<Space>s` search group: `sf` files, `sg` grep, `sw` word, `sk` keymaps, `sh` help, `sd` diagnostics, `sr` search and replace. Press `<Space>s` and wait to see them all."},
                         {"type": "keys", "where": "nvim", "title": "Find where TAX_RATE is used", "rows": [
                             ("<Space>sf", "Type orders, Enter: opens src/orders.py"),
-                            ("<Space>sg", "Type TAX_RATE, Enter: greps the whole project"),
+                            ("<Space>sg", "Search for TAX_RATE: type it, Enter. Greps `:pwd`"),
                             ("Ctrl-n / Ctrl-p", "Move between the 5 matches (2 in orders.py, 3 in report.py)"),
                             ("Enter", "Jump to the match"),
                         ], "try": "Run the three steps in order.",
@@ -128,6 +134,8 @@ git init && git add -A && git commit -m "Initial commit"
                         {"type": "keys", "where": "nvim", "title": "Modes and saving", "rows": [
                             ("i", "Enter insert mode (now you can type)"),
                             ("Esc", "Back to normal mode"),
+                            ("jk", "Leave insert mode: type `j` then `k` quickly. Same as `Esc`"),
+                            ("Option+h / j / k / l", "Move the cursor left, down, up or right without leaving insert mode"),
                             (":w", "Save"),
                             (":q", "Quit"),
                             (":wq", "Save and quit"),
@@ -141,13 +149,12 @@ git init && git add -A && git commit -m "Initial commit"
                 "h2": "Keep these at hand",
                 "cards": [
                     ("How to exit everything", "Stuck somewhere? Find the row.", ["Stuck in...", "Exit with"], [
-                        ["Insert mode", "`Esc`"],
+                        ["Insert mode", "`Esc` or `jk`"],
                         ["Visual mode", "`Esc`"],
-                        ["Terminal mode (nvim)", "`Ctrl-\\ Ctrl-n` (then `q` or `<Space>ft` to close)"],
+                        ["Terminal mode (nvim)", "`Ctrl-\\ Ctrl-n` (then `q`, or `Ctrl-\\` to hide it)"],
                         ["Picker / fuzzy finder (snacks)", "`Esc` or `Ctrl-c`"],
                         ["LazyGit", "`q`"],
-                        ["Snacks explorer (`<Space>e`)", "`<Space>e` or `q`"],
-                        ["Neo-tree sidebar", "`\\` or `q`"],
+                        ["Snacks explorer (`<Space>e` or `\\`)", "The same key again, or `q`"],
                         ["grug-far (search/replace)", "`q` or `:q`"],
                         ["tmux copy mode", "`q` or `Esc`"],
                         ["tmux window picker (`Ctrl-a w`)", "`Esc` or `q`"],
@@ -282,8 +289,8 @@ gg
                             ("s", "Delete char under cursor, enter insert mode"),
                             ("S", "Delete entire line, enter insert mode"),
                             ("C", "Delete to end of line, enter insert mode"),
-                        ], "try": "In `src/calculator.py` run `/clear_history`, go to the `self.history = []` line and press `o`. Type `pass  # scratch line, will discard`, press `Esc`, then discard with `:e!`.",
-                         "expect": "`o` opens an indented line below. After `:e!`, `/scratch` reports pattern not found: the file is clean."},
+                        ], "try": "In `src/calculator.py` run `/clear_history`, go to the `self.history = []` line and press `o`. Type `pass  # scratch line, will discard`, press `Esc`, then press `u`.",
+                         "expect": "`o` opens an indented line below. After `u`, `/scratch` reports pattern not found: the file is clean."},
                     ],
                 },
             ],
@@ -406,8 +413,8 @@ dd
                             ("u", "Undo"),
                             ("Ctrl-r", "Redo"),
                             (".", "Repeat last change (incredibly powerful)"),
-                        ], "try": "In `data/log.txt`, put the cursor on `pending` in line 1, press `ciw`, type `done`, press `Esc`. On line 2 press `.`. Then `u` twice, `Ctrl-r` twice, then `:e!`.",
-                         "expect": "Line 1 reads `item 1: done`, and line 2 reads `item 2: done` after `.`. After `:e!`, `/done` finds nothing: every line still says `pending`."},
+                        ], "try": "In `data/log.txt`, put the cursor on `pending` in line 1, press `ciw`, type `done`, press `Esc`. On line 2 press `.`. Then `u` twice, `Ctrl-r` twice, then `u` twice again.",
+                         "expect": "Line 1 reads `item 1: done`, and line 2 reads `item 2: done` after `.`. After the last two `u`, `/done` finds nothing: every line says `pending` again."},
                     ],
                 },
             ],
@@ -433,7 +440,7 @@ dd
                     ("Undo a throwaway edit", "Three ways back, from smallest to biggest.", ["Situation", "Keys"], [
                         ["Undo the last change", "`u`"],
                         ["Redo it", "`Ctrl-r`"],
-                        ["Discard everything unsaved", "`:e!`"],
+                        ["Reload from disk (autosave paused with `:ASToggle` first)", "`:e!`"],
                     ]),
                 ],
             },
@@ -446,7 +453,7 @@ dd
                     (("line 2, on `pending`", "`j` `0` `fp`"), "`.`", "Repeats the same edit."),
                     (None, "`u` `u`", "Both lines say `pending` again."),
                     (None, "`Ctrl-r` `Ctrl-r`", "Both say `done` again."),
-                    (None, "`:e!`", "Discards the changes and reloads the file."),
+                    (None, "`u` `u`", "Both lines say `pending` again. Autosave writes the original back."),
                 ],
                 "before": "item 1: pending\nitem 2: pending",
                 "after": "item 1: done\nitem 2: done",
@@ -468,9 +475,9 @@ dd
                      ["On the first line, run `ciw`, type `done`, press `Esc`.", "Move to the second line and press `.`."],
                      "`ciw` once, then `.`."),
                     ("Common mistake", "You edited a lesson file and want it clean. What do you run?",
-                     "Reload from disk.",
-                     ["`u` only undoes one step at a time.", "`:e!` discards every unsaved change."],
-                     "`:e!`."),
+                     "Undo, step by step.",
+                     ["`u` undoes one change at a time, so press it until the text is back.", "`:e!` discards edits that are not saved yet, and autosave has usually saved the edit already (pause it with `:ASToggle` first)."],
+                     "`u` until it is clean."),
                 ],
             },
         },
@@ -482,7 +489,7 @@ dd
                 "Buffers are open files. Splits and tabs arrange them. The leader key finds the rest.",
                 [
                     ("Next buffer", "Shift-L", "Shift-H goes back."),
-                    ("Terminal", "Ctrl-\\", "Floating terminal. Press again to hide."),
+                    ("Terminal", "Ctrl-\\", "Opens the last terminal you used. Press again to hide."),
                     ("Split", ":vsplit file.py", "Two files side by side."),
                     ("Discover", "<Space>", "Wait for the which-key menu."),
                 ],
@@ -498,11 +505,13 @@ dd
                     "intro": "Cycle through the three source files.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Buffer keys", "rows": [
-                            ("Shift-L", "Next open buffer"),
-                            ("Shift-H", "Previous open buffer"),
-                            ("<Space>,", "Fuzzy-find / switch open buffers"),
-                            ("<Space>bd", "Close current buffer"),
-                            ("<Space>bp", "Pin / unpin buffer"),
+                            ("Shift-L", "Go to the next open buffer"),
+                            ("Shift-H", "Go to the previous open buffer"),
+                            ("<Space>,", "Switch to another open buffer: fuzzy-find, files below `:pwd`"),
+                            ("<Space>fb", "Switch to another open buffer: same as `<Space>,`"),
+                            ("<Space>fB", "List every buffer, hidden ones too: files below `:pwd`"),
+                            ("<Space>bd", "Close this buffer"),
+                            ("<Space>bp", "Pin or unpin this buffer"),
                             ("<Space>bP", "Close all non-pinned buffers"),
                         ], "try": "Open `calculator`, `orders` and `report` with `<Space>sf`. Press `Shift-H` twice, `Shift-L` once, then `<Space>,` and type `report`.",
                          "expect": "`<Space>,` lists `calculator.py`, `orders.py` and `report.py`, plus anything still open such as `data/log.txt`."},
@@ -510,26 +519,27 @@ dd
                 },
                 {
                     "h2": "Terminals inside Neovim",
-                    "intro": "LazyVim uses a floating Snacks terminal. All three keys below toggle the same one.",
+                    "intro": "Terminals are Snacks terminals and open in `:pwd`. `Ctrl-\\` and `Ctrl-/` toggle the last terminal you used, whether float, right or bottom.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Toggle the floating terminal", "rows": [
-                            ("Ctrl-\\", "Toggle floating terminal (also Ctrl-/ or <Space>ft)"),
-                            ("Ctrl-\\ Ctrl-n", "Exit terminal mode (back to normal navigation)"),
-                            ("q", "Hide terminal (from normal mode inside it)"),
+                        {"type": "keys", "where": "nvim", "title": "Toggle a terminal", "rows": [
+                            ("Ctrl-\\", "Open or hide the last terminal you used (also `Ctrl-/`)"),
+                            ("<Space>ft", "Open or hide the floating terminal"),
+                            ("Ctrl-\\ Ctrl-n", "Leave terminal mode and go back to normal navigation"),
+                            ("q", "Hide the terminal (from normal mode inside it)"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Split terminals added to the lesson config", "rows": [
-                            ("<Space>tf", "Floating terminal"),
-                            ("<Space>tv", "Vertical terminal (right side)"),
-                            ("<Space>th", "Horizontal terminal (bottom)"),
+                        {"type": "keys", "where": "nvim", "title": "Split terminals", "rows": [
+                            ("<Space>tf", "Open a floating terminal"),
+                            ("<Space>tv", "Open a terminal on the right (vertical split)"),
+                            ("<Space>th", "Open a terminal at the bottom (horizontal split)"),
                         ]},
-                        {"type": "text", "body": "The lesson mapped these under capital `<Space>T`, because `<Space>t` is the test prefix in LazyVim. That mapping is not in the current config. Use `<Space>ft` or `Ctrl-\\`, or the built-in splits below. For several independent terminals, prefer tmux panes (`Ctrl-a |`, `Ctrl-a -`)."},
+                        {"type": "text", "body": "These are lowercase `<Space>t` keys, next to the test keys. Each of the three keeps its own terminal. For several long-running terminals, prefer tmux panes (`Ctrl-a |`, `Ctrl-a -`). The built-in splits below also work."},
                         {"type": "keys", "where": "nvim", "title": "Built-in split terminals", "rows": [
                             (":split | terminal", "Open terminal in horizontal split (top/bottom)"),
                             (":vsplit | terminal", "Open terminal in vertical split (side by side)"),
                         ]},
                         {"type": "cmd", "where": "shell", "title": "Run the test suite and just look at it", "code": "pytest",
                          "expect": "The summary ends with `2 failed, 7 passed`. The failures are `tests/test_calculator.py::test_history_tracks_results` and `tests/test_orders.py::test_free_shipping_threshold`."},
-                        {"type": "text", "body": "Open the terminal first (`Ctrl-\\`). If `pytest` is not the one on your PATH, run `python3 -m pytest`. Then `Ctrl-\\ Ctrl-n` to leave terminal mode and press the toggle again to close it. The pass count can drift if you left a file dirty: run `:e!` on it and re-run."},
+                        {"type": "text", "body": "Open the terminal first (`Ctrl-\\`). If `pytest` is not the one on your PATH, run `python3 -m pytest`. Then `Ctrl-\\ Ctrl-n` to leave terminal mode and press the toggle again to close it. The pass count can drift if you left a file edited: press `u` until it is back to the original, give autosave 3 seconds, and re-run."},
                     ],
                 },
                 {
@@ -542,6 +552,10 @@ dd
                             ("v → select → y", "Visual select then yank → system clipboard"),
                             ("Vi{y", "Copy everything inside braces"),
                         ]},
+                        {"type": "keys", "where": "nvim", "title": "Copy with the mouse", "rows": [
+                            ("Drag, then release", "Copy the dragged text to the system clipboard. Releasing ends the selection"),
+                        ], "try": "Drag over a line of `~/tw/notes.md` in Neovim, release, then press `Cmd+V` in another app.",
+                         "expect": "The highlight clears and the text is on the clipboard."},
                         {"type": "keys", "where": "tmux", "title": "Copy from the terminal output", "rows": [
                             ("Ctrl-\\ Ctrl-n", "Exit terminal mode"),
                             ("Ctrl-a [", "Enter tmux copy mode (navigate freely)"),
@@ -551,15 +565,15 @@ dd
                         {"type": "keys", "where": "tmux", "title": "Paste into the terminal", "rows": [
                             ("Ctrl-a ]", "tmux paste (bypasses nvim, always works)"),
                         ], "try": "Or press `i` (terminal insert mode), then `Ctrl-a ]`.", "expect": "The text lands at the terminal prompt."},
-                        {"type": "keys", "where": "tmux", "title": "Select with the mouse", "rows": [
+                        {"type": "keys", "where": "tmux", "title": "Select terminal output with the mouse", "rows": [
                             ("Ctrl-a z", "Zoom pane to fullscreen first (Option + mouse-drag selects only this pane)"),
                             ("Cmd+C", "Copy"),
                             ("Ctrl-a z", "Unzoom back to normal layout"),
                         ]},
                         {"type": "keys", "where": "nvim", "title": "Navigate between terminals and code", "rows": [
-                            ("Ctrl-\\ Ctrl-n", "Exit terminal mode first (REQUIRED before navigating)"),
-                            ("Ctrl-h/j/k/l", "Move between splits (works across nvim + tmux panes)"),
-                            ("Ctrl-w q", "Close current split"),
+                            ("Ctrl-\\ Ctrl-n", "Leave terminal mode first (required before navigating)"),
+                            ("Ctrl-h/j/k/l", "Change to the split or tmux pane in that direction"),
+                            ("Ctrl-w q", "Close this split"),
                         ]},
                     ],
                 },
@@ -568,13 +582,13 @@ dd
                     "intro": "From the picker, press `Ctrl-v` (vsplit) or `Ctrl-s` (hsplit) instead of `Enter` to open a file in a split.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Split keys", "rows": [
-                            (":vsplit file.py", "Vertical split (side by side)"),
-                            (":split file.py", "Horizontal split (top/bottom)"),
-                            ("Ctrl-w h/j/k/l", "Navigate between splits"),
-                            ("Ctrl-w =", "Make all splits equal size"),
-                            ("Ctrl-w _", "Maximize current split height"),
-                            ("Ctrl-w |", "Maximize current split width"),
-                            ("Ctrl-w q", "Close current split"),
+                            (":vsplit file.py", "Open a file in a vertical split (side by side)"),
+                            (":split file.py", "Open a file in a horizontal split (top and bottom)"),
+                            ("Ctrl-w h/j/k/l", "Change to the split on the left, below, above or right"),
+                            ("Ctrl-w =", "Make all splits the same size"),
+                            ("Ctrl-w _", "Make this split as tall as possible (maximize height)"),
+                            ("Ctrl-w |", "Make this split as wide as possible (maximize width)"),
+                            ("Ctrl-w q", "Close this split"),
                         ], "try": "In `src/orders.py` run `/def calc`. Press `<Space>sf`, type `report`, press `Ctrl-v`. In the new pane run `/def print_report`. Flip with `Ctrl-w h` and `Ctrl-w l`, then close with `Ctrl-w q`.",
                          "expect": "Two panes open at once, each showing a different file. `Ctrl-w h` and `Ctrl-w l` move focus between them without closing either."},
                         {"type": "text", "body": "A \"Pick window\" prompt means the cursor is in the explorer sidebar. Press `Esc`, then `Ctrl-l` to reach the code area, or close the explorer with `\\` before splitting."},
@@ -585,11 +599,11 @@ dd
                     "intro": "A tab is a layout. Each tab has its own arrangement of splits. For switching files, use buffers.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Tab keys", "rows": [
-                            (":tabnew", "New empty tab"),
+                            (":tabnew", "Open a new empty tab"),
                             (":tabnew file.py", "Open file in new tab"),
-                            ("gt", "Next tab"),
-                            ("gT", "Previous tab"),
-                            (":tabclose", "Close current tab"),
+                            ("gt", "Go to the next tab"),
+                            ("gT", "Go to the previous tab"),
+                            (":tabclose", "Close this tab"),
                             (":tabs", "List all tabs"),
                         ], "try": "With `src/calculator.py` open, run `:tabnew tests/test_calculator.py`. Flip with `gt` and `gT`, then `:tabclose`.",
                          "expect": "The test file opens in a brand-new tab: source and tests kept in separate layouts."},
@@ -600,20 +614,27 @@ dd
                     "intro": "`<Space>` is your leader key. Press it and wait: the which-key popup shows every command group.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Leader groups", "rows": [
-                            ("<Space>f...", "Find: files, recent, buffers, config"),
-                            ("<Space>s...", "Search: grep, keymaps, help, diagnostics, marks"),
-                            ("<Space>g...", "Git: status, lazygit, blame, diff"),
-                            ("<Space>c...", "Code: actions, rename, format, symbols"),
-                            ("<Space>x...", "Diagnostics / Trouble"),
-                            ("<Space>b...", "Buffer commands"),
-                            ("<Space>t...", "Test (neotest)"),
-                            ("<Space>T...", "Terminals (float / vertical / horizontal)"),
-                            ("<Space>u...", "UI toggles; <Space>uC switches colorscheme"),
+                            ("<Space>f...", "Find files, recent files, buffers and config files"),
+                            ("<Space>s...", "Search text, keymaps, help, diagnostics and marks"),
+                            ("<Space>g...", "Use git: status, LazyGit, blame, diff"),
+                            ("<Space>c...", "Work on code: actions, rename, format, symbols"),
+                            ("<Space>x...", "Show diagnostics in Trouble"),
+                            ("<Space>b...", "Manage buffers"),
+                            ("<Space>t...", "Run tests (neotest) and open terminals (`tf`, `tv`, `th`)"),
+                            ("<Space>u...", "Switch UI toggles; `<Space>uC` changes the colorscheme"),
                             ("<Space>1-9", "Jump to Harpoon file 1-9 (<Space>H adds current file)"),
                         ], "try": "Press `<Space>`, wait for the popup, press `s`, then press `g` and grep for `qualifies_for_free_shipping`.",
                          "expect": "The grep finds 4 matches: the definition in `src/orders.py`, and an import, a comment and the test call in `tests/test_orders.py`."},
                         {"type": "text", "body": "Forgot a key? Press `<Space>` and read the menu, or `<Space>sk` to fuzzy-search every keymap by description."},
-                        {"type": "code", "file": "~/.zshrc", "title": "Open Neovim in a folder", "code": VP_FUNC},
+                        {"type": "cmd", "where": "shell", "title": "Open Neovim in a folder", "code": "vp ~/tw",
+                         "expect": "Your shell moves to `~/tw` and Neovim opens the folder in its file explorer. After you quit, you are still in `~/tw`."},
+                        {"type": "cmd", "where": "shell", "title": "Open the current folder or one file", "code": C('''
+cd ~/tw
+v.
+v orders.py
+vi notes.md
+'''),
+                         "expect": "`v.` opens the current folder in Neovim, and `v orders.py` and `vi notes.md` open those files. Quit each with `:q` to reach the next line. `v` is a shortcut for `nvim`, and `vim` and `vi` run it too."},
                     ],
                 },
             ],
@@ -621,12 +642,12 @@ dd
                 "h2": "Terminals, splits and keys at a glance",
                 "cards": [
                     ("Terminal card", "Terminals inside Neovim.", ["Keys", "Action"], [
-                        ["`Ctrl-\\`", "Toggle terminal (root dir)"],
-                        ["`<Space>ft`", "Terminal (toggle, root)"],
-                        ["`<Space>Tf`", "Terminal float"],
-                        ["`<Space>Th`", "Terminal horizontal (bottom)"],
-                        ["`<Space>Tv`", "Terminal vertical (right)"],
-                        ["`Ctrl-\\ Ctrl-n`", "Exit terminal mode → normal"],
+                        ["`Ctrl-\\`", "Toggle the last terminal you used (in `:pwd`)"],
+                        ["`<Space>ft`", "Toggle the floating terminal (in `:pwd`)"],
+                        ["`<Space>tf`", "Open a floating terminal"],
+                        ["`<Space>th`", "Open a terminal at the bottom"],
+                        ["`<Space>tv`", "Open a terminal on the right"],
+                        ["`Ctrl-\\ Ctrl-n`", "Leave terminal mode, back to normal"],
                     ]),
                     ("Split from the picker", "Open a found file beside the current one.", ["Keys", "Result"], [
                         ["`Ctrl-v`", "Open the picked file in a vertical split"],

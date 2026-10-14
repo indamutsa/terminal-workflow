@@ -25,6 +25,7 @@ BOX_DRAWING = re.compile(r"[─-╿]")
 LABEL_LINE = re.compile(r"^[A-Z][A-Z ]+:$")
 FENCE = re.compile(r"^\s*```(\w*)\s*$")
 CODE_SPAN = re.compile(r"`([^`]+)`")
+HIGHLIGHT_SPAN = r'<span class="hl-[a-z]+">(.*?)</span>'
 CELL_SPLIT = re.compile(r"(?<!\\)\|")
 DEEP_INDENT = 8
 MIN_SPAN = 2
@@ -77,7 +78,9 @@ def haystack():
     parts = []
     for path in sorted(glob.glob(os.path.join(COURSE, "**", "*.html"), recursive=True)):
         with open(path, encoding="utf-8") as f:
-            text = re.sub(r"<[^>]+>", " ", f.read())
+            # Highlight spans split code mid-word and are never nested, so unwrap them before tags turn into spaces.
+            text = re.sub(HIGHLIGHT_SPAN, r"\1", f.read(), flags=re.S)
+            text = re.sub(r"<[^>]+>", " ", text)
         parts.append(htmllib.unescape(text))
     return norm(" ".join(parts))
 

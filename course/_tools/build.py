@@ -20,7 +20,7 @@ sys.path.insert(0, TOOLS)
 import kit  # noqa: E402
 import search  # noqa: E402
 from content.cheatsheet import CHEATSHEET  # noqa: E402
-from content.common import MODULE_META, PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, PRACTICE_MAX_LINES, SITE_GLOSSARY  # noqa: E402
+from content.common import MODULE_FILE, MODULE_META, PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, PRACTICE_MAX_LINES, SITE_GLOSSARY, module_href, module_path  # noqa: E402
 
 SITE_NAME = "Terminal Workflow"
 PAGES_MIN, PAGES_MAX, PRACTICE_COUNT = 2, 4, 4
@@ -203,8 +203,8 @@ def module_html(mod, prev, nxt, version, cheat):
     site_js = read("_shared/site.js")
     gloss = json.dumps([{"id": g[0], "label": g[1], "forms": g[2], "definition": g[3]} for g in glossary(mod)], ensure_ascii=False)
     pages = "".join(page_html(mod, i, p) for i, p in enumerate(mod["pages"]))
-    nav_prev = f'<a rel="prev" href="../{prev["folder"]}/{prev["folder"]}.html">← {kit.esc(prev["title"])}</a>' if prev else '<a href="../index.html">← Course map</a>'
-    nav_next = f'<a rel="next" href="../{nxt["folder"]}/{nxt["folder"]}.html">{kit.esc(nxt["title"])} →</a>' if nxt else '<a href="../index.html">Course map →</a>'
+    nav_prev = f'<a rel="prev" href="../{module_href(prev["folder"])}">← {kit.esc(prev["title"])}</a>' if prev else '<a href="../index.html">← Course map</a>'
+    nav_next = f'<a rel="next" href="../{module_href(nxt["folder"])}">{kit.esc(nxt["title"])} →</a>' if nxt else '<a href="../index.html">Course map →</a>'
     html = f"""<!doctype html>
 <html lang="en">
   <head>
@@ -216,7 +216,7 @@ def module_html(mod, prev, nxt, version, cheat):
 {css}
     </style>
   </head>
-  <body data-root="../" data-file="{mod["folder"]}/{mod["folder"]}.html">
+  <body data-root="../" data-file="{module_path(mod["folder"])}">
     {kit.search_ui()}
     {kit.cheat_ui()}
     <main id="lessonRoot">
@@ -256,7 +256,7 @@ def module_html(mod, prev, nxt, version, cheat):
 def write_module(mod, prev, nxt, version, cheat):
     folder = os.path.join(COURSE, mod["folder"])
     os.makedirs(folder, exist_ok=True)
-    path = os.path.join(folder, mod["folder"] + ".html")
+    path = os.path.join(folder, MODULE_FILE)
     with open(path, "w", encoding="utf-8") as f:
         f.write(module_html(mod, prev, nxt, version, cheat))
     print(f"wrote {os.path.relpath(path, COURSE)} ({len(mod['pages'])} pages)")

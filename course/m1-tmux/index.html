@@ -1,0 +1,1762 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>tmux and the shell — Terminal Workflow</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <style>
+/* Terminal Workflow course styles. Base from the SQL course.
+   Fonts are local files so the course runs offline. */
+@font-face{font-family:"Kalam";font-weight:400;font-display:swap;src:url("../_shared/fonts/kalam-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Kalam";font-weight:700;font-display:swap;src:url("../_shared/fonts/kalam-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;font-display:swap;src:url("../_shared/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("../_shared/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("../_shared/fonts/inter-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:700;font-display:swap;src:url("../_shared/fonts/inter-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:600;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2")}
+:root {
+  --board: #1c2b24;
+  --alt: #17231d;
+  --raised: #213328;
+  --chalk: #ede6d6;
+  --dim: #9faea3;
+  --gold: #e8c468;
+  --gold-dim: #b99a54;
+  --blue: #7fa8c9;
+  --coral: #e2897d;
+  --mint: #8fc9a8;
+  --line: rgba(237, 230, 214, 0.14);
+  --soft: rgba(237, 230, 214, 0.07);
+  --r: 10px;
+  --display: "Kalam", cursive;
+  --body: "Inter", -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: var(--chalk);
+  background:
+    radial-gradient(
+      ellipse at 10% 0,
+      rgba(127, 168, 201, 0.07),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 100%,
+      rgba(232, 196, 104, 0.06),
+      transparent 48%
+    ),
+    var(--board);
+  font: 15px/1.62 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+a {
+  color: var(--blue);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+::selection {
+  color: var(--board);
+  background: var(--gold);
+}
+main,
+footer,
+.tabbar-inner,
+.group-nav {
+  width: min(780px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.lesson {
+  display: none;
+}
+.lesson.active {
+  display: block;
+  animation: rise 0.35s ease both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+.lesson-header {
+  padding: 46px 0 26px;
+  text-align: center;
+}
+.eyebrow,
+.section-label,
+.label {
+  color: var(--blue);
+  font: 600 11px/1.3 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  color: var(--gold);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.18;
+}
+h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 6vw, 43px);
+}
+h2 {
+  margin: 4px 0 9px;
+  font-size: 26px;
+}
+h3 {
+  margin: 16px 0 6px;
+  font-size: 20px;
+}
+p {
+  margin: 8px 0;
+}
+.subtitle,
+.section-intro,
+.lede {
+  color: var(--dim);
+}
+.subtitle {
+  max-width: 560px;
+  margin-inline: auto;
+}
+.rule {
+  width: 120px;
+  height: 2px;
+  margin: 24px auto 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--dim) 0 6px,
+    transparent 6px 12px
+  );
+}
+.block {
+  margin-top: 44px;
+}
+.one-idea,
+.word-problem {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--raised);
+}
+.one-idea {
+  text-align: center;
+}
+.one-idea .tag,
+.word-problem .tag {
+  color: var(--gold);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.one-idea > p {
+  margin-top: 12px;
+  font-size: 17px;
+}
+.one-idea em {
+  color: var(--gold);
+  font-style: normal;
+  border-bottom: 2px dashed var(--gold-dim);
+}
+.one-idea .kitchen-links {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.one-idea .kitchen-links li {
+  margin-top: 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+.one-idea .kitchen-links li:first-child {
+  margin-top: 0;
+}
+.one-idea .kitchen-links strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+.one-idea .kitchen-links .kl-nowrap {
+  white-space: nowrap;
+}
+.term-definition {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+  font-size: 13px;
+  text-align: left;
+}
+.term-definition strong,
+.rule-body strong,
+.solution-body strong {
+  color: var(--chalk);
+}
+.explorer {
+  margin-top: 16px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.control label,
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--dim);
+  font: 12px var(--mono);
+}
+output,
+.val {
+  color: var(--gold);
+  font-weight: 600;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.button-row,
+.arch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.btn,
+.toggle-btn {
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.btn:hover,
+.btn[aria-pressed="true"],
+.toggle-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.stage,
+.arch-stage {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.stage svg,
+.arch-stage svg {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+}
+.wire {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 4;
+}
+.node {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.node.hot {
+  fill: rgba(232, 196, 104, 0.16);
+  stroke: var(--gold);
+}
+.node.off {
+  fill: rgba(226, 137, 125, 0.08);
+  stroke: var(--coral);
+}
+.svg-label {
+  fill: var(--chalk);
+  font: 600 12px var(--mono);
+  text-anchor: middle;
+}
+.svg-small {
+  fill: var(--dim);
+  font: 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-node {
+  opacity: 0.14;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  transform: translateY(4px);
+}
+.arch-node.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.arch-node rect {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 1.5;
+}
+.arch-node.is-current rect {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.arch-node text {
+  fill: var(--chalk);
+  font: 600 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-link {
+  opacity: 0.12;
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.arch-link.is-visible {
+  opacity: 0.85;
+}
+.readout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: var(--board);
+}
+.fact {
+  min-width: 0;
+}
+.fact.wide {
+  grid-column: 1/-1;
+}
+.tiny {
+  display: block;
+  color: var(--dim);
+  font: 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fact p {
+  overflow-wrap: anywhere;
+}
+.rule-card,
+.practice-card {
+  margin-bottom: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.rule-card summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.rule-card summary::-webkit-details-marker,
+.hint summary::-webkit-details-marker,
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+.num,
+.q-num {
+  color: var(--gold-dim);
+  font: 600 12px var(--mono);
+}
+.chevron::after {
+  content: "⌄";
+  color: var(--dim);
+}
+.rule-body {
+  padding: 15px 18px 18px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+}
+.rule-body p:first-child {
+  margin-top: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid var(--soft);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  text-transform: uppercase;
+}
+code {
+  color: var(--gold);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+.word-problem {
+  margin-top: 14px;
+}
+.worked-steps {
+  padding-left: 22px;
+}
+.worked-steps li + li,
+.solution-steps li + li {
+  margin-top: 7px;
+}
+.result-box,
+.interview-answer {
+  margin-top: 13px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  background: rgba(232, 196, 104, 0.06);
+}
+.review-mistakes li::marker {
+  color: var(--coral);
+}
+.practice-card {
+  position: relative;
+  padding: 16px 18px;
+}
+.q-num {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+}
+.q-kind {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.q-text {
+  padding-right: 40px;
+}
+.hint,
+.solution {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+}
+.hint summary,
+.solution summary {
+  color: var(--blue);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+  list-style: none;
+}
+.solution summary {
+  color: var(--mint);
+}
+.hint p,
+.solution-body {
+  color: var(--dim);
+  font-size: 13.5px;
+}
+.solution-steps {
+  padding-left: 22px;
+}
+.solution-final {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--mint);
+  background: rgba(143, 201, 168, 0.08);
+}
+.tabbar {
+  margin-top: 52px;
+  padding: 14px 0;
+  border-block: 1px solid var(--line);
+  background: var(--alt);
+}
+.tabbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+}
+.tab,
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.tab.active {
+  color: var(--board);
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.nav-arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.progress-mini {
+  min-width: 94px;
+  color: var(--dim);
+  font: 11px var(--mono);
+  text-align: right;
+}
+.group-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+}
+footer {
+  padding: 35px 0 70px;
+  color: var(--dim);
+  text-align: center;
+}
+.no-js-note {
+  padding: 10px 24px;
+  color: var(--coral);
+  text-align: center;
+}
+@media (max-width: 650px) {
+  main,
+  footer,
+  .tabbar-inner,
+  .group-nav {
+    width: min(100% - 28px, 780px);
+  }
+  .controls,
+  .readout {
+    grid-template-columns: 1fr;
+  }
+  .fact.wide {
+    grid-column: auto;
+  }
+  .stage svg,
+  .arch-stage svg {
+    min-width: 540px;
+  }
+  .explorer {
+    padding: 17px 14px;
+  }
+  .progress-mini {
+    min-width: 73px;
+    font-size: 10px;
+  }
+  .group-nav {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabs.sq-tabs{justify-content:flex-start}
+    /* contextual glossary v1 */
+.glossary-term {
+  position: relative;
+  display: inline;
+  margin: 0;
+  padding: 0 1px;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 196, 104, 0.72);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='%23E8C468' stroke='%231C2B24' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-family='Arial' font-size='16' font-weight='700' fill='%231C2B24'%3E%3F%3C/text%3E%3C/svg%3E")
+      14 14,
+    help;
+  text-decoration: none;
+  transition:
+    color 0.16s,
+    background 0.16s,
+    border-color 0.16s;
+}
+.glossary-term:hover,
+.glossary-term:focus-visible,
+.glossary-term[aria-expanded="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: rgba(232, 196, 104, 0.08);
+  outline: none;
+}
+.glossary-term:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--board),
+    0 0 0 4px var(--gold);
+}
+.glossary-term::after {
+  content: "?";
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--board);
+  font: 700 11px/1 var(--mono);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px) scale(0.72);
+  transition:
+    opacity 0.14s,
+    transform 0.14s;
+}
+.glossary-term:hover::after,
+.glossary-term:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.glossary-popover {
+  --pointer-x: 50%;
+  position: fixed;
+  z-index: 1000;
+  width: min(430px, calc(100vw - 24px));
+  padding: 16px 42px 15px 17px;
+  border: 1px solid rgba(232, 196, 104, 0.48);
+  border-radius: 11px;
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(0, 0, 0, 0.08)
+    ),
+    var(--raised);
+  color: var(--chalk);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(28, 43, 36, 0.85);
+  animation: glossary-arrive 0.16s ease both;
+}
+.glossary-popover[hidden] {
+  display: none;
+}
+.glossary-popover::after {
+  content: "";
+  position: absolute;
+  left: var(--pointer-x);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid rgba(232, 196, 104, 0.48);
+  border-bottom: 1px solid rgba(232, 196, 104, 0.48);
+  background: var(--raised);
+  transform: translateX(-50%) rotate(-45deg);
+}
+.glossary-popover.below::after {
+  top: -6px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(135deg);
+}
+.glossary-popover strong {
+  display: inline;
+  color: var(--gold);
+  font: 600 15px/1.4 var(--body);
+}
+.glossary-popover strong::after {
+  content: " —";
+  color: var(--dim);
+}
+.glossary-popover p {
+  display: inline;
+  margin: 0;
+  color: #c8d0ca;
+  font-size: 14px;
+  line-height: 1.58;
+}
+.glossary-meta {
+  display: block;
+  margin-top: 10px;
+  color: var(--dim);
+  font: 10px/1.4 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.glossary-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font: 18px/1 var(--body);
+}
+.glossary-close:hover,
+.glossary-close:focus-visible {
+  background: rgba(232, 196, 104, 0.1);
+  color: var(--gold);
+}
+@keyframes glossary-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (max-width: 650px) {
+  .glossary-popover {
+    padding: 15px 40px 14px 15px;
+  }
+  .glossary-popover p {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glossary-popover,
+  .glossary-term::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+
+.sq-code{margin:10px 0;padding:12px 14px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#121c17;color:var(--chalk);font:500 13px/1.55 var(--mono);white-space:pre}
+.sq-code code{padding:0;border:0;background:none;color:inherit;font:inherit}
+.sq-code .hl-c{color:var(--dim);font-style:italic}
+.sq-code .hl-s{color:var(--mint)}
+.sq-code .hl-k{color:var(--blue)}
+.sq-code .hl-cmd{color:var(--gold)}
+.sq-code .hl-f{color:var(--gold-dim)}
+.sq-code .hl-n,.sq-code .hl-v{color:var(--coral)}
+.sq-code .hl-fn,.sq-code .hl-ex{color:var(--blue);font-weight:600}
+.rule-body table{display:block;overflow-x:auto;max-width:100%}
+
+/* Terminal Workflow additions */
+.tw-codebox{margin:14px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--alt);overflow:hidden}
+.tw-code-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.tw-where{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.tw-code-title{flex:1;min-width:0;overflow-wrap:anywhere;color:var(--chalk);font-weight:500}
+.tw-copy{min-height:32px;padding:4px 12px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;font:600 12px var(--mono)}
+.tw-copy:hover{background:rgba(232,196,104,.12)}
+.tw-codebox .sq-code{margin:0;border:0;border-radius:0}
+.tw-expect,.tw-try{margin:0;padding:10px 12px;border-top:1px solid var(--line);color:var(--chalk);font-size:14px}
+.tw-expect-label{display:inline-block;margin-right:8px;color:var(--mint);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-try .tw-expect-label{color:var(--gold)}
+.tw-scroll{overflow-x:auto;max-width:100%}
+.tw-keytable{width:100%;border-collapse:collapse}
+.tw-keytable td{padding:7px 12px;border-top:1px solid var(--soft);vertical-align:top}
+.tw-keytable tr:first-child td{border-top:0}
+.tw-keytable td:first-child{white-space:nowrap}
+.tw-key{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--raised);color:var(--chalk);font:500 12.5px var(--mono)}
+.tw-text{margin:12px 0;color:var(--chalk)}
+[id^="module-"]{scroll-margin-top:72px}
+.tw-hit{outline:2px solid var(--gold);outline-offset:4px}
+.tw-search-btn{position:fixed;top:12px;right:12px;z-index:40;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-search-btn:hover{border-color:var(--gold)}
+.tw-search-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-search[hidden]{display:none}
+.tw-search{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55)}
+.tw-search-panel{display:flex;flex-direction:column;width:min(680px,calc(100% - 24px));max-height:80vh;margin:8vh auto 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--board)}
+.tw-q{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);font-size:16px}
+.tw-results{flex:1;margin:10px 0 0;padding:0;overflow-y:auto;list-style:none}
+.tw-results [role=option]{padding:8px 10px;border:1px solid transparent;border-radius:8px;cursor:pointer}
+.tw-results [role=option][aria-selected=true]{border-color:var(--gold);background:var(--soft)}
+.tw-results mark{background:rgba(232,196,104,.25);color:inherit}
+.tw-r-meta{overflow:hidden;color:var(--dim);font:11px var(--mono);text-overflow:ellipsis;white-space:nowrap}
+.tw-r-kind{margin-right:8px;color:var(--blue);font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-r-title{font-weight:600}
+.tw-r-text{color:var(--dim);font-size:13px;overflow-wrap:anywhere}
+.tw-search-foot{margin:8px 0 0;color:var(--dim);font:11px var(--mono)}
+@media (max-width:480px){.tw-search-btn kbd{display:none}}
+body.tw-search-open{overflow:hidden}
+
+/* Cheat sheet */
+.tw-cheat-btn{position:fixed;top:12px;right:126px;z-index:40;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-cheat-btn:hover{border-color:var(--gold)}
+.tw-cheat-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-cheat-short{display:none}
+.tw-cheat[hidden]{display:none}
+.tw-cheat{position:fixed;inset:0 0 0 auto;z-index:45;display:flex;flex-direction:column;gap:10px;width:min(440px,100%);padding:12px;border-left:1px solid var(--line);background:var(--board);box-shadow:-12px 0 32px rgba(0,0,0,.35)}
+.tw-cheat-head{display:flex;align-items:center;justify-content:space-between}
+.tw-cheat-title{margin:0;font-size:16px}
+.tw-cheat-close{width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font-size:20px;line-height:1}
+.tw-cheat-close:hover{border-color:var(--gold)}
+.tw-cheat-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tw-cheat-tab{padding:3px 9px;border:1px solid var(--line);border-radius:999px;background:var(--alt);color:var(--dim);cursor:pointer;font:500 12px var(--mono)}
+.tw-cheat-tab:hover{border-color:var(--gold);color:var(--chalk)}
+.tw-cheat-tab[aria-pressed=true]{border-color:var(--gold);background:var(--soft);color:var(--gold)}
+.tw-cheat-body{flex:1;min-height:0;overflow-y:auto}
+.tw-cheat-body .tw-keytable td{padding:6px 8px;font-size:13px}
+.tw-cheat-body .tw-keytable td:first-child{white-space:normal;overflow-wrap:anywhere}
+.tw-cheat-group{margin:14px 0 4px;color:var(--mint);font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-cheat-empty{color:var(--dim);font-size:13px}
+@media (min-width:1100px){
+  body.tw-cheat-open{padding-right:440px}
+  body.tw-cheat-open .tw-search-btn{right:452px}
+  body.tw-cheat-open .tw-cheat-btn{right:566px}
+}
+@media (max-width:480px){
+  .tw-cheat-btn{right:92px}
+  .tw-cheat-btn kbd,.tw-cheat-long{display:none}
+  .tw-cheat-short{display:inline}
+}
+.ws-steps em{color:var(--dim);font:600 11px var(--mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+.ws-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.ws-pair.ws-one{grid-template-columns:minmax(0,1fr)}
+.ws-label{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.ws-pane .sq-code{margin:4px 0 0}
+@media (max-width:640px){.ws-pair{grid-template-columns:minmax(0,1fr)}}
+
+    </style>
+  </head>
+  <body data-root="../" data-file="m1-tmux/index.html">
+    <button class="tw-search-btn" type="button" aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
+    <button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false"><span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button><aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet"><header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2><button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header><input id="tw-cheat-q" class="tw-q" type="search" autocomplete="off" spellcheck="false" aria-label="Filter the cheat sheet" placeholder="Filter keys and actions" /><div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div><div id="tw-cheat-body" class="tw-cheat-body"></div></aside>
+    <main id="lessonRoot">
+<section class="lesson sq-page active" id="module-1" data-module="1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false"><header class="lesson-header"><div class="eyebrow">tmux and the shell · Page 1 of 4</div><h1>Sessions that outlive the window</h1><p class="subtitle">Start a tmux session, detach, and come back to everything still running.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>tmux keeps your terminal alive. Close the window and the work keeps running.</p><ul class="kitchen-links"><li><strong>Start a session <span class="kl-nowrap">→ tmux new -s main.</span></strong> Opens a session named main.</li><li><strong>Prefix <span class="kl-nowrap">→ Ctrl-a.</span></strong> Tells tmux that the next key is a tmux command.</li><li><strong>Detach <span class="kl-nowrap">→ Ctrl-a d.</span></strong> Leaves tmux. The session keeps running.</li><li><strong>Reattach <span class="kl-nowrap">→ tmux attach.</span></strong> Brings back everything where you left it.</li></ul></div></div><div class="block"><figure class="tw-codebox tw-cmd" id="module-1-setup"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get the practice files</span><button class="tw-copy" type="button" aria-label="Copy: Get the practice files">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> ~/tw &amp;&amp; <span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">curl</span> <span class="hl-f">-fsSO</span> https://nvim-workflow.vercel.app/practice/orders.py <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/notes.md <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/todo.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> shows orders.py, notes.md, todo.txt.</p></figure></div><div class="block" id="module-1-problem"><div class="word-problem"><span class="tag">The problem</span><p>You close the terminal, or the laptop sleeps, and the running processes are gone.</p><div class="result-box"><strong>The fix:</strong> Run everything inside a tmux session. Detach with <code>Ctrl-a d</code>, and <code>tmux attach</code> brings it all back.</div></div></div><section class="block" id="module-1-d1"><div class="section-label">Type it</div><h2>Start your first session</h2><p class="section-intro">Open iTerm2 and type this.</p><figure class="tw-codebox tw-cmd" id="module-1-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Start a session called main</span><button class="tw-copy" type="button" aria-label="Copy: Start a session called main">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> new <span class="hl-f">-s</span> main</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A tmux status bar appears at the bottom with <code>[main]</code> on the left.</p></figure></section><section class="block" id="module-1-d2"><div class="section-label">Type it</div><h2>The prefix key</h2><p class="section-intro">tmux listens for commands after the prefix key. Yours is <code>Ctrl-a</code>: hold Ctrl, tap a, release both, then press the command key.</p><figure class="tw-codebox tw-keys" id="module-1-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Create a window</span><button class="tw-copy" type="button" aria-label="Copy: Create a window">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a then c</kbd></td><td>New window</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a then c  New window</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a</code>, let go, then press <code>c</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> A second window appears in the status bar and you are on it. Windows are numbered from 1 here (<code>base-index 1</code>).</p></figure></section><section class="block" id="module-1-d3"><div class="section-label">Type it</div><h2>Detach and reattach</h2><p class="section-intro">Sessions survive crashes, reboots and SSH disconnects.</p><figure class="tw-codebox tw-keys" id="module-1-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Detach</span><button class="tw-copy" type="button" aria-label="Copy: Detach">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a d</kbd></td><td>Detach: you leave tmux but the session keeps running</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a d  Detach: you leave tmux but the session keeps running</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a d</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> You are back at a bare terminal. The session is alive in the background.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Reattach</span><button class="tw-copy" type="button" aria-label="Copy: Reattach">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> attach</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Everything is exactly where you left it.</p></figure></section><section class="block" id="module-1-d4"><div class="section-label">Type it</div><h2>Sessions</h2><p class="section-intro">Run one session per project.</p><figure class="tw-codebox tw-cmd" id="module-1-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create, list, switch and kill sessions</span><button class="tw-copy" type="button" aria-label="Copy: Create, list, switch and kill sessions">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> new <span class="hl-f">-s</span> work          <span class="hl-c"># create named session</span>
+<span class="hl-cmd">tmux</span> new <span class="hl-f">-s</span> personal      <span class="hl-c"># another session</span>
+<span class="hl-cmd">tmux</span> ls                   <span class="hl-c"># list all sessions</span>
+<span class="hl-cmd">tmux</span> switch <span class="hl-f">-t</span> work       <span class="hl-c"># switch to session &quot;work&quot;</span>
+<span class="hl-cmd">tmux</span> kill-session <span class="hl-f">-t</span> old  <span class="hl-c"># kill a session</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>tmux ls</code> lists every session by name, and <code>tmux switch -t work</code> moves you to work.</p></figure><figure class="tw-codebox tw-keys" id="module-1-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Move between sessions</span><button class="tw-copy" type="button" aria-label="Copy: Move between sessions">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a s</kbd></td><td>Switch session from a list (like Ctrl-a w but for sessions)</td></tr><tr><td><kbd class="tw-key">Ctrl-a (</kbd></td><td>Change to the previous session</td></tr><tr><td><kbd class="tw-key">Ctrl-a )</kbd></td><td>Change to the next session</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a s  Switch session from a list (like Ctrl-a w but for sessions)
+Ctrl-a (  Change to the previous session
+Ctrl-a )  Change to the next session</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a s</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> A picker lists your sessions.</p></figure><figure class="tw-codebox tw-keys" id="module-1-d4-b3"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Rename the current session</span><button class="tw-copy" type="button" aria-label="Copy: Rename the current session">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a $</kbd></td><td>Rename session: type the new name and press Enter</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a $  Rename session: type the new name and press Enter</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a $</code>, replace the old name with <code>project</code> and press <code>Enter</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The status bar left now reads <code>[project]</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d4-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Rename a session by name</span><button class="tw-copy" type="button" aria-label="Copy: Rename a session by name">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> rename-session <span class="hl-f">-t</span> work project</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>tmux ls</code> lists <code>project</code> where <code>work</code> was. Use <code>tmux rename-session project</code> with no <code>-t</code> to rename the session you are in.</p></figure></section><section class="block" id="module-1-d5"><div class="section-label">Type it</div><h2>Start, attach and kill sessions with aliases</h2><p class="section-intro">A new terminal is a plain shell: nothing starts tmux for you. From that plain shell, start or attach with <code>to</code>, <code>ts</code>, <code>tds</code> or <code>ta</code>, list with <code>tl</code>, and kill with <code>tkss</code> or <code>tksv</code>.</p><figure class="tw-codebox tw-cmd" id="module-1-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check that you are inside tmux</span><button class="tw-copy" type="button" aria-label="Copy: Check that you are inside tmux">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> display <span class="hl-f">-p</span> <span class="hl-s">&#x27;#S&#x27;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The name of your session prints, for example <code>main</code>. An error such as <code>no server running</code> means you are not inside tmux.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">List your sessions</span><button class="tw-copy" type="button" aria-label="Copy: List your sessions">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tl</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line per session, for example <code>main: 2 windows (created Mon Oct 12 09:00:00 2026)</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Attach to a session by name, or create it</span><button class="tw-copy" type="button" aria-label="Copy: Attach to a session by name, or create it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">to</span> work</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The <code>work</code> session fills the terminal. If it did not exist, tmux creates it.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Start a new session with a name</span><button class="tw-copy" type="button" aria-label="Copy: Start a new session with a name">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ts</span> work</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A fresh session called <code>work</code> opens. If <code>work</code> already exists tmux says so and does not attach: use <code>to work</code> instead.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Start a session named after the current folder</span><button class="tw-copy" type="button" aria-label="Copy: Start a session named after the current folder">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">tds</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A new session called <code>tw</code> opens, named after the folder you were in.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b6"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Attach to an existing session</span><button class="tw-copy" type="button" aria-label="Copy: Attach to an existing session">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ta</span> work</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The <code>work</code> session fills the terminal. If <code>work</code> does not exist tmux reports an error and nothing changes.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b7"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Attach and disconnect every other terminal</span><button class="tw-copy" type="button" aria-label="Copy: Attach and disconnect every other terminal">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tad</span> work</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> You are in <code>work</code>, and any other terminal that was attached to it is detached.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b8"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Kill a session by name</span><button class="tw-copy" type="button" aria-label="Copy: Kill a session by name">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tkss</span> work</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>work</code> is gone from <code>tl</code>. Your other sessions keep running.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d5-b9"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Kill every session at once</span><button class="tw-copy" type="button" aria-label="Copy: Kill every session at once">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tksv</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The tmux server stops and every session ends with it. <code>tl</code> then reports that no server is running.</p></figure><p class="tw-text">Inside tmux, <code>to</code>, <code>ts</code>, <code>tds</code>, <code>ta</code> and <code>tad</code> refuse to nest one session in another. Switch with <code>Ctrl-a s</code> or <code>ftm</code> instead.</p></section><section class="block" id="module-1-d6"><div class="section-label">Type it</div><h2>Look up the session aliases</h2><p class="section-intro">Forget what an alias does? Print the reference.</p><figure class="tw-codebox tw-cmd" id="module-1-d6-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show the tmux alias table</span><button class="tw-copy" type="button" aria-label="Copy: Show the tmux alias table">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">th</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A table of aliases, the command each one runs and a one-line description: <code>ta</code>, <code>tad</code>, <code>to</code>, <code>ts</code>, <code>tl</code>, <code>tkss</code>, <code>tksv</code>, <code>tds</code> and <code>tmuxconf</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Sessions at a glance</h2><details class="rule-card" id="module-1-r1" name="rules-1" open><summary><span><span class="num">01</span>Session commands</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Run these in a shell.</p><table><thead><tr><th>Command</th><th>Does</th></tr></thead><tbody><tr><td><code>tmux new -s main</code></td><td>Start a named session</td></tr><tr><td><code>tmux attach</code></td><td>Reattach</td></tr><tr><td><code>tmux ls</code></td><td>List all sessions</td></tr><tr><td><code>tmux switch -t work</code></td><td>Switch to session work</td></tr><tr><td><code>tmux kill-session -t old</code></td><td>Kill a session</td></tr><tr><td><code>Ctrl-a $</code></td><td>Rename session</td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r2" name="rules-1"><summary><span><span class="num">02</span>Session aliases</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Shorter forms of the same commands.</p><table><thead><tr><th>Alias</th><th>Does</th></tr></thead><tbody><tr><td><code>to work</code></td><td>Attach to a session, or create it</td></tr><tr><td><code>ts work</code></td><td>Start a new named session</td></tr><tr><td><code>tds</code></td><td>Start a session named after this folder</td></tr><tr><td><code>ta work</code> / <code>tad work</code></td><td>Attach / attach and detach other terminals</td></tr><tr><td><code>tl</code></td><td>List sessions</td></tr><tr><td><code>tkss work</code> / <code>tksv</code></td><td>Kill one session / kill every session</td></tr><tr><td><code>th</code></td><td>Show this table in the terminal</td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r3" name="rules-1"><summary><span><span class="num">03</span>If the prefix does nothing</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Make sure you are inside tmux: the status bar is visible.</p><table><thead><tr><th>Step</th><th>Command</th></tr></thead><tbody><tr><td>Not in tmux? Attach</td><td><code>tmux attach</code></td></tr><tr><td>Reload the config</td><td><code>tmux source-file ~/.config/tmux/tmux.conf</code></td></tr></tbody></table></div></details></section><section class="block" id="module-1-worked"><div class="section-label">Worked application</div><h2>Park a session and come back</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You stop for the day and want your work to wait.</p><figure class="tw-codebox tw-cmd" id="module-1-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> new <span class="hl-f">-s</span> work</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>Ctrl-a d</code></span> · <span>Detaches. You are back at the shell; close the terminal if you like.</span></li><li><span><em>Keys:</em> <code>tmux ls</code></span> · <span>In a new terminal, lists <code>work</code> as still running.</span></li><li><span><em>Keys:</em> <code>tmux attach</code></span> · <span>Returns to the session.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>work: 1 windows (created Mon Oct 12 09:00:00 2026)</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> Closing a window never ends the work; only killing the session or restarting does.</div></div></section><section class="block" id="module-1-practice"><div class="section-label">Your turn</div><h2>Practice: sessions</h2><div class="practice-card" id="module-1-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does a detached session keep running?</p><details class="hint"><summary>hint</summary><p>Who owns the processes: the window or tmux?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>tmux runs your shells, not the terminal window.</li><li>Detach only closes your view of the session.</li></ol><div class="solution-final"><strong>Final answer:</strong> tmux keeps the processes alive; the window was only a view.</div></div></details></div><div class="practice-card" id="module-1-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which keys detach from a session?</p><details class="hint"><summary>hint</summary><p>Prefix first, then one letter.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>Ctrl-a</code>.</li><li>Press <code>d</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-a d</code>.</div></div></details></div><div class="practice-card" id="module-1-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">You work on two projects. Create a named session for each.</p><details class="hint"><summary>hint</summary><p>Use <code>tmux new -s</code> with a name.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>tmux new -s work</code>.</li><li>Run <code>tmux new -s personal</code>.</li><li>List them with <code>tmux ls</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>tmux new -s work</code> and <code>tmux new -s personal</code>.</div></div></details></div><div class="practice-card" id="module-1-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">The prefix does nothing. What do you check first?</p><details class="hint"><summary>hint</summary><p>Where are you typing?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Look for the tmux status bar.</li><li>No bar means you are not inside tmux: run <code>tmux attach</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> Make sure you are inside tmux.</div></div></details></div></section></section><section class="lesson sq-page" id="module-2" data-module="2" role="tabpanel" aria-labelledby="tab-2" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">tmux and the shell · Page 2 of 4</div><h1>Windows and panes</h1><p class="subtitle">One window per job, split into panes when you need two views.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>A session holds windows. A window holds panes.</p><ul class="kitchen-links"><li><strong>New window <span class="kl-nowrap">→ Ctrl-a c.</span></strong> One window per job: editor, tests, agent.</li><li><strong>Switch window <span class="kl-nowrap">→ Ctrl-a w.</span></strong> A picker with a live preview.</li><li><strong>Split <span class="kl-nowrap">→ Ctrl-a |.</span></strong> Two panes side by side.</li><li><strong>Zoom <span class="kl-nowrap">→ Ctrl-a z.</span></strong> One pane fills the screen. Press again to unzoom.</li></ul></div></div><div class="block" id="module-2-problem"><div class="word-problem"><span class="tag">The problem</span><p>One terminal, three jobs. The editor, the tests and your AI agent fight for the same screen.</p><div class="result-box"><strong>The fix:</strong> Give each job its own window, and split a window into panes to see two things at once.</div></div></div><section class="block" id="module-2-d1"><div class="section-label">Type it</div><h2>Navigate between windows</h2><p class="section-intro">This is how you switch between editor, tests and your AI agent.</p><figure class="tw-codebox tw-keys" id="module-2-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Switch windows</span><button class="tw-copy" type="button" aria-label="Copy: Switch windows">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a 1</kbd></td><td>Jump to window 1, your first window</td></tr><tr><td><kbd class="tw-key">Ctrl-a 2</kbd></td><td>Jump to window 2</td></tr><tr><td><kbd class="tw-key">Ctrl-a n</kbd></td><td>Change to the next window</td></tr><tr><td><kbd class="tw-key">Ctrl-a p</kbd></td><td>Change to the previous window</td></tr><tr><td><kbd class="tw-key">Ctrl-a w</kbd></td><td>Switch window from a list (preview, pick with j/k + Enter)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a 1  Jump to window 1, your first window
+Ctrl-a 2  Jump to window 2
+Ctrl-a n  Change to the next window
+Ctrl-a p  Change to the previous window
+Ctrl-a w  Switch window from a list (preview, pick with j/k + Enter)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a w</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> All windows are listed with a live preview. Press Enter to jump.</p></figure><p class="tw-text">Windows start at 1 here (<code>base-index 1</code>), so <code>Ctrl-a 1</code> is your first window.</p></section><section class="block" id="module-2-d2"><div class="section-label">Type it</div><h2>Split panes</h2><p class="section-intro">Split your window, run <code>ls</code> in one pane and <code>htop</code> in the other.</p><figure class="tw-codebox tw-keys" id="module-2-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Split and move</span><button class="tw-copy" type="button" aria-label="Copy: Split and move">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a |</kbd></td><td>Split pane side by side (vertical split)</td></tr><tr><td><kbd class="tw-key">Ctrl-a -</kbd></td><td>Split pane top and bottom (horizontal split)</td></tr><tr><td><kbd class="tw-key">Ctrl-a h/j/k/l</kbd></td><td>Change pane left / down / up / right (switch panes, vim-style)</td></tr><tr><td><kbd class="tw-key">Ctrl-a x</kbd></td><td>Close pane (prompts y/n: press y to confirm)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a |  Split pane side by side (vertical split)
+Ctrl-a -  Split pane top and bottom (horizontal split)
+Ctrl-a h/j/k/l  Change pane left / down / up / right (switch panes, vim-style)
+Ctrl-a x  Close pane (prompts y/n: press y to confirm)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Split, then move with <code>Ctrl-a h</code> and <code>Ctrl-a l</code>. Or click the pane you want: the mouse is on.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> Two panes, each with its own shell.</p></figure><p class="tw-text">Inside tmux, <code>Ctrl-h</code>, <code>Ctrl-j</code>, <code>Ctrl-k</code> and <code>Ctrl-l</code> also switch panes with no prefix.</p></section><section class="block" id="module-2-d3"><div class="section-label">Type it</div><h2>Window and pane tricks</h2><p class="section-intro">Capital H/J/K/L resizes. Lowercase h/j/k/l navigates.</p><figure class="tw-codebox tw-keys" id="module-2-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Pane management</span><button class="tw-copy" type="button" aria-label="Copy: Pane management">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a z</kbd></td><td>Zoom pane to full screen (press again to unzoom)</td></tr><tr><td><kbd class="tw-key">Ctrl-a Space</kbd></td><td>Cycle through pane layouts (even, tiled, etc.)</td></tr><tr><td><kbd class="tw-key">Ctrl-a !</kbd></td><td>Break pane into its own window</td></tr><tr><td><kbd class="tw-key">Ctrl-a q</kbd></td><td>Change to a pane by number: numbers appear, press one</td></tr><tr><td><kbd class="tw-key">Ctrl-a {</kbd></td><td>Swap pane with the previous one</td></tr><tr><td><kbd class="tw-key">Ctrl-a }</kbd></td><td>Swap pane with the next one</td></tr><tr><td><kbd class="tw-key">Ctrl-a o</kbd></td><td>Change to the next pane</td></tr><tr><td><kbd class="tw-key">Ctrl-a ;</kbd></td><td>Change back to the last pane</td></tr><tr><td><kbd class="tw-key">:swap-pane -t 2</kbd></td><td>Swap current pane with pane 2 (tmux command)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a z  Zoom pane to full screen (press again to unzoom)
+Ctrl-a Space  Cycle through pane layouts (even, tiled, etc.)
+Ctrl-a !  Break pane into its own window
+Ctrl-a q  Change to a pane by number: numbers appear, press one
+Ctrl-a {  Swap pane with the previous one
+Ctrl-a }  Swap pane with the next one
+Ctrl-a o  Change to the next pane
+Ctrl-a ;  Change back to the last pane
+:swap-pane -t 2  Swap current pane with pane 2 (tmux command)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a z</code> in a split window, then press it again.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> One pane fills the screen. The second press brings the split back.</p></figure><figure class="tw-codebox tw-keys" id="module-2-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Pane resizing</span><button class="tw-copy" type="button" aria-label="Copy: Pane resizing">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a H</kbd></td><td>Resize pane left (5 cells)</td></tr><tr><td><kbd class="tw-key">Ctrl-a J</kbd></td><td>Resize pane down (5 cells)</td></tr><tr><td><kbd class="tw-key">Ctrl-a K</kbd></td><td>Resize pane up (5 cells)</td></tr><tr><td><kbd class="tw-key">Ctrl-a L</kbd></td><td>Resize pane right (5 cells)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a H  Resize pane left (5 cells)
+Ctrl-a J  Resize pane down (5 cells)
+Ctrl-a K  Resize pane up (5 cells)
+Ctrl-a L  Resize pane right (5 cells)</code></pre></figure><figure class="tw-codebox tw-keys" id="module-2-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Watch the machine, or keep one pane</span><button class="tw-copy" type="button" aria-label="Copy: Watch the machine, or keep one pane">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a m</kbd></td><td>Open a 12-line pane below running htop (system monitor)</td></tr><tr><td><kbd class="tw-key">Ctrl-a M</kbd></td><td>Kill other panes: close every pane but this one, no confirmation</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a m  Open a 12-line pane below running htop (system monitor)
+Ctrl-a M  Kill other panes: close every pane but this one, no confirmation</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a m</code>, then <code>q</code> inside htop.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> A 12-line pane with htop opens under your pane. <code>q</code> quits htop and the pane closes.</p></figure><figure class="tw-codebox tw-keys" id="module-2-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Window management</span><button class="tw-copy" type="button" aria-label="Copy: Window management">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a c</kbd></td><td>Create new window</td></tr><tr><td><kbd class="tw-key">Ctrl-a ,</kbd></td><td>Rename window</td></tr><tr><td><kbd class="tw-key">Ctrl-a &amp;</kbd></td><td>Kill window (confirms y/n)</td></tr><tr><td><kbd class="tw-key">Ctrl-a .</kbd></td><td>Move window to another index</td></tr><tr><td><kbd class="tw-key">Ctrl-a f</kbd></td><td>Find window by name</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a c  Create new window
+Ctrl-a ,  Rename window
+Ctrl-a &amp;  Kill window (confirms y/n)
+Ctrl-a .  Move window to another index
+Ctrl-a f  Find window by name</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a ,</code> and type <code>editor</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The status bar shows <code>editor</code> instead of <code>zsh</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Send commands to other windows</span><button class="tw-copy" type="button" aria-label="Copy: Send commands to other windows">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-c"># Run a command in another window without switching to it:</span>
+<span class="hl-cmd">tmux</span> send-keys <span class="hl-f">-t</span> <span class="hl-n">1</span> <span class="hl-s">&quot;pytest tests/ -v&quot;</span> Enter
+
+<span class="hl-c"># Run in a specific named window:</span>
+<span class="hl-cmd">tmux</span> send-keys <span class="hl-f">-t</span> ml:tests <span class="hl-s">&quot;make build&quot;</span> Enter
+
+<span class="hl-c"># Capture output from another pane:</span>
+<span class="hl-cmd">tmux</span> capture-pane <span class="hl-f">-t</span> <span class="hl-n">1</span> <span class="hl-f">-p</span> | <span class="hl-cmd">tail</span> <span class="hl-n">-10</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first two run in the other window while you stay put. The last prints that pane&#x27;s last 10 lines here.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Muscle memory</h2><details class="rule-card" id="module-2-r1" name="rules-2" open><summary><span><span class="num">01</span>Practice each 10 times</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">These 13 keys carry most of your day.</p><table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><td><code>Ctrl-a c</code></td><td>New window</td></tr><tr><td><code>Ctrl-a w</code></td><td>Window picker (interactive list with preview)</td></tr><tr><td><code>Ctrl-a 1-9</code></td><td>Jump to window by number (windows start at 1)</td></tr><tr><td><code>Ctrl-a n/p</code></td><td>Next/previous window</td></tr><tr><td><code>Ctrl-a ,</code></td><td>Rename current window</td></tr><tr><td><code>Ctrl-a d</code></td><td>Detach</td></tr><tr><td><code>Ctrl-a |</code></td><td>Vertical split</td></tr><tr><td><code>Ctrl-a -</code></td><td>Horizontal split</td></tr><tr><td><code>Ctrl-a h/j/k/l</code></td><td>Change pane left / down / up / right</td></tr><tr><td><code>Ctrl-a z</code></td><td>Zoom or unzoom pane</td></tr><tr><td><code>Ctrl-a q</code></td><td>Change to a pane by number (tap the number)</td></tr><tr><td><code>Ctrl-a x</code></td><td>Close pane (y to confirm)</td></tr><tr><td><code>Ctrl-a [</code></td><td>Enter copy mode</td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r2" name="rules-2"><summary><span><span class="num">02</span>Lowercase or capital</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Same letters, two jobs.</p><table><thead><tr><th>Keys</th><th>Does</th></tr></thead><tbody><tr><td><code>Ctrl-a h/j/k/l</code></td><td>Change pane left / down / up / right</td></tr><tr><td><code>Ctrl-a H/J/K/L</code></td><td>Resize pane by 5 cells</td></tr></tbody></table></div></details></section><section class="block" id="module-2-worked"><div class="section-label">Worked application</div><h2>Editor, tests and agent in one session</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">Three jobs, three windows, one session.</p><figure class="tw-codebox tw-cmd" id="module-2-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> new <span class="hl-f">-s</span> main</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>Ctrl-a ,</code> then <code>editor</code> then <code>Enter</code></span> · <span>Names this window.</span></li><li><span><em>Keys:</em> <code>Ctrl-a c</code> then <code>Ctrl-a ,</code> then <code>tests</code> then <code>Enter</code></span> · <span>New window, named.</span></li><li><span><em>Keys:</em> <code>Ctrl-a c</code> then <code>Ctrl-a ,</code> then <code>agent</code> then <code>Enter</code></span> · <span>Third window, named.</span></li><li><span><em>Keys:</em> <code>Ctrl-a w</code></span> · <span>Lists all three with a preview.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>[main]  1:editor   2:tests   3:agent</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> A jump is now one keystroke away.</div></div></section><section class="block" id="module-2-practice"><div class="section-label">Your turn</div><h2>Practice: windows and panes</h2><div class="practice-card" id="module-2-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">What is the difference between a window and a pane?</p><details class="hint"><summary>hint</summary><p>One lives inside the other.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>A window fills the screen.</li><li>Panes divide one window into rectangles.</li></ol><div class="solution-final"><strong>Final answer:</strong> A window holds one or more panes.</div></div></details></div><div class="practice-card" id="module-2-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Split a window side by side, then close the new pane.</p><details class="hint"><summary>hint</summary><p>Split first, then close.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>Ctrl-a |</code>.</li><li>Press <code>Ctrl-a x</code>, then <code>y</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-a |</code>, then <code>Ctrl-a x</code> and <code>y</code>.</div></div></details></div><div class="practice-card" id="module-2-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">A test run is scrolling past. Read it without leaving the pane.</p><details class="hint"><summary>hint</summary><p>Fill the screen with one pane.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Press <code>Ctrl-a z</code> to zoom.</li><li>Press <code>Ctrl-a z</code> again to unzoom.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-a z</code> twice.</div></div></details></div><div class="practice-card" id="module-2-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">You pressed <code>Ctrl-a L</code> to move right, and the pane got bigger. Why?</p><details class="hint"><summary>hint</summary><p>Look at the letter case.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Capital <code>H/J/K/L</code> resizes.</li><li>Lowercase <code>h/j/k/l</code> navigates.</li></ol><div class="solution-final"><strong>Final answer:</strong> Use lowercase <code>l</code> to move, capital <code>L</code> to resize.</div></div></details></div></section></section><section class="lesson sq-page" id="module-3" data-module="3" role="tabpanel" aria-labelledby="tab-3" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">tmux and the shell · Page 3 of 4</div><h1>Copy mode, the command line and fzf</h1><p class="subtitle">Copy from scrollback, edit the prompt fast, and fuzzy-find anything.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Three tools remove most mouse work: copy mode, readline keys and fzf.</p><ul class="kitchen-links"><li><strong>Copy mode <span class="kl-nowrap">→ Ctrl-a [.</span></strong> Move through scrollback with vim keys.</li><li><strong>Clear the line <span class="kl-nowrap">→ Ctrl-u.</span></strong> Deletes the whole line.</li><li><strong>Fuzzy find <span class="kl-nowrap">→ fzf.</span></strong> A filterable list of files.</li><li><strong>History <span class="kl-nowrap">→ Ctrl+R.</span></strong> Search your command history.</li></ul></div></div><div class="block" id="module-3-problem"><div class="word-problem"><span class="tag">The problem</span><p>You copy output with the mouse and grab half a border, or retype a long path from history.</p><div class="result-box"><strong>The fix:</strong> Copy with copy mode, edit the prompt with readline keys, and find files, history and branches with fzf.</div></div></div><section class="block" id="module-3-d1"><div class="section-label">Type it</div><h2>Copy mode</h2><p class="section-intro">Copy mode gives you a free-moving cursor in the scrollback.</p><figure class="tw-codebox tw-keys" id="module-3-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Copy and paste</span><button class="tw-copy" type="button" aria-label="Copy: Copy and paste">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a [</kbd></td><td>Enter copy mode (cursor becomes free-moving)</td></tr><tr><td><kbd class="tw-key">h/j/k/l or Ctrl-d/Ctrl-u</kbd></td><td>Move the cursor</td></tr><tr><td><kbd class="tw-key">Alt-f / Alt-b</kbd></td><td>Jump to the end of the next word / the start of the previous word</td></tr><tr><td><kbd class="tw-key">v</kbd></td><td>Start selection (visual mode)</td></tr><tr><td><kbd class="tw-key">y</kbd></td><td>Yank (copy) selection, exits copy mode</td></tr><tr><td><kbd class="tw-key">Ctrl-a ]</kbd></td><td>Paste the copied text</td></tr><tr><td><kbd class="tw-key">q</kbd></td><td>Quit copy mode without copying</td></tr><tr><td><kbd class="tw-key">Esc</kbd></td><td>Also exits copy mode</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a [  Enter copy mode (cursor becomes free-moving)
+h/j/k/l or Ctrl-d/Ctrl-u  Move the cursor
+Alt-f / Alt-b  Jump to the end of the next word / the start of the previous word
+v  Start selection (visual mode)
+y  Yank (copy) selection, exits copy mode
+Ctrl-a ]  Paste the copied text
+q  Quit copy mode without copying
+Esc  Also exits copy mode</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>Ctrl-a [</code>, move with <code>j</code>, press <code>v</code>, move, press <code>y</code>, then <code>Ctrl-a ]</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The copied text appears at the prompt.</p></figure><figure class="tw-codebox tw-keys" id="module-3-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Copy with the mouse</span><button class="tw-copy" type="button" aria-label="Copy: Copy with the mouse">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Mouse drag</kbd></td><td>Copy text: drag over it and let go, it goes to the macOS clipboard and copy mode ends</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Mouse drag  Copy text: drag over it and let go, it goes to the macOS clipboard and copy mode ends</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Drag across a line of output and release the button.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The highlight clears at once and the text is on the clipboard: <code>Cmd-v</code> pastes it.</p></figure></section><section class="block" id="module-3-d2"><div class="section-label">Type it</div><h2>Terminal line editing</h2><p class="section-intro">These readline keys work at any shell prompt, in tmux, zsh or bash. They replace Cmd+Delete and Option+Delete.</p><figure class="tw-codebox tw-keys" id="module-3-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Readline shortcuts</span><button class="tw-copy" type="button" aria-label="Copy: Readline shortcuts">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-u</kbd></td><td>Delete entire line (like Cmd+Delete)</td></tr><tr><td><kbd class="tw-key">Ctrl-w</kbd></td><td>Delete word backward (like Option+Delete)</td></tr><tr><td><kbd class="tw-key">Ctrl-k</kbd></td><td>Delete from cursor to end of line</td></tr><tr><td><kbd class="tw-key">Ctrl-a</kbd></td><td>Jump to start of line</td></tr><tr><td><kbd class="tw-key">Ctrl-e</kbd></td><td>Jump to end of line</td></tr><tr><td><kbd class="tw-key">Ctrl-h</kbd></td><td>Delete character backward (Backspace)</td></tr><tr><td><kbd class="tw-key">Alt-d</kbd></td><td>Delete word forward</td></tr><tr><td><kbd class="tw-key">Alt-b</kbd></td><td>Move back one word</td></tr><tr><td><kbd class="tw-key">Alt-f</kbd></td><td>Move forward one word</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-u  Delete entire line (like Cmd+Delete)
+Ctrl-w  Delete word backward (like Option+Delete)
+Ctrl-k  Delete from cursor to end of line
+Ctrl-a  Jump to start of line
+Ctrl-e  Jump to end of line
+Ctrl-h  Delete character backward (Backspace)
+Alt-d  Delete word forward
+Alt-b  Move back one word
+Alt-f  Move forward one word</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Type a few words, then press <code>Ctrl-w</code> and <code>Ctrl-u</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Ctrl-w</code> removes the last word. <code>Ctrl-u</code> clears the line.</p></figure><p class="tw-text">Inside tmux, <code>Ctrl-a</code> is the prefix: press <code>Ctrl-a Ctrl-a</code> to reach the start of the line. In a pane that is not running vim, <code>Ctrl-h</code>, <code>Ctrl-j</code>, <code>Ctrl-k</code> and <code>Ctrl-l</code> switch panes instead.</p><figure class="tw-codebox tw-keys" id="module-3-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">New line in the shell</span><button class="tw-copy" type="button" aria-label="Copy: New line in the shell">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Option-Enter</kbd></td><td>New line in shell: break a long command onto the next line without running it</td></tr><tr><td><kbd class="tw-key">Shift-Enter</kbd></td><td>Same, when your terminal sends it (iTerm needs the key mapped to CSI-u)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Option-Enter  New line in shell: break a long command onto the next line without running it
+Shift-Enter  Same, when your terminal sends it (iTerm needs the key mapped to CSI-u)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Type <code>python3 ~/tw/orders.py</code>, then press <code>Option-Enter</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The cursor drops to a new line and the command does not run. <code>Enter</code> on the last line runs the whole thing.</p></figure><figure class="tw-codebox tw-keys" id="module-3-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Accept the grey suggestion</span><button class="tw-copy" type="button" aria-label="Copy: Accept the grey suggestion">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-Space</kbd></td><td>Accept suggestion: take the grey history text after the cursor</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-Space  Accept suggestion: take the grey history text after the cursor</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Type <code>python3 ~/tw/or</code> after you have run that command once, then press <code>Ctrl-Space</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The grey rest of the command turns into real text. Press <code>Enter</code> to run it.</p></figure></section><section class="block" id="module-3-d3"><div class="section-label">Type it</div><h2>fzf basics</h2><p class="section-intro">fzf is a fuzzy finder. Type to filter, Enter to pick.</p><figure class="tw-codebox tw-cmd" id="module-3-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">fzf</span><span class="tw-code-title">Basic usage</span><button class="tw-copy" type="button" aria-label="Copy: Basic usage">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-c"># Search files in current directory</span>
+<span class="hl-cmd">fzf</span>
+
+<span class="hl-c"># Search command history</span>
+<span class="hl-cmd">Ctrl+R</span>
+
+<span class="hl-c"># Search and cd into directory</span>
+<span class="hl-cmd">cd</span> **&lt;TAB&gt;
+
+<span class="hl-c"># Search and open file</span>
+<span class="hl-cmd">vim</span> **&lt;TAB&gt;
+
+<span class="hl-c"># Kill process</span>
+<span class="hl-cmd">kill</span> <span class="hl-n">-9</span> **&lt;TAB&gt;</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>fzf</code> lists the files under the current folder. <code>Ctrl+R</code> lists your history. <code>**&lt;TAB&gt;</code> opens a picker for the command.</p></figure><figure class="tw-codebox tw-keys" id="module-3-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">fzf</span><span class="tw-code-title">Keyboard shortcuts</span><button class="tw-copy" type="button" aria-label="Copy: Keyboard shortcuts">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl+J/K</kbd></td><td>Move up or down the list</td></tr><tr><td><kbd class="tw-key">↑/↓</kbd></td><td>Move up or down the list</td></tr><tr><td><kbd class="tw-key">Enter</kbd></td><td>Pick the highlighted line</td></tr><tr><td><kbd class="tw-key">Ctrl+C</kbd></td><td>Cancel</td></tr><tr><td><kbd class="tw-key">Esc</kbd></td><td>Cancel</td></tr><tr><td><kbd class="tw-key">Tab</kbd></td><td>Mark several lines (multi-select)</td></tr><tr><td><kbd class="tw-key">Ctrl+/</kbd></td><td>Change preview layout: cycles preview right, below and hidden</td></tr><tr><td><kbd class="tw-key">Ctrl+U / Ctrl+D</kbd></td><td>Scroll the preview up / down half a page</td></tr><tr><td><kbd class="tw-key">Ctrl+Y</kbd></td><td>Copy the picked names to the clipboard and close the list</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl+J/K  Move up or down the list
+↑/↓  Move up or down the list
+Enter  Pick the highlighted line
+Ctrl+C  Cancel
+Esc  Cancel
+Tab  Mark several lines (multi-select)
+Ctrl+/  Change preview layout: cycles preview right, below and hidden
+Ctrl+U / Ctrl+D  Scroll the preview up / down half a page
+Ctrl+Y  Copy the picked names to the clipboard and close the list</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Run <code>fzf</code>, move to a file and press <code>Ctrl+Y</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> The list closes and nothing opens. The file name is on the clipboard: <code>Cmd-v</code> pastes it.</p></figure><p class="tw-text">In tmux, use the arrow keys: <code>Ctrl+J/K</code> switch panes there. In this setup <code>Ctrl+D</code> scrolls the preview and no key selects all.</p></section><section class="block" id="module-3-d4"><div class="section-label">Type it</div><h2>List files and folder sizes</h2><p class="section-intro"><code>ls</code>, <code>ll</code>, <code>la</code> and <code>lt</code> all run eza with icons. The size helpers wrap <code>du</code>. Try them on the practice folder.</p><figure class="tw-codebox tw-cmd" id="module-3-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">List files with sizes and dates, hidden ones too</span><button class="tw-copy" type="button" aria-label="Copy: List files with sizes and dates, hidden ones too">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ll</span> ~/tw</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line per entry: permissions, size, date and name, each name with an icon. <code>orders.py</code>, <code>notes.md</code> and <code>todo.txt</code> are listed.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">List files including hidden ones</span><button class="tw-copy" type="button" aria-label="Copy: List files including hidden ones">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">la</span> ~/tw</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Just the names, with dotfiles included.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">List a folder as a tree</span><button class="tw-copy" type="button" aria-label="Copy: List a folder as a tree">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">lt</span> ~/tw</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A tree with <code>orders.py</code>, <code>notes.md</code> and <code>todo.txt</code> under <code>tw</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show the size of one file or folder</span><button class="tw-copy" type="button" aria-label="Copy: Show the size of one file or folder">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">size</span> ~/tw/orders.py</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line: the size, then the path.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show sizes of the non-hidden items in a folder, biggest first</span><button class="tw-copy" type="button" aria-label="Copy: Show sizes of the non-hidden items in a folder, biggest first">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">sizes</span> ~/tw</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line per non-hidden item in <code>tw</code>, sorted from largest to smallest.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b6"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show the size of the current folder</span><button class="tw-copy" type="button" aria-label="Copy: Show the size of the current folder">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">dirsize</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line: the total size, then <code>.</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b7"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show the ten biggest non-hidden items here</span><button class="tw-copy" type="button" aria-label="Copy: Show the ten biggest non-hidden items here">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">big</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> At most ten lines, largest first.</p></figure><p class="tw-text"><code>grep</code>, <code>egrep</code>, <code>fgrep</code>, <code>diff</code>, <code>less</code> and <code>tree</code> are aliased to colour their output. Use them as usual.</p></section><section class="block" id="module-3-d5"><div class="section-label">Type it</div><h2>Find files, folders and text</h2><p class="section-intro">Find a file, open it, search for a word in the project, jump to a folder or copy a path. Each helper opens a filterable list: type to narrow it, Enter to pick, Esc to cancel.</p><figure class="tw-codebox tw-cmd" id="module-3-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find file by part of its name</span><button class="tw-copy" type="button" aria-label="Copy: Find file by part of its name">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">ff</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A list of files with a <code>bat</code> preview on the right. Type <code>ord</code> and press Enter: <code>nvim</code> opens <code>orders.py</code>. Press Tab on several files to open them all.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find a PDF anywhere in your home folder</span><button class="tw-copy" type="button" aria-label="Copy: Find a PDF anywhere in your home folder">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ffh</span> pdf</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Every <code>.pdf</code> under <code>~</code> is listed with a preview. Enter opens the pick in your editor. <code>ffh</code> alone lists every file type.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open a file at once when one name matches</span><button class="tw-copy" type="button" aria-label="Copy: Open a file at once when one name matches">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fe</span> todo</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>todo.txt</code> is the only match, so <code>nvim</code> opens it with no list. With several matches a list appears, pre-filtered to <code>todo</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find a word in the project and jump to it</span><button class="tw-copy" type="button" aria-label="Copy: Find a word in the project and jump to it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">frg</span> calc_totl</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Matching lines list as you type, each with its file and line number. The preview highlights the line. Enter opens <code>nvim</code> on that line of <code>orders.py</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find any file, hidden and ignored ones too</span><button class="tw-copy" type="button" aria-label="Copy: Find any file, hidden and ignored ones too">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fa</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Every file under the folder is listed, dotfiles and git-ignored files included, but not <code>.git</code>. Enter opens the pick in <code>nvim</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b6"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open one file without marking others</span><button class="tw-copy" type="button" aria-label="Copy: Open one file without marking others">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fv</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A list of files with a preview. Enter without marking files opens the highlighted file in <code>nvim</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b7"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find a word and open the match in VS Code</span><button class="tw-copy" type="button" aria-label="Copy: Find a word and open the match in VS Code">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">frc</span> TODO</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The matching lines list as you type. Enter opens VS Code on that line of the file.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b8"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open files in VS Code</span><button class="tw-copy" type="button" aria-label="Copy: Open files in VS Code">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fcode</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Pick <code>orders.py</code> and VS Code opens it. Tab picks several files.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b9"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Jump to a folder</span><button class="tw-copy" type="button" aria-label="Copy: Jump to a folder">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fdir</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Folders are listed with a tree preview. Enter picks one, and <code>pwd</code> shows you are now inside it.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b10"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Go up to a parent folder</span><button class="tw-copy" type="button" aria-label="Copy: Go up to a parent folder">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fcd</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Your current folder and every folder above it are listed. Enter changes to the one you pick.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b11"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open a file with its default app</span><button class="tw-copy" type="button" aria-label="Copy: Open a file with its default app">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fopen</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Pick <code>notes.md</code> and macOS opens it in the app set for Markdown. Tab picks several files.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b12"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Copy a file&#x27;s path</span><button class="tw-copy" type="button" aria-label="Copy: Copy a file&#x27;s path">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fscp</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Pick <code>orders.py</code> and the terminal prints <code>Path copied: </code> followed by the full path. Paste it anywhere with <code>Cmd-v</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b13"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Copy a file&#x27;s content</span><button class="tw-copy" type="button" aria-label="Copy: Copy a file&#x27;s content">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fsc</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Pick <code>notes.md</code> and the terminal prints <code>Content of &#x27;notes.md&#x27; copied to clipboard</code>. <code>Cmd-v</code> pastes the whole file.</p></figure><p class="tw-text"><code>Ctrl-T</code> does nothing in this setup: it is unbound (<code>bindkey -r &#x27;^T&#x27;</code>) because it clashes with paste in some terminals. Use <code>ff</code> instead.</p></section><section class="block" id="module-3-d6"><div class="section-label">Type it</div><h2>Git and tmux with fzf</h2><p class="section-intro">Switch a git branch, stage a changed file, browse commits, switch to another tmux session or kill one. Run the git helpers inside a repository.</p><figure class="tw-codebox tw-cmd" id="module-3-d6-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Switch to another git branch</span><button class="tw-copy" type="button" aria-label="Copy: Switch to another git branch">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fgb</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Local and remote branches are listed. Type part of a name and press Enter: <code>git checkout</code> switches to it.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d6-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Stage or unstage a changed file</span><button class="tw-copy" type="button" aria-label="Copy: Stage or unstage a changed file">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fgs</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Changed files are listed with a diff preview. <code>Ctrl-a</code> stages the highlighted file and <code>Ctrl-r</code> unstages it. The list reloads each time. Esc leaves.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d6-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Browse the commit history</span><button class="tw-copy" type="button" aria-label="Copy: Browse the commit history">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fgl</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A graph of commits with the commit&#x27;s diff beside it. Enter opens the full diff in <code>less</code>; press <code>q</code> to come back. <code>fgl --all</code> includes every branch.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d6-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Switch to another tmux session</span><button class="tw-copy" type="button" aria-label="Copy: Switch to another tmux session">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ftm</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Your sessions are listed with a preview of each one&#x27;s pane. Enter moves you to the one you pick.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d6-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Kill tmux sessions you pick</span><button class="tw-copy" type="button" aria-label="Copy: Kill tmux sessions you pick">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ftmk</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Tab marks one or more sessions and Enter kills them at once, with no confirmation. <code>tl</code> no longer lists them.</p></figure></section><section class="block" id="module-3-d7"><div class="section-label">Type it</div><h2>Delete files and folders you pick</h2><p class="section-intro">Both helpers list what you picked and ask <code>y/N</code> before deleting. Answer <code>N</code> to practise safely.</p><figure class="tw-codebox tw-cmd" id="module-3-d7-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Delete files you pick</span><button class="tw-copy" type="button" aria-label="Copy: Delete files you pick">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">fsd</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Tab marks files and Enter lists <code>Delete: todo.txt</code>, then asks <code>Delete these files? (y/N)</code>. <code>N</code> prints <code>Cancelled</code> and nothing is removed.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d7-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Delete folders you pick</span><button class="tw-copy" type="button" aria-label="Copy: Delete folders you pick">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~ &amp;&amp; <span class="hl-cmd">fsdd</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Pick a folder and Enter lists it after <code>Delete:</code>, then asks <code>Delete these directories? (y/N)</code>. <code>N</code> prints <code>Cancelled</code>. <code>y</code> removes the folder and everything in it.</p></figure></section><section class="block" id="module-3-d8"><div class="section-label">Type it</div><h2>Processes, ports and help</h2><p class="section-intro">Kill a process, free a port that is already in use, look up an environment variable or search a command&#x27;s help.</p><figure class="tw-codebox tw-cmd" id="module-3-d8-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Kill a process by name</span><button class="tw-copy" type="button" aria-label="Copy: Kill a process by name">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fkill</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Every process is listed under <code>[kill:process]</code>. Type <code>node</code> and press Enter to kill it with signal 9. <code>fkill 15</code> sends the gentler SIGTERM.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Kill whatever holds a port</span><button class="tw-copy" type="button" aria-label="Copy: Kill whatever holds a port">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">python3</span> <span class="hl-f">-m</span> http.server <span class="hl-n">8000</span> &amp;
+<span class="hl-cmd">fport</span> <span class="hl-n">8000</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The <code>python3</code> process holding port 8000 is listed under <code>[kill:port:8000]</code>. Press Enter and it stops. <code>fport</code> with no number asks you to type the port.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Look up an environment variable</span><button class="tw-copy" type="button" aria-label="Copy: Look up an environment variable">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fenv</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Every variable is listed. Type <code>PATH</code> and the matching variables show in full in the preview above the list.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Search a command&#x27;s man page or help text</span><button class="tw-copy" type="button" aria-label="Copy: Search a command&#x27;s man page or help text">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fchelp</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Pick a command such as <code>curl</code>, then <code>help</code> or <code>man</code>, then type to search the text. <code>Ctrl-b</code> goes back and <code>Ctrl-q</code> quits.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Pick a docker container</span><button class="tw-copy" type="button" aria-label="Copy: Pick a docker container">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fdocker</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Every container, running or not, is listed with its last 100 log lines as a preview. Enter prints the container ID.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b6"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show every helper with an example</span><button class="tw-copy" type="button" aria-label="Copy: Show every helper with an example">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">fh</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A boxed reference lists each helper in this lesson with an example.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b7"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show the dev command sheet</span><button class="tw-copy" type="button" aria-label="Copy: Show the dev command sheet">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">devh</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A cheat sheet headed <code>devh - dev helper</code>, grouped by topic: availability, code exploration, Python, HTTP and more.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b8"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check which dev tools are installed</span><button class="tw-copy" type="button" aria-label="Copy: Check which dev tools are installed">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">devh</span> <span class="hl-f">--check</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line per tool: its name and its path, or <code>MISSING</code> when it is not on your PATH.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d8-b9"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find a dev command and put it on the prompt</span><button class="tw-copy" type="button" aria-label="Copy: Find a dev command and put it on the prompt">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">devh</span> <span class="hl-f">--pick</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The dev cheat sheet opens as a list. Enter puts the chosen command on your prompt without running it, so you can fill in placeholders such as <code>&lt;path&gt;</code>.</p></figure></section><section class="block" id="module-3-d9"><div class="section-label">Type it</div><h2>Every fzf helper at a glance</h2><p class="section-intro">What you want on the left, what to type on the right.</p><figure class="tw-codebox tw-keys" id="module-3-d9-b1"><figcaption class="tw-code-head"><span class="tw-where">fzf</span><span class="tw-code-title">fzf helpers: what to type</span><button class="tw-copy" type="button" aria-label="Copy: fzf helpers: what to type">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">ff</kbd></td><td>Find file by name and open it in nvim (Tab marks several)</td></tr><tr><td><kbd class="tw-key">ffh pdf</kbd></td><td>Find a file of one type anywhere under your home folder and open it</td></tr><tr><td><kbd class="tw-key">fa</kbd></td><td>Find any file, hidden and git-ignored ones too, and open it in nvim (skips .git)</td></tr><tr><td><kbd class="tw-key">fv</kbd></td><td>Find one file and open it in nvim (press Enter without Tab)</td></tr><tr><td><kbd class="tw-key">fe ord</kbd></td><td>Open the file matching a name at once, or pick from the matches</td></tr><tr><td><kbd class="tw-key">frg word</kbd></td><td>Find text in the project as you type and open nvim on the matching line</td></tr><tr><td><kbd class="tw-key">frc word</kbd></td><td>Find text in the project as you type and open the match in VS Code</td></tr><tr><td><kbd class="tw-key">fcode</kbd></td><td>Find files and open them in VS Code (Tab marks several)</td></tr><tr><td><kbd class="tw-key">fdir</kbd></td><td>Change into a folder you pick below the current one</td></tr><tr><td><kbd class="tw-key">fcd</kbd></td><td>Change to a parent folder you pick</td></tr><tr><td><kbd class="tw-key">fopen</kbd></td><td>Open files with their default macOS app</td></tr><tr><td><kbd class="tw-key">fscp</kbd></td><td>Copy file path: pick a file and its full path goes to the clipboard</td></tr><tr><td><kbd class="tw-key">fsc</kbd></td><td>Copy file content: pick a file and its whole text goes to the clipboard</td></tr><tr><td><kbd class="tw-key">fsd</kbd></td><td>Delete files you pick (Tab marks several); asks y/N first</td></tr><tr><td><kbd class="tw-key">fsdd</kbd></td><td>Delete folders you pick, contents included; asks y/N first</td></tr><tr><td><kbd class="tw-key">fgb</kbd></td><td>Switch to a git branch you pick and check it out</td></tr><tr><td><kbd class="tw-key">fgs</kbd></td><td>Stage or unstage a changed file, with a diff: Ctrl-a stages, Ctrl-r unstages</td></tr><tr><td><kbd class="tw-key">fgl</kbd></td><td>Browse the commit history with a diff preview (fgl --all for every branch)</td></tr><tr><td><kbd class="tw-key">ftm</kbd></td><td>Switch to another tmux session</td></tr><tr><td><kbd class="tw-key">ftmk</kbd></td><td>Kill tmux sessions you pick</td></tr><tr><td><kbd class="tw-key">fkill</kbd></td><td>Kill a process you pick (fkill 15 sends SIGTERM)</td></tr><tr><td><kbd class="tw-key">fport 8000</kbd></td><td>Kill whatever is listening on a port</td></tr><tr><td><kbd class="tw-key">fenv</kbd></td><td>Browse environment variables</td></tr><tr><td><kbd class="tw-key">fchelp</kbd></td><td>Search a command&#x27;s man page or --help text</td></tr><tr><td><kbd class="tw-key">fdocker</kbd></td><td>List docker containers with a log preview; Enter prints the container ID</td></tr><tr><td><kbd class="tw-key">f</kbd></td><td>Short for fzf: pick a file from the current folder</td></tr><tr><td><kbd class="tw-key">fzp</kbd></td><td>Pick a file with a numbered bat preview (fzf plus preview)</td></tr><tr><td><kbd class="tw-key">fh</kbd></td><td>Print every helper with an example</td></tr><tr><td><kbd class="tw-key">devh --pick</kbd></td><td>Search the dev cheat sheet and put the pick on the prompt</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>ff  Find file by name and open it in nvim (Tab marks several)
+ffh pdf  Find a file of one type anywhere under your home folder and open it
+fa  Find any file, hidden and git-ignored ones too, and open it in nvim (skips .git)
+fv  Find one file and open it in nvim (press Enter without Tab)
+fe ord  Open the file matching a name at once, or pick from the matches
+frg word  Find text in the project as you type and open nvim on the matching line
+frc word  Find text in the project as you type and open the match in VS Code
+fcode  Find files and open them in VS Code (Tab marks several)
+fdir  Change into a folder you pick below the current one
+fcd  Change to a parent folder you pick
+fopen  Open files with their default macOS app
+fscp  Copy file path: pick a file and its full path goes to the clipboard
+fsc  Copy file content: pick a file and its whole text goes to the clipboard
+fsd  Delete files you pick (Tab marks several); asks y/N first
+fsdd  Delete folders you pick, contents included; asks y/N first
+fgb  Switch to a git branch you pick and check it out
+fgs  Stage or unstage a changed file, with a diff: Ctrl-a stages, Ctrl-r unstages
+fgl  Browse the commit history with a diff preview (fgl --all for every branch)
+ftm  Switch to another tmux session
+ftmk  Kill tmux sessions you pick
+fkill  Kill a process you pick (fkill 15 sends SIGTERM)
+fport 8000  Kill whatever is listening on a port
+fenv  Browse environment variables
+fchelp  Search a command&#x27;s man page or --help text
+fdocker  List docker containers with a log preview; Enter prints the container ID
+f  Short for fzf: pick a file from the current folder
+fzp  Pick a file with a numbered bat preview (fzf plus preview)
+fh  Print every helper with an example
+devh --pick  Search the dev cheat sheet and put the pick on the prompt</code></pre></figure></section><section class="block" id="module-3-d10"><div class="section-label">Type it</div><h2>Pipe anything into fzf</h2><p class="section-intro">Any command&#x27;s output becomes a filterable list.</p><figure class="tw-codebox tw-cmd" id="module-3-d10-b1"><figcaption class="tw-code-head"><span class="tw-where">fzf</span><span class="tw-code-title">With pipes</span><button class="tw-copy" type="button" aria-label="Copy: With pipes">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-c"># Search history</span>
+<span class="hl-cmd">history</span> | <span class="hl-cmd">fzf</span>
+
+<span class="hl-c"># Search docker containers</span>
+<span class="hl-cmd">docker</span> ps <span class="hl-f">-a</span> | <span class="hl-cmd">fzf</span>
+
+<span class="hl-c"># Search git branches</span>
+<span class="hl-cmd">git</span> branch | <span class="hl-cmd">fzf</span> | <span class="hl-cmd">xargs</span> git checkout</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Each command opens its output as a filterable list. Enter on a branch checks it out.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d10-b2"><figcaption class="tw-code-head"><span class="tw-where">fzf</span><span class="tw-code-title">Advanced options</span><button class="tw-copy" type="button" aria-label="Copy: Advanced options">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-c"># Preview files</span>
+<span class="hl-cmd">fzf</span> <span class="hl-f">--preview</span> <span class="hl-s">&#x27;cat {}&#x27;</span>
+
+<span class="hl-c"># Multi-select files</span>
+<span class="hl-cmd">fzf</span> <span class="hl-f">-m</span>
+
+<span class="hl-c"># Case-insensitive</span>
+<span class="hl-cmd">fzf</span> <span class="hl-f">-i</span>
+
+<span class="hl-c"># Exact match</span>
+<span class="hl-cmd">fzf</span> <span class="hl-f">-e</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>--preview</code> shows the file beside the list, <code>-m</code> lets you pick several with Tab, <code>-i</code> ignores case and <code>-e</code> matches exactly.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>fzf options</h2><details class="rule-card" id="module-3-r1" name="rules-3" open><summary><span><span class="num">01</span>Flags</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Add them after <code>fzf</code>.</p><table><thead><tr><th>Flag</th><th>Does</th></tr></thead><tbody><tr><td><code>--preview</code></td><td>Show a command&#x27;s output for the selected line</td></tr><tr><td><code>-m</code></td><td>Multi-select files</td></tr><tr><td><code>-i</code></td><td>Case-insensitive</td></tr><tr><td><code>-e</code></td><td>Exact match</td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r2" name="rules-3"><summary><span><span class="num">02</span>Default fzf keys</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">History toggles the preview instead; the branch picker disables multi-select.</p><table><thead><tr><th>Key</th><th>Does</th></tr></thead><tbody><tr><td><code>Ctrl+/</code></td><td>Change preview layout</td></tr><tr><td><code>Ctrl+U</code> / <code>Ctrl+D</code></td><td>Scroll the preview up / down</td></tr><tr><td><code>Ctrl+Y</code></td><td>Copy the picked names and close</td></tr><tr><td><code>Tab</code></td><td>Mark several lines</td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r3" name="rules-3"><summary><span><span class="num">03</span>Clashes inside tmux</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Two keys mean something else in this setup.</p><table><thead><tr><th>Key</th><th>In tmux</th></tr></thead><tbody><tr><td><code>Ctrl-a</code></td><td>The prefix. Press it twice to reach the start of the line.</td></tr><tr><td><code>Ctrl-j/k</code></td><td>Switch panes, so use the arrows in fzf.</td></tr></tbody></table></div></details></section><section class="block" id="module-3-worked"><div class="section-label">Worked application</div><h2>Find a file and open it</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You know part of a name, not the path.</p><figure class="tw-codebox tw-cmd" id="module-3-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">ff</span></code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>ord</code></span> · <span>The list narrows to one file and <code>bat</code> shows a preview.</span></li><li><span><em>Keys:</em> <code>Enter</code></span> · <span><code>nvim</code> opens the file.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>  orders.py
+  1/3
+&gt; ord</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> One alias replaces a find, a read and an open.</div></div></section><section class="block" id="module-3-practice"><div class="section-label">Your turn</div><h2>Practice: copy mode and fzf</h2><div class="practice-card" id="module-3-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>y</code> in copy mode also leave copy mode?</p><details class="hint"><summary>hint</summary><p>Yank is the last step of copying.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>v</code> starts the selection.</li><li><code>y</code> copies it and exits.</li></ol><div class="solution-final"><strong>Final answer:</strong> The copy is done, so tmux exits copy mode.</div></div></details></div><div class="practice-card" id="module-3-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Copy a line of output and paste it at the prompt.</p><details class="hint"><summary>hint</summary><p>Enter copy mode first.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>Ctrl-a [</code>, move, <code>v</code>, move.</li><li><code>y</code> to copy.</li><li><code>Ctrl-a ]</code> to paste.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-a [</code>, <code>v</code>, <code>y</code>, <code>Ctrl-a ]</code>.</div></div></details></div><div class="practice-card" id="module-3-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Check out a git branch by picking it from a list.</p><details class="hint"><summary>hint</summary><p>Pipe the branch list into fzf.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>git branch</code> lists the branches.</li><li><code>fzf</code> filters them.</li><li><code>xargs git checkout</code> switches.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git branch | fzf | xargs git checkout</code></div></div></details></div><div class="practice-card" id="module-3-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text"><code>Ctrl-a</code> at the prompt does not jump to the start of the line in tmux. Why?</p><details class="hint"><summary>hint</summary><p>Think of the prefix.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>tmux takes <code>Ctrl-a</code> as its prefix.</li><li>Send it on by pressing it twice.</li></ol><div class="solution-final"><strong>Final answer:</strong> Press <code>Ctrl-a Ctrl-a</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-4" data-module="4" role="tabpanel" aria-labelledby="tab-4" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">tmux and the shell · Page 4 of 4</div><h1>Make tmux yours</h1><p class="subtitle">Style the status bar, add plugins, and restore your workspace after a reboot.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>One file, `~/.config/tmux/tmux.conf`, controls how tmux looks and behaves.</p><ul class="kitchen-links"><li><strong>Reload <span class="kl-nowrap">→ Ctrl-a r.</span></strong> Applies your config changes.</li><li><strong>Install plugins <span class="kl-nowrap">→ Ctrl-a I.</span></strong> Capital I, with TPM.</li><li><strong>Save <span class="kl-nowrap">→ Ctrl-a Ctrl-s.</span></strong> Saves windows, panes and layout.</li><li><strong>Restore <span class="kl-nowrap">→ Ctrl-a Ctrl-r.</span></strong> Brings the saved workspace back.</li></ul></div></div><div class="block" id="module-4-problem"><div class="word-problem"><span class="tag">The problem</span><p>A computer restart kills the tmux server, and your windows are gone.</p><div class="result-box"><strong>The fix:</strong> Save with resurrect and continuum, then restore once at login with a lock-guarded script.</div></div></div><section class="block" id="module-4-d1"><div class="section-label">Type it</div><h2>Reload tmux and check a setting</h2><p class="section-intro">tmux reads <code>~/.config/tmux/tmux.conf</code>. After you edit it, reload, then ask tmux which values it is using.</p><figure class="tw-codebox tw-keys" id="module-4-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Reload the config</span><button class="tw-copy" type="button" aria-label="Copy: Reload the config">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a r</kbd></td><td>Reload tmux.conf</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a r  Reload tmux.conf</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Edit the file, save, then press <code>Ctrl-a r</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Config reloaded</code> flashes in the status bar and the change applies to the running session.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Check that a setting is active</span><button class="tw-copy" type="button" aria-label="Copy: Check that a setting is active">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> show <span class="hl-f">-g</span> base-index
+<span class="hl-cmd">tmux</span> show <span class="hl-f">-g</span> history-limit
+<span class="hl-cmd">tmux</span> show <span class="hl-f">-g</span> mouse</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>base-index 1</code>, <code>history-limit 50000</code> and <code>mouse on</code> print, one per line.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Check what the status bar shows</span><button class="tw-copy" type="button" aria-label="Copy: Check what the status bar shows">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> show <span class="hl-f">-g</span> status-left
+<span class="hl-cmd">tmux</span> show <span class="hl-f">-g</span> status-style</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>status-left &quot;[#S] &quot;</code> prints, so the left of the bar reads <code>[main]</code> in the session called main. <code>status-style bg=#1a1b26,fg=#a9b1d6</code> is the bar colour.</p></figure><figure class="tw-codebox tw-keys" id="module-4-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Status bar variables</span><button class="tw-copy" type="button" aria-label="Copy: Status bar variables">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">#S</kbd></td><td>Session name</td></tr><tr><td><kbd class="tw-key">#I</kbd></td><td>Window index</td></tr><tr><td><kbd class="tw-key">#W</kbd></td><td>Window name</td></tr><tr><td><kbd class="tw-key">#P</kbd></td><td>Pane index</td></tr><tr><td><kbd class="tw-key">#H</kbd></td><td>Hostname</td></tr><tr><td><kbd class="tw-key">#T</kbd></td><td>Pane title</td></tr><tr><td><kbd class="tw-key">%H:%M</kbd></td><td>Time (24h)</td></tr><tr><td><kbd class="tw-key">%d/%m</kbd></td><td>Date</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>#S  Session name
+#I  Window index
+#W  Window name
+#P  Pane index
+#H  Hostname
+#T  Pane title
+%H:%M  Time (24h)
+%d/%m  Date</code></pre></figure></section><section class="block" id="module-4-d2"><div class="section-label">Type it</div><h2>Open the tmux config and control tmux inside tmux</h2><p class="section-intro"><code>tmuxconf</code> opens the config file in your editor. <code>F12</code> hands every key to a tmux running inside this one, such as a server you reached over SSH.</p><figure class="tw-codebox tw-cmd" id="module-4-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open tmux.conf in your editor</span><button class="tw-copy" type="button" aria-label="Copy: Open tmux.conf in your editor">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmuxconf</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>~/.config/tmux/tmux.conf</code> opens in <code>nvim</code>. Save, quit, then press <code>Ctrl-a r</code> to apply it.</p></figure><figure class="tw-codebox tw-keys" id="module-4-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Switch to the inner tmux and back</span><button class="tw-copy" type="button" aria-label="Copy: Switch to the inner tmux and back">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">F12</kbd></td><td>Nested tmux: pass every key through to the inner session, press again to take control back</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>F12  Nested tmux: pass every key through to the inner session, press again to take control back</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Press <code>F12</code>, read the status bar, then press <code>F12</code> again.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> A red <code>NESTED</code> appears at the right of the status bar. While it shows, this tmux&#x27;s prefix is off and every key, <code>Ctrl-a</code> included, reaches the tmux running inside. After the second <code>F12</code> the label is gone and <code>Ctrl-a</code> controls this tmux again.</p></figure></section><section class="block" id="module-4-d3"><div class="section-label">Type it</div><h2>Install and update plugins</h2><p class="section-intro">TPM, the tmux plugin manager, is already installed. List what it holds, and install new plugins with one key.</p><figure class="tw-codebox tw-cmd" id="module-4-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">List your installed plugins</span><button class="tw-copy" type="button" aria-label="Copy: List your installed plugins">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ls</span> ~/.tmux/plugins</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One folder per plugin: <code>tpm</code>, <code>tmux-sensible</code>, <code>tmux-resurrect</code>, <code>tmux-continuum</code>, <code>tmux-yank</code> and <code>tmux-sidebar</code>.</p></figure><figure class="tw-codebox tw-keys" id="module-4-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Install the plugins</span><button class="tw-copy" type="button" aria-label="Copy: Install the plugins">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a I</kbd></td><td>Install plugins (capital I)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a I  Install plugins (capital I)</code></pre><p class="tw-try"><span class="tw-expect-label">Try it</span> Add a <code>set -g @plugin</code> line to <code>tmux.conf</code>, reload with <code>Ctrl-a r</code>, then press <code>Ctrl-a I</code>.</p><p class="tw-expect"><span class="tw-expect-label">You should see</span> TPM fetches the listed plugins.</p></figure></section><section class="block" id="module-4-d4"><div class="section-label">Type it</div><h2>Save and restore your workspace</h2><p class="section-intro">Your entire workspace survives reboots: windows, pane layouts, even running commands.</p><figure class="tw-codebox tw-keys" id="module-4-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Save and restore</span><button class="tw-copy" type="button" aria-label="Copy: Save and restore">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">Ctrl-a Ctrl-s</kbd></td><td>Save session (all windows, panes, layout)</td></tr><tr><td><kbd class="tw-key">Ctrl-a Ctrl-r</kbd></td><td>Restore session (after reboot)</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>Ctrl-a Ctrl-s  Save session (all windows, panes, layout)
+Ctrl-a Ctrl-r  Restore session (after reboot)</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-4-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check that tmux is saving your sessions</span><button class="tw-copy" type="button" aria-label="Copy: Check that tmux is saving your sessions">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ls</span> ~/.local/share/tmux/resurrect | <span class="hl-cmd">tail</span> <span class="hl-n">-3</span>
+<span class="hl-cmd">tmux</span> show <span class="hl-f">-g</span> @continuum-save-interval</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The newest saves are <code>tmux_resurrect_</code> files named with a date and time, no more than 10 minutes old while tmux runs. <code>@continuum-save-interval 10</code> is the save interval in minutes.</p></figure><p class="tw-text">The reboot problem. Quitting and reopening iTerm2 is fine: the tmux server keeps running. A computer restart kills the server, and nothing restarts it, so nothing restores.</p><p class="tw-text">The pileup trap. resurrect is not idempotent: every restore trigger re-adds panes. With <code>@continuum-restore &#x27;on&#x27;</code> (your setting), a boot agent and iTerm2 launching tmux can each fire a restore, and the same panes stack 3-6 times into slivers. The fix is exactly one restore, lock-guarded.</p></section><section class="block" id="module-4-d5"><div class="section-label">Type it</div><h2>Check the restore after a reboot</h2><p class="section-intro">A launch agent runs two small scripts at login so the restore happens exactly once. Check that each part is in place.</p><figure class="tw-codebox tw-cmd" id="module-4-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check that both restore scripts are executable</span><button class="tw-copy" type="button" aria-label="Copy: Check that both restore scripts are executable">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ls</span> <span class="hl-f">-l</span> ~/.config/tmux/*.sh</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>boot-restore.sh</code> and <code>restore-once.sh</code> are listed, each starting with <code>-rwxr-xr-x</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d5-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check that the login launch agent is loaded</span><button class="tw-copy" type="button" aria-label="Copy: Check that the login launch agent is loaded">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">launchctl</span> list | <span class="hl-cmd">grep</span> tmux-restore</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line ending in <code>com.indamutsa.tmux-restore</code>. A <code>0</code> before the name means the last run exited cleanly.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d5-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check that the restore ran once</span><button class="tw-copy" type="button" aria-label="Copy: Check that the restore ran once">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">ls</span> /tmp/tmux-resurrect-restored-<span class="hl-v">$(</span><span class="hl-cmd">id</span> <span class="hl-f">-u</span>)</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> After login the lock file is listed: the restore already ran for this boot and will not run again. <code>No such file</code> means no restore has run since login.</p></figure></section><section class="block" id="module-4-d6"><div class="section-label">Type it</div><h2>Add your own key binding</h2><p class="section-intro">Add a line to <code>tmux.conf</code>, reload, then ask tmux for the binding.</p><figure class="tw-codebox tw-code" id="module-4-d6-b1"><figcaption class="tw-code-head"><span class="tw-where">~/.config/tmux/tmux.conf</span><span class="tw-code-title">Custom key bindings</span><button class="tw-copy" type="button" aria-label="Copy: Custom key bindings">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-c"># Quick window swap</span>
+<span class="hl-cmd">bind</span> <span class="hl-f">-r</span> &lt; swap-window <span class="hl-f">-t</span> <span class="hl-n">-1</span>\; select-window <span class="hl-f">-t</span> <span class="hl-n">-1</span>
+<span class="hl-cmd">bind</span> <span class="hl-f">-r</span> &gt; swap-window <span class="hl-f">-t</span> <span class="hl-n">+1</span>\; select-window <span class="hl-f">-t</span> <span class="hl-n">+1</span>
+
+<span class="hl-c"># Split and immediately open nvim</span>
+<span class="hl-cmd">bind</span> v split-window <span class="hl-f">-h</span> <span class="hl-f">-c</span> <span class="hl-s">&quot;#{pane_current_path}&quot;</span> \; send-keys <span class="hl-s">&quot;nvim .&quot;</span> Enter
+
+<span class="hl-c"># Kill pane without confirmation</span>
+<span class="hl-cmd">bind</span> X kill-pane
+
+<span class="hl-c"># Quick session switching</span>
+<span class="hl-cmd">bind</span> S choose-tree <span class="hl-f">-s</span>    <span class="hl-c"># interactive session+window tree</span>
+
+<span class="hl-c"># Toggle between last window</span>
+<span class="hl-cmd">bind</span> Tab last-window</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-4-d6-b2"><figcaption class="tw-code-head"><span class="tw-where">tmux</span><span class="tw-code-title">Check a key binding</span><button class="tw-copy" type="button" aria-label="Copy: Check a key binding">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">tmux</span> list-keys <span class="hl-f">-T</span> prefix r</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One <code>bind-key</code> line for the <code>prefix</code> table and key <code>r</code>: the reload binding, <code>source-file</code> followed by your <code>tmux.conf</code> path.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Restore after reboot</h2><details class="rule-card" id="module-4-r1" name="rules-4" open><summary><span><span class="num">01</span>How it works on boot</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">One path, zero pileup.</p><table><thead><tr><th>Step</th><th>What happens</th></tr></thead><tbody><tr><td>1. Log in</td><td>launchd runs <code>boot-restore.sh</code>: starts the server and restores <code>main</code> once, lock-guarded</td></tr><tr><td>2. Attach</td><td><code>to main</code> (<code>tmux new-session -A -s main</code>) attaches to the restored session</td></tr><tr><td>3. No re-runs</td><td>Continuum restore is on and fires once per server start; the lock blocks repeats</td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r2" name="rules-4"><summary><span><span class="num">02</span>Gotchas</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Four things that bit.</p><table><thead><tr><th>Gotcha</th><th>Fix</th></tr></thead><tbody><tr><td>launchd&#x27;s PATH excludes <code>/opt/homebrew/bin</code>, so resurrect&#x27;s bare <code>tmux</code> calls fail silently</td><td>Export PATH in the boot script</td></tr><tr><td><code>tmux start-server</code> alone can exit with no session attached</td><td>Anchor it with <code>new-session -d -s main</code></td></tr><tr><td>Plist <code>Label</code> contains <code>.plist</code> or is not reverse-DNS</td><td>Use <code>com.you.name</code></td></tr><tr><td>Several restores at once: continuum, the boot agent and iTerm2</td><td>That is the pileup. Send every restore through the lock-guarded script</td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r3" name="rules-4"><summary><span><span class="num">03</span>Why not continuum-boot?</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">It starts on boot, but opens Terminal.app on every login and still races with iTerm2.</p><figure class="tw-codebox tw-code" id="module-4-r3-code"><figcaption class="tw-code-head"><span class="tw-where">Example</span><span class="tw-code-title">Why not continuum-boot?</span><button class="tw-copy" type="button" aria-label="Copy: Why not continuum-boot?">Copy</button></figcaption><pre class="sq-code"><code>set -g @continuum-boot &#x27;on&#x27;    # avoid: opens Terminal.app, races with iTerm2</code></pre></figure></div></details></section><section class="block" id="module-4-worked"><div class="section-label">Worked application</div><h2>Show the session name and the time</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You want the bar to say where you are and what time it is.</p><figure class="tw-codebox tw-cmd" id="module-4-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">nvim</span> ~/.config/tmux/tmux.conf</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>G</code> <code>o</code> then <code>set -g status-left &quot;[#S] &quot;</code> then <code>Esc</code></span> · <span>Adds the left side.</span></li><li><span><em>Keys:</em> <code>o</code> then <code>set -g status-right &quot;%H:%M&quot;</code> then <code>Esc</code></span> · <span>Adds the right side.</span></li><li><span><em>Keys:</em> <code>:w</code></span> · <span>Saves the file.</span></li><li><span><em>Keys:</em> <code>Ctrl-a r</code></span> · <span>Reloads the config.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>[main]                          09:41</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> <code>#S</code> and <code>%H:%M</code> fill in live, so the bar always shows the session and the time.</div></div></section><section class="block" id="module-4-practice"><div class="section-label">Your turn</div><h2>Practice: your config</h2><div class="practice-card" id="module-4-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does a computer restart lose your tmux workspace even when quitting iTerm2 does not?</p><details class="hint"><summary>hint</summary><p>Where does the tmux server live?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The server runs in the background, outside iTerm2.</li><li>A restart kills the server.</li></ol><div class="solution-final"><strong>Final answer:</strong> A restart kills the server, and nothing restarts it.</div></div></details></div><div class="practice-card" id="module-4-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Reload the config, then install new plugins.</p><details class="hint"><summary>hint</summary><p>Two prefix commands.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>Ctrl-a r</code> reloads.</li><li><code>Ctrl-a I</code> installs, capital I.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>Ctrl-a r</code>, then <code>Ctrl-a I</code>.</div></div></details></div><div class="practice-card" id="module-4-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Make window numbering start at 1.</p><details class="hint"><summary>hint</summary><p>It is an option in <code>tmux.conf</code>.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Add <code>set -g base-index 1</code>.</li><li>Add <code>setw -g pane-base-index 1</code> for panes.</li><li>Reload with <code>Ctrl-a r</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>set -g base-index 1</code> and <code>setw -g pane-base-index 1</code>.</div></div></details></div><div class="practice-card" id="module-4-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Your restored session shows the same panes stacked 3-6 times. What went wrong?</p><details class="hint"><summary>hint</summary><p>Count the restore triggers.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>resurrect is not idempotent.</li><li>continuum restore, a boot agent and iTerm2 each restored.</li></ol><div class="solution-final"><strong>Final answer:</strong> More than one restore ran. Keep only the lock-guarded script.</div></div></details></div></section></section>
+    </main>
+    <nav class="tabbar" aria-label="Page navigation">
+      <div class="tabbar-inner">
+        <button id="prevBtn" class="nav-arrow" type="button" aria-label="Previous page">‹</button>
+        <div id="tabs" class="tabs sq-tabs" role="tablist" aria-label="Pages"></div>
+        <button id="nextBtn" class="nav-arrow" type="button" aria-label="Next page">›</button>
+        <span id="progressMini" class="progress-mini" aria-live="polite">1/4</span>
+      </div>
+    </nav>
+    <nav class="group-nav" aria-label="Course modules">
+      <a href="../index.html">← Course map</a>
+      <a rel="next" href="../m2-nvim-essentials/">Neovim essentials →</a>
+    </nav>
+    <footer>
+      <strong>Module 1 · tmux and the shell</strong><br />Sessions, windows and panes; copy mode and fzf; status bar, plugins and restore after reboot
+    </footer>
+    <script>window.TW_GLOSSARY = [{"id": "tw-prefix", "label": "Prefix key", "forms": ["prefix key", "prefix"], "definition": "The key you press first to tell tmux that the next key is a tmux command. Here: Ctrl-a."}, {"id": "tw-session", "label": "Session", "forms": ["session", "sessions"], "definition": "A tmux workspace that keeps running when you close the terminal window. You re-attach to it later."}, {"id": "tw-pane", "label": "Pane", "forms": ["pane", "panes"], "definition": "One rectangle inside a tmux window. Each pane runs its own shell."}, {"id": "tw-buffer", "label": "Buffer", "forms": ["buffer", "buffers"], "definition": "A file loaded into Neovim's memory. You edit the buffer, and saving writes it to disk."}, {"id": "tw-register", "label": "Register", "forms": ["register", "registers"], "definition": "A named slot in Neovim that holds text: yanked, deleted or typed."}, {"id": "tw-worktree", "label": "Worktree", "forms": ["worktree", "worktrees"], "definition": "A second folder checked out from the same git repository, on its own branch."}, {"id": "tw-leader", "label": "Leader key", "forms": ["leader key", "leader"], "definition": "A key you press first to start your own Neovim shortcuts. Here: Space."}, {"id": "tw-picker", "label": "Picker", "forms": ["picker", "pickers"], "definition": "A pop-up list you filter by typing, such as the file finder."}, {"id": "tw-hunk", "label": "Hunk", "forms": ["hunk", "hunks"], "definition": "One block of changed lines in a git diff."}, {"id": "tw-quickfix", "label": "Quickfix list", "forms": ["quickfix list", "quickfix"], "definition": "A list of locations, such as search hits or errors, that you step through one by one."}, {"id": "tw-lsp", "label": "LSP", "forms": ["LSP"], "definition": "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."}];</script>
+    <script src="../_shared/search-index.js?v=7050f6f50e"></script>
+    <script src="../_shared/cheatsheet.js?v=c77d46e8ab"></script>
+    <script>
+/* Course page behaviour: tabs, hash links, rule cards, glossary. Base from the SQL course. */
+
+"use strict";
+document.documentElement.classList.add("js-ready");
+const lessons = Array.from(document.querySelectorAll(".lesson"));
+const tabsHost = document.getElementById("tabs");
+const previousButton = document.getElementById("prevBtn");
+const nextButton = document.getElementById("nextBtn");
+const progress = document.getElementById("progressMini");
+let activeLesson = 0;
+const tabs = lessons.map((lesson, index) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "tab";
+  button.id = `tab-${index + 1}`;
+  button.setAttribute("role", "tab");
+  button.setAttribute("aria-controls", lesson.id);
+  button.setAttribute("aria-label", `Open page ${index + 1}`);
+  button.textContent = String(index + 1);
+  button.addEventListener("click", () => goTo(index));
+  tabsHost.append(button);
+  return button;
+});
+function showLesson(index, options = {}) {
+  activeLesson = Math.max(0, Math.min(index, lessons.length - 1));
+  lessons.forEach((lesson, position) => {
+    const selected = position === activeLesson;
+    lesson.classList.toggle("active", selected);
+    lesson.setAttribute("aria-hidden", String(!selected));
+    tabs[position].classList.toggle("active", selected);
+    tabs[position].setAttribute("aria-selected", String(selected));
+    tabs[position].tabIndex = selected ? 0 : -1;
+  });
+  previousButton.disabled = activeLesson === 0;
+  nextButton.disabled = activeLesson === lessons.length - 1;
+  progress.textContent = `${activeLesson + 1}/${lessons.length}`;
+  if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
+}
+// Tab moves rewrite the hash without a new history entry, so reload and shared links keep the page.
+function goTo(index) {
+  showLesson(index);
+  history.replaceState(null, "", `#${lessons[activeLesson].id}`);
+}
+previousButton.addEventListener("click", () => goTo(activeLesson - 1));
+nextButton.addEventListener("click", () => goTo(activeLesson + 1));
+tabsHost.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight") { event.preventDefault(); goTo(activeLesson + 1); tabs[activeLesson].focus(); }
+  if (event.key === "ArrowLeft") { event.preventDefault(); goTo(activeLesson - 1); tabs[activeLesson].focus(); }
+});
+
+const HIT_FLASH_MS = 1600;
+// Any id inside a page works as a deep link: open its tab, open its details, then scroll to it.
+function routeToHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const target = id && document.getElementById(id);
+  const lesson = target && target.closest(".lesson");
+  if (!lesson) return false;
+  showLesson(lessons.indexOf(lesson), { scroll: false });
+  for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: "start" });
+    if (target === lesson) return;
+    target.classList.add("tw-hit");
+    setTimeout(() => target.classList.remove("tw-hit"), HIT_FLASH_MS);
+  });
+  return true;
+}
+addEventListener("hashchange", routeToHash);
+if (!routeToHash()) showLesson(0);
+
+if (!("name" in HTMLDetailsElement.prototype)) {
+  document.querySelectorAll(".rule-card").forEach((card) => {
+    card.addEventListener("toggle", () => {
+      if (!card.open || !card.getAttribute("name")) return;
+      const name = card.getAttribute("name");
+      document.querySelectorAll(`.rule-card[name="${name}"]`).forEach((other) => {
+        if (other !== card && other.open) other.open = false;
+      });
+    });
+  });
+}
+
+(function () {
+  const glossaryEntries = window.TW_GLOSSARY || [];
+      const glossaryFormMap = new Map();
+      glossaryEntries.forEach(function (entry) {
+        entry.forms.forEach(function (form) {
+          glossaryFormMap.set(form.toLowerCase(), entry);
+        });
+      });
+      const glossaryForms = [...glossaryFormMap.keys()].sort(function (a, b) {
+        return b.length - a.length;
+      });
+      const glossaryPattern = new RegExp(
+        "\\b(" +
+          glossaryForms
+            .map(function (term) {
+              return term.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+            })
+            .join("|") +
+          ")\\b",
+        "gi",
+      );
+      const glossarySkip =
+        "button,a,summary,label,input,select,option,textarea,code,pre,script,style,noscript,svg,.tw-codebox,.tw-search,.tw-search-btn,kbd,.glossary-popover,.glossary-term,.eyebrow,.kitchen-strip";
+      const glossarySection = 'section[id^="module-"]';
+
+      function applyGlossary(scope) {
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode: function (node) {
+            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest(glossarySkip))
+              return NodeFilter.FILTER_REJECT;
+            glossaryPattern.lastIndex = 0;
+            return glossaryPattern.test(node.nodeValue)
+              ? NodeFilter.FILTER_ACCEPT
+              : NodeFilter.FILTER_REJECT;
+          },
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function (node) {
+          const text = node.nodeValue;
+          // One link per term per page. The DOM is the record: the observer below re-runs this on every caption change.
+          const section = node.parentElement.closest(glossarySection);
+          const linkedHere = new Set();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          glossaryPattern.lastIndex = 0;
+          let match;
+          while ((match = glossaryPattern.exec(text))) {
+            const entry = glossaryFormMap.get(match[0].toLowerCase());
+            if (
+              section &&
+              (linkedHere.has(entry.id) ||
+                section.querySelector(
+                  '.glossary-term[data-glossary="' + entry.id + '"]',
+                ))
+            )
+              continue;
+            if (match.index > cursor)
+              fragment.append(
+                document.createTextNode(text.slice(cursor, match.index)),
+              );
+            const term = document.createElement("button");
+            term.type = "button";
+            term.className = "glossary-term";
+            term.dataset.glossary = entry.id;
+            term.setAttribute("aria-haspopup", "dialog");
+            term.setAttribute("aria-expanded", "false");
+            term.setAttribute("aria-label", match[0] + ": open definition");
+            term.textContent = match[0];
+            fragment.append(term);
+            linkedHere.add(entry.id);
+            cursor = match.index + match[0].length;
+          }
+          // Nothing linked: leave the node alone, or the observer would loop forever.
+          if (!linkedHere.size) return;
+          if (cursor < text.length)
+            fragment.append(document.createTextNode(text.slice(cursor)));
+          node.replaceWith(fragment);
+        });
+      }
+
+      const glossaryPopover = document.createElement("aside");
+      glossaryPopover.className = "glossary-popover";
+      glossaryPopover.id = "glossary-popover";
+      glossaryPopover.hidden = true;
+      glossaryPopover.setAttribute("role", "dialog");
+      glossaryPopover.setAttribute("aria-label", "Term definition");
+      glossaryPopover.innerHTML =
+        '<button class="glossary-close" type="button" aria-label="Close definition">×</button><strong class="glossary-title"></strong><p class="glossary-definition"></p><span class="glossary-meta">Definition · Press Esc or click elsewhere to close</span>';
+      document.body.append(glossaryPopover);
+
+      let activeGlossaryTerm = null;
+      function closeGlossary() {
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = null;
+        glossaryPopover.hidden = true;
+      }
+      function positionGlossary(term) {
+        const gap = 13,
+          margin = 12,
+          termRect = term.getBoundingClientRect();
+        glossaryPopover.classList.remove("below");
+        glossaryPopover.hidden = false;
+        const popRect = glossaryPopover.getBoundingClientRect();
+        const left = Math.max(
+          margin,
+          Math.min(
+            innerWidth - popRect.width - margin,
+            termRect.left + termRect.width / 2 - popRect.width / 2,
+          ),
+        );
+        let top = termRect.top - popRect.height - gap;
+        if (top < margin) {
+          top = termRect.bottom + gap;
+          glossaryPopover.classList.add("below");
+        }
+        const pointer = Math.max(
+          16,
+          Math.min(
+            popRect.width - 16,
+            termRect.left + termRect.width / 2 - left,
+          ),
+        );
+        glossaryPopover.style.left = left + "px";
+        glossaryPopover.style.top =
+          Math.min(top, innerHeight - popRect.height - margin) + "px";
+        glossaryPopover.style.setProperty("--pointer-x", pointer + "px");
+      }
+      function openGlossary(term) {
+        const entry = glossaryEntries.find(function (item) {
+          return item.id === term.dataset.glossary;
+        });
+        if (!entry) return;
+        if (activeGlossaryTerm === term && !glossaryPopover.hidden) {
+          closeGlossary();
+          return;
+        }
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = term;
+        term.setAttribute("aria-expanded", "true");
+        glossaryPopover.querySelector(".glossary-title").textContent =
+          entry.label;
+        glossaryPopover.querySelector(".glossary-definition").textContent =
+          entry.definition;
+        positionGlossary(term);
+      }
+      document.addEventListener("click", function (event) {
+        const term = event.target.closest(".glossary-term");
+        if (term) {
+          event.preventDefault();
+          event.stopPropagation();
+          openGlossary(term);
+          return;
+        }
+        if (event.target.closest(".glossary-close")) {
+          closeGlossary();
+          return;
+        }
+        if (!event.target.closest(".glossary-popover")) closeGlossary();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !glossaryPopover.hidden) {
+          const term = activeGlossaryTerm;
+          closeGlossary();
+          if (term) term.focus();
+        }
+      });
+      addEventListener("resize", closeGlossary);
+      addEventListener("scroll", closeGlossary, true);
+
+      const glossaryRoot = document.querySelector("main");
+      applyGlossary(glossaryRoot);
+      let glossaryQueued = false;
+      new MutationObserver(function () {
+        if (glossaryQueued) return;
+        glossaryQueued = true;
+        requestAnimationFrame(function () {
+          glossaryQueued = false;
+          applyGlossary(glossaryRoot);
+        });
+      }).observe(glossaryRoot, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+    })();
+
+    </script>
+    <script>
+/* Site behaviour shared by every page: copy buttons, the cheat sheet drawer and site-wide search. */
+"use strict";
+(function () {
+  const MAX_RESULTS = 40;
+  const COPY_RESET_MS = 1500;
+  const KIND_LABEL = { p: "Page", h: "Section", c: "Command", k: "Key", t: "Text" };
+  const KIND_WEIGHT = { c: 30, k: 30, h: 20, p: 15, t: 0 };
+  const PHRASE_BONUS = 100, START_BONUS = 50, SAME_FILE_BONUS = 5;
+  const SYNONYM_START_BONUS = START_BONUS / 2;
+  const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
+  const ACTION_BONUS = PHRASE_BONUS + START_BONUS;
+  const WORD_BONUS = 40;
+  // A module lives at <folder>/index.html but is linked as <folder>/.
+  const MODULE_FILE_RE = /(^|\/)index\.html$/;
+  const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
+
+  // Vim and tmux spellings of the same key must meet: "<C-w>v" and "Ctrl-w v" both become "ctrl-w v".
+  function norm(s) {
+    return String(s).toLowerCase()
+      .replace(/<c-([^>]+)>/g, " ctrl-$1 ")
+      .replace(/<leader>/g, "<space>")
+      .replace(/\bctrl\+/g, "ctrl-")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  function stem(token) {
+    if (!/^[a-z]+$/.test(token)) return token;
+    const base = token.replace(/(?:ing|ed|es|s)$/, "");
+    return base.length >= 3 ? base : token;
+  }
+
+  function whole(hay, word) {
+    for (let at = hay.indexOf(word); at !== -1; at = hay.indexOf(word, at + word.length)) {
+      const tail = hay.slice(at + word.length).match(/^[a-z0-9]*/)[0];
+      if (!/[a-z0-9]/.test(hay[at - 1] || "") && /^(?:s|es|ed|ing)?$/.test(tail)) return true;
+    }
+    return false;
+  }
+
+  function createMatcher(groups) {
+    const aliases = new Map();
+    groups.forEach((group) => {
+      const words = [...new Set(group.flatMap((word) => [norm(word), stem(norm(word))]))];
+      words.forEach((word) => {
+        if (!aliases.has(word)) aliases.set(word, new Set());
+        words.forEach((variant) => aliases.get(word).add(variant));
+      });
+    });
+    function query(q) {
+      const normalized = norm(q);
+      return normalized ? normalized.split(" ").map((original) => {
+        const base = stem(original);
+        // saved -> sav must discover save's groups as well as literal sav matches.
+        const inflected = base === original ? [] : [...aliases.keys()]
+          .filter((word) => word.startsWith(base)).flatMap((word) => [...aliases.get(word)]);
+        return { original, variants: [...new Set([original, base,
+          ...(aliases.get(original) || []), ...(aliases.get(base) || []), ...inflected])] };
+      }) : [];
+    }
+    function match(hay, tokens) {
+      let exact = 0;
+      const variants = [];
+      for (const token of tokens) {
+        const variant = token.variants.find((word) => hay.includes(word));
+        if (!variant) return null;
+        if (hay.includes(token.original)) exact++;
+        variants.push(variant);
+      }
+      return { exact, variants };
+    }
+    return { query, match };
+  }
+
+  function createSearch(data) {
+    const matcher = createMatcher(data.syn || []);
+    const both = data.items.map((it) => norm(it[4] + " " + it[5]));
+    const text = data.items.map((it) => norm(it[5]));
+    const description = data.items.map((it) => it[0] === "k"
+      ? norm(it[5].split(/ {2,}/).slice(1).join("  ")) : "");
+    const title = data.items.map((it) => it[0] === "c" ? norm(it[4]) : "");
+    function search(q, here = "", limit = MAX_RESULTS) {
+      q = norm(q);
+      const tokens = matcher.query(q);
+      if (!tokens.length) return { items: [], total: 0 };
+      const hits = [];
+      data.items.forEach((it, i) => {
+        const matched = matcher.match(both[i], tokens);
+        if (!matched) return;
+        let score = KIND_WEIGHT[it[0]] || 0;
+        if (it[0] === "c" || it[0] === "k") score += ACTION_BONUS;
+        if (it[0] === "c" && /^\s*(#|\/\/)/.test(it[5])) score -= ACTION_BONUS * 2;
+        tokens.forEach((token) => {
+          if (token.variants.some((variant) => whole(both[i], variant))) score += WORD_BONUS;
+        });
+        if (both[i].includes(q)) score += PHRASE_BONUS;
+        // Task titles retain command relevance for multiword queries; single words prefer key actions.
+        const action = description[i] || (tokens.length > 1 ? title[i] : "");
+        const starts = (variant) => action.startsWith(variant) && whole(action.split(" ")[0], variant);
+        if (text[i].startsWith(q) || (action && (action.startsWith(q) || starts(tokens[0].original)))) {
+          score += START_BONUS;
+        } else if (action && tokens[0].variants.some(starts)) {
+          score += SYNONYM_START_BONUS;
+        }
+        if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
+        score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
+        hits.push({ i, score, exact: matched.exact });
+      });
+      hits.sort((a, b) => b.exact - a.exact || b.score - a.score || a.i - b.i);
+      // The same row often appears on several pages; keep only its best-ranked copy.
+      const seen = new Set();
+      const unique = hits.filter((hit) => {
+        const key = text[hit.i];
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return { items: unique.slice(0, limit).map((hit) => data.items[hit.i]), total: unique.length };
+    }
+    return { ...matcher, search };
+  }
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { norm, stem, createMatcher, createSearch, highlight };
+  }
+  if (typeof document === "undefined") return;
+  const root = document.body.dataset.root || "";
+  const here = document.body.dataset.file || "index.html";
+  const engine = createSearch(window.TW_SEARCH || { items: [], files: [] });
+
+  // ---- copy
+  function legacyCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    area.remove();
+    return ok;
+  }
+  async function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+    }
+    return legacyCopy(text);
+  }
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".tw-copy");
+    if (!button) return;
+    const box = button.closest(".tw-codebox");
+    const source = box && (box.querySelector(".tw-copy-src code") || box.querySelector("pre.sq-code code"));
+    if (!source) return;
+    const ok = await copyText(source.textContent);
+    button.textContent = ok ? "Copied" : "Copy failed";
+    clearTimeout(button._twReset);
+    button._twReset = setTimeout(() => { button.textContent = "Copy"; }, COPY_RESET_MS);
+  });
+
+  // ---- cheat sheet
+  const STORE_KEY = "tw-cheat";
+  const drawer = document.getElementById("tw-cheat");
+  const cheatBtn = document.querySelector(".tw-cheat-btn");
+  const cheatQ = document.getElementById("tw-cheat-q");
+  const cheatTabs = document.getElementById("tw-cheat-tabs");
+  const cheatBody = document.getElementById("tw-cheat-body");
+  const searchDialog = document.getElementById("tw-search");
+  const cheatState = { open: false, tab: "" };
+  let cheatNorm = null;
+
+  function loadCheatState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      cheatState.open = saved.open === true;
+      cheatState.tab = typeof saved.tab === "string" ? saved.tab : "";
+    } catch (e) { /* storage unavailable or corrupt: use defaults */ }
+  }
+  function saveCheatState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(cheatState)); } catch (e) { /* storage unavailable */ }
+  }
+
+  function cheatTable(rows) {
+    const table = document.createElement("table");
+    table.className = "tw-keytable";
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      const keyCell = document.createElement("td");
+      const kbd = document.createElement("kbd");
+      kbd.className = "tw-key";
+      kbd.textContent = row[0];
+      keyCell.append(kbd);
+      const actionCell = document.createElement("td");
+      actionCell.textContent = row[1];
+      tr.append(keyCell, actionCell);
+      table.append(tr);
+    });
+    return table;
+  }
+
+  function renderCheat() {
+    const sheets = window.TW_CHEAT;
+    if (!drawer || !Array.isArray(sheets) || !sheets.length) return;
+    if (!sheets.some((s) => s.id === cheatState.tab)) cheatState.tab = sheets[0].id;
+    if (!cheatNorm) cheatNorm = sheets.map((s) => s.rows.map((r) => norm(r[0] + " " + r[1])));
+    const q = norm(cheatQ.value);
+    cheatTabs.replaceChildren();
+    sheets.forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tw-cheat-tab";
+      b.textContent = s.title;
+      b.setAttribute("aria-pressed", String(!q && s.id === cheatState.tab));
+      b.addEventListener("click", () => {
+        cheatState.tab = s.id;
+        cheatQ.value = "";
+        saveCheatState();
+        renderCheat();
+      });
+      cheatTabs.append(b);
+    });
+    cheatBody.replaceChildren();
+    if (!q) {
+      cheatBody.append(cheatTable(sheets.find((s) => s.id === cheatState.tab).rows));
+      return;
+    }
+    const tokens = engine.query(q);
+    let found = 0;
+    sheets.forEach((s, si) => {
+      const rows = s.rows.filter((_, ri) => engine.match(cheatNorm[si][ri], tokens));
+      if (!rows.length) return;
+      found += rows.length;
+      const h = document.createElement("h3");
+      h.className = "tw-cheat-group";
+      h.textContent = s.title;
+      cheatBody.append(h, cheatTable(rows));
+    });
+    if (!found) {
+      const p = document.createElement("p");
+      p.className = "tw-cheat-empty";
+      p.textContent = "No match.";
+      cheatBody.append(p);
+    }
+  }
+
+  function setCheatOpen(open) {
+    if (!drawer) return;
+    cheatState.open = open;
+    drawer.hidden = !open;
+    document.body.classList.toggle("tw-cheat-open", open);
+    if (cheatBtn) cheatBtn.setAttribute("aria-expanded", String(open));
+    saveCheatState();
+  }
+
+  if (drawer && cheatBtn && cheatQ && cheatTabs && cheatBody) {
+    loadCheatState();
+    renderCheat();
+    setCheatOpen(cheatState.open);
+    cheatBtn.addEventListener("click", () => setCheatOpen(!cheatState.open));
+    drawer.querySelector(".tw-cheat-close").addEventListener("click", () => setCheatOpen(false));
+    cheatQ.addEventListener("input", renderCheat);
+    document.addEventListener("keydown", (event) => {
+      if (searchDialog && !searchDialog.hidden) return;
+      if (event.key === "Escape" && cheatState.open) {
+        setCheatOpen(false);
+      } else if (event.key === "?" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+        event.preventDefault();
+        setCheatOpen(!cheatState.open);
+      }
+    });
+  }
+
+  // ---- search
+  const dialog = document.getElementById("tw-search");
+  const input = document.getElementById("tw-q");
+  const list = document.getElementById("tw-results");
+  const openButton = document.querySelector(".tw-search-btn");
+  if (!dialog || !input || !list) return;
+
+  let active = -1;
+  let shown = [];
+  let lastFocus = null;
+
+  function isOpen() { return !dialog.hidden; }
+
+  function openSearch() {
+    if (isOpen()) return;
+    lastFocus = document.activeElement;
+    dialog.hidden = false;
+    document.body.classList.add("tw-search-open");
+    input.focus();
+    input.select();
+  }
+
+  function closeSearch() {
+    if (!isOpen()) return;
+    dialog.hidden = true;
+    document.body.classList.remove("tw-search-open");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function search(q) {
+    return engine.search(q, here).items;
+  }
+
+  // Preserve source offsets when key spellings or whitespace normalize differently.
+  function highlightSource(text) {
+    let chars = text.split("").flatMap((char, at) => char.toLowerCase().split("")
+      .map((value) => ({ value, start: at, end: at + 1 })));
+    function replace(pattern, replacement) {
+      const source = chars.map((char) => char.value).join("");
+      const next = [];
+      let at = 0;
+      for (const match of source.matchAll(pattern)) {
+        next.push(...chars.slice(at, match.index));
+        const value = typeof replacement === "function" ? replacement(match) : replacement;
+        const start = chars[match.index].start;
+        const end = chars[match.index + match[0].length - 1].end;
+        value.split("").forEach((letter) => next.push({ value: letter, start, end }));
+        at = match.index + match[0].length;
+      }
+      chars = next.concat(chars.slice(at));
+    }
+    replace(/<c-([^>]+)>/g, (match) => " ctrl-" + match[1] + " ");
+    replace(/<leader>/g, "<space>");
+    replace(/\bctrl\+/g, "ctrl-");
+    replace(/\s+/g, " ");
+    replace(/^\s+|\s+$/g, "");
+    return { lower: chars.map((char) => char.value).join(""), chars };
+  }
+
+  // Mark the actual matching variant using text nodes only.
+  function highlight(host, text, tokens) {
+    const { lower, chars } = highlightSource(text);
+    const marked = new Array(text.length).fill(false);
+    tokens.forEach((t) => {
+      if (!t) return;
+      for (let at = lower.indexOf(t); at !== -1; at = lower.indexOf(t, at + t.length)) {
+        for (let k = chars[at].start; k < chars[at + t.length - 1].end; k++) marked[k] = true;
+      }
+    });
+    let start = 0;
+    while (start < text.length) {
+      let end = start;
+      while (end < text.length && marked[end] === marked[start]) end++;
+      const piece = text.slice(start, end);
+      if (marked[start]) {
+        const mark = document.createElement("mark");
+        mark.textContent = piece;
+        host.append(mark);
+      } else {
+        host.append(document.createTextNode(piece));
+      }
+      start = end;
+    }
+  }
+
+  function setActive(next) {
+    const options = list.querySelectorAll('[role="option"]');
+    if (!options.length) return;
+    active = (next + options.length) % options.length;
+    options.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    input.setAttribute("aria-activedescendant", options[active].id);
+    options[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function render(q) {
+    list.replaceChildren();
+    input.removeAttribute("aria-activedescendant");
+    shown = [];
+    active = -1;
+    if (!q) { input.setAttribute("aria-expanded", "false"); return; }
+    input.setAttribute("aria-expanded", "true");
+    shown = search(q);
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "tw-r-text";
+      li.textContent = "No match. Try a key like Ctrl-w or a command like git worktree.";
+      list.append(li);
+      return;
+    }
+    const data = window.TW_SEARCH;
+    const tokens = engine.query(q);
+    shown.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.id = `tw-r-${i}`;
+      li.setAttribute("role", "option");
+      const mod = data.mods[it[1]];
+      const meta = document.createElement("div");
+      meta.className = "tw-r-meta";
+      const kind = document.createElement("span");
+      kind.className = "tw-r-kind";
+      kind.textContent = KIND_LABEL[it[0]] || it[0];
+      meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
+      const title = document.createElement("div");
+      title.className = "tw-r-title";
+      const variants = engine.match(norm(it[4] + " " + it[5]), tokens).variants;
+      highlight(title, it[4], variants);
+      const snippet = document.createElement("div");
+      snippet.className = "tw-r-text";
+      highlight(snippet, it[5], variants);
+      li.append(meta, title, snippet);
+      li.addEventListener("click", () => go(it));
+      list.append(li);
+    });
+    setActive(0);
+  }
+
+  function go(it) {
+    const file = window.TW_SEARCH.files[it[1]];
+    const target = it[3];
+    closeSearch();
+    if (file === here) {
+      if (location.hash === "#" + target) dispatchEvent(new HashChangeEvent("hashchange"));
+      else location.hash = target;
+    } else {
+      location.href = root + file.replace(MODULE_FILE_RE, "$1") + "#" + target;
+    }
+  }
+
+  input.addEventListener("input", () => render(norm(input.value)));
+  if (openButton) openButton.addEventListener("click", openSearch);
+  dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
+
+  document.addEventListener("keydown", (event) => {
+    if (isOpen()) {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSearch(); }
+      else if (event.key === "ArrowDown") { event.preventDefault(); setActive(active + 1); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); setActive(active - 1); }
+      else if (event.key === "Enter" && shown[active]) { event.preventDefault(); go(shown[active]); }
+      return;
+    }
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+    event.preventDefault();
+    openSearch();
+  }, true);
+})();
+
+    </script>
+  </body>
+</html>

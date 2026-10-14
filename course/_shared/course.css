@@ -774,6 +774,13 @@ footer {
 
 .sq-code{margin:10px 0;padding:12px 14px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#121c17;color:var(--chalk);font:500 13px/1.55 var(--mono);white-space:pre}
 .sq-code code{padding:0;border:0;background:none;color:inherit;font:inherit}
+.sq-code .hl-c{color:var(--dim);font-style:italic}
+.sq-code .hl-s{color:var(--mint)}
+.sq-code .hl-k{color:var(--blue)}
+.sq-code .hl-cmd{color:var(--gold)}
+.sq-code .hl-f{color:var(--gold-dim)}
+.sq-code .hl-n,.sq-code .hl-v{color:var(--coral)}
+.sq-code .hl-fn,.sq-code .hl-ex{color:var(--blue);font-weight:600}
 .rule-body table{display:block;overflow-x:auto;max-width:100%}
 
 /* Terminal Workflow additions */

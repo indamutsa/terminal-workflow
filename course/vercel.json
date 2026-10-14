@@ -1,5 +1,9 @@
 {
   "cleanUrls": false,
+  "trailingSlash": true,
+  "redirects": [
+    { "source": "/:folder(m[0-9]+-[a-z0-9-]+)/:file(m[0-9]+-[a-z0-9-]+).html", "destination": "/:folder/", "permanent": true }
+  ],
   "headers": [
     { "source": "/_shared/fonts/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
   ]

@@ -6,8 +6,14 @@ shared CSS and JS drive: copyable command boxes with a stated result, key tables
 from html import escape as _esc
 
 from content.common import PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, SITE_URL
+from highlight import highlight
 
 WHERE = {"shell": "Shell", "tmux": "tmux", "nvim": "Neovim", "lazygit": "LazyGit", "fzf": "fzf"}
+
+# Highlighter language per command box (its "where") and per file label; anything unlisted stays plain.
+CMD_LANG = {"shell": "shell", "tmux": "shell", "fzf": "shell", "lazygit": "shell", "nvim": "vim"}
+CODE_LANG_SUFFIX = {".py": "python", ".lua": "lua", ".plist": "xml", ".sh": "shell", ".zshrc": "shell", ".bashrc": "shell"}
+CODE_LANG_CONTAINS = {"tmux": "shell"}
 
 
 def esc(text):
@@ -58,21 +64,29 @@ def _head(label, title):
             f'<span class="tw-code-title">{esc(title)}</span>{copy_button(title)}</figcaption>')
 
 
-def codebox(aid, kind, label, title, code, expect=None):
-    """kind "cmd" shows a result line; kind "code" is a file or script with no result."""
+def code_lang(label):
+    """Highlighter language for a file label such as "~/.zshrc"; None when the label says nothing."""
+    for suffix, lang in CODE_LANG_SUFFIX.items():
+        if label.endswith(suffix):
+            return lang
+    return next((lang for word, lang in CODE_LANG_CONTAINS.items() if word in label), None)
+
+
+def codebox(aid, kind, label, title, code, expect=None, lang=None):
+    """kind "cmd" shows a result line; kind "code" is a file or script with no result. lang picks the colours."""
     tail = ""
     if kind == "cmd" and expect:
         tail = f'<p class="tw-expect"><span class="tw-expect-label">You should see</span> {_rich(expect)}</p>'
     return (f'<figure class="tw-codebox tw-{kind}" id="{aid}">{_head(label, title)}'
-            f'<pre class="sq-code"><code>{esc(code)}</code></pre>{tail}</figure>')
+            f'<pre class="sq-code"><code>{highlight(code, lang)}</code></pre>{tail}</figure>')
 
 
 def cmd(aid, b):
-    return codebox(aid, "cmd", WHERE[b["where"]], b["title"], b["code"], b["expect"])
+    return codebox(aid, "cmd", WHERE[b["where"]], b["title"], b["code"], b["expect"], CMD_LANG[b["where"]])
 
 
 def code(aid, b):
-    return codebox(aid, "code", b["file"], b["title"], b["code"])
+    return codebox(aid, "code", b["file"], b["title"], b["code"], lang=code_lang(b["file"]))
 
 
 def keys(aid, b):
@@ -130,7 +144,7 @@ def practice_setup(aid):
     urls = " -O ".join(f"{SITE_URL}/{PRACTICE_DIR}/{name}" for name in PRACTICE_FILES)
     code = f"mkdir -p {PRACTICE_HOME} && cd {PRACTICE_HOME} && curl -fsSO {urls}"
     expect = f"`ls` shows {', '.join(PRACTICE_FILES)}."
-    return codebox(aid, "cmd", WHERE["shell"], "Get the practice files", code, expect)
+    return codebox(aid, "cmd", WHERE["shell"], "Get the practice files", code, expect, CMD_LANG["shell"])
 
 
 def _step(cursor, keys, effect):
@@ -150,7 +164,8 @@ def _pane(label, text):
 
 def worked(page_n, w):
     """w: h2, frame, open, steps [(cursor_or_None, keys, effect)], before (optional), after, meaning"""
-    box = codebox(anchor(page_n, "worked", "open"), "cmd", WHERE[w.get("where", "shell")], "Open it", w["open"])
+    where = w.get("where", "shell")
+    box = codebox(anchor(page_n, "worked", "open"), "cmd", WHERE[where], "Open it", w["open"], lang=CMD_LANG[where])
     steps = "".join(_step(*s) for s in w["steps"])
     panes = (_pane("Before", w["before"]) if w.get("before") else "") + _pane("After" if w.get("before") else "You see", w["after"])
     one = "" if w.get("before") else " ws-one"

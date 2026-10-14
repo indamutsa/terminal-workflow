@@ -45,7 +45,7 @@ MODULE = {
             "drills": [
                 {
                     "h2": "Operators and motions",
-                    "intro": "Every practice file here is in `Terminal-Workflow/practice/nvim-drills`. Where an edit should not stay, discard it with `:e!`.",
+                    "intro": "Every practice file here is in `Terminal-Workflow/practice/nvim-drills`. Autosave writes a file about 3 seconds after you stop typing, and when you leave the buffer, so `:e!` cannot bring the original back. Where an edit should not stay, press `u` to undo it. For a drill that must stay unsaved, run `:ASToggle` first and again after. To reset a file, run `git checkout -- <file>` in that folder.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Operators", "rows": [
                             ("d", "Delete"),
@@ -82,7 +82,7 @@ cW
 0.075
 Esc
 '''),
-                         "expect": "The line now reads `TAX_RATE = 0.075`. Discard with `:e!`: later lessons expect `0.08`."},
+                         "expect": "The line now reads `TAX_RATE = 0.075`. Press `u` to bring `0.08` back: later lessons expect it."},
                         {"type": "text", "body": "Open `src/orders.py` first. `dw` leaves `= 0.08`; `u` undoes it, as a proof that `dw` eats the word and the trailing space. Use `cW`, not `cw`: the dot splits `0.08` into three vim words, so `cw` would change only the leading `0` and leave `0.075.08`."},
                     ],
                 },
@@ -127,14 +127,14 @@ ci"
 Division by zero is not allowed
 Esc
 '''),
-                         "expect": "The line reads `raise Exception(\"Division by zero is not allowed\")`. Discard with `:e!`."},
+                         "expect": "The line reads `raise Exception(\"Division by zero is not allowed\")`. Press `u` to undo it."},
                         {"type": "text", "body": "Open `src/calculator.py` first. The search leaves the cursor inside `raise Exception(\"Cannot divide by zero\")`."},
                         {"type": "keys", "where": "nvim", "title": "Text objects on real data", "rows": [
                             ("di(", "On Order(raw[\"id\"], raw[\"items\"], raw[\"discount\"]) → empties the parens, keeps them"),
                             ("da(", "Same line → deletes the parens AND their contents, Order(...) becomes Order"),
                             ("ci{", "Cursor inside the first RAW_ORDERS entry {\"id\": \"A1\", ...} → clears the whole dict body"),
-                        ], "try": "In `src/orders.py`, use these on `build_order_book` and the `RAW_ORDERS` list. Undo or `:e!` after each. After `di(`, press `%` on the opening `(`.",
-                         "expect": "The cursor jumps straight to the now-adjacent `)`. Run `:e!` before moving on: `RAW_ORDERS` needs its six original entries."},
+                        ], "try": "In `src/orders.py`, use these on `build_order_book` and the `RAW_ORDERS` list. Press `u` after each. After `di(`, press `%` on the opening `(`.",
+                         "expect": "The cursor jumps straight to the now-adjacent `)`. Press `u` before moving on: `RAW_ORDERS` needs its six original entries."},
                     ],
                 },
             ],
@@ -233,7 +233,7 @@ I
 #
 Esc
 '''),
-                         "expect": "Lines for A2 through A5 now start with `# `. A1 and A6 are untouched. Discard with `:e!`: `RAW_ORDERS` needs all six live entries."},
+                         "expect": "Lines for A2 through A5 now start with `# `. A1 and A6 are untouched. Press `u` to undo it: `RAW_ORDERS` needs all six live entries."},
                         {"type": "text", "body": "Open `src/orders.py` and put the cursor on the `{\"id\": \"A2\", ...` line. `^` puts it on the opening `{`. Block insert happens at the cursor's column, so the column matters."},
                     ],
                 },
@@ -258,7 +258,7 @@ j
 q
 4@a
 '''),
-                         "expect": "All five lines now read `self.<field> = ...`. This is a genuine bug fix: keep it, or discard with `:e!` to leave the fixture broken for a re-run."},
+                         "expect": "All five lines now read `self.<field> = ...`. This is a genuine bug fix: keep it, or press `u` until the fields read as before to leave the fixture broken for a re-run."},
                         {"type": "text", "body": "Start with the cursor on `name`. `Iself.` goes to the line start and inserts `self.`. `j` moves to the next field. `4@a` replays on the remaining four lines (age, email, phone, address)."},
                     ],
                 },
@@ -281,7 +281,7 @@ q
 :%s/pending/done/g
 :%s/pending//gn
 '''),
-                         "expect": "The count command (trailing `n` means count, don't replace) reports `0 matches`. Discard with `:e!`: Lesson 7 uses this same \"pending\" text."},
+                         "expect": "The count command (trailing `n` means count, don't replace) reports `0 matches`. Press `u` to undo it: Lesson 7 uses this same \"pending\" text."},
                         {"type": "text", "body": "Open `data/log.txt` first: ten lines like `item 1: pending`, mixed with `# TODO` comments and blank lines."},
                     ],
                 },
@@ -309,7 +309,7 @@ q
                 "steps": [
                     (("line 15, on `name`", "`15G`"), "`qa` `I` then `order_` then `Esc` `j` `q`", "Records one edit into register a and ends on the next line."),
                     (None, "`3@a`", "Replays it on lines 16 to 18."),
-                    (None, "`:e!`", "Discards the edit."),
+                    (None, "`u` until the original lines are back", "Undoes the edit. Autosave then writes the original back."),
                 ],
                 "before": 'name = "pen"\nqty = 3\nprice = 2.50\nnote = "rush"',
                 "after": 'order_name = "pen"\norder_qty = 3\norder_price = 2.50\norder_note = "rush"',
@@ -369,7 +369,7 @@ q
                             ("=G", "Auto-indent from here to end of file"),
                             ("gg=G", "Auto-indent entire file"),
                             ("=i{", "Auto-indent inside braces"),
-                            ("<Space>cf", "Format file (language formatter: ruff, prettier, etc.)"),
+                            ("<Space>cf", "Format the file with its language formatter (ruff, prettier, etc.)"),
                         ]},
                         {"type": "keys", "where": "nvim", "title": "In visual mode", "rows": [
                             ("V5j >", "Indent 6 selected lines"),
@@ -380,7 +380,7 @@ q
 gg=G
 :!python3 -m py_compile %
 '''),
-                         "expect": "Every block lines up on a consistent 4-space grid. The file is valid Python either way. Discard with `:e!`: Lesson 7 reuses this file messy, on purpose."},
+                         "expect": "Every block lines up on a consistent 4-space grid. The file is valid Python either way. Press `u` to undo it: Lesson 7 reuses this file messy, on purpose."},
                     ],
                 },
                 {
@@ -405,8 +405,8 @@ gg=G
                             ("\":", "Last command"),
                         ]},
                         {"type": "keys", "where": "nvim", "title": "Paste with auto-indentation", "rows": [
-                            ("]p", "Paste below, match indent level of current line"),
-                            ("[p", "Paste above, match indent level of current line"),
+                            ("]p", "Paste below and match the indent of the current line"),
+                            ("[p", "Paste above and match the indent of the current line"),
                             ("p then =']", "Paste, then auto-indent the pasted block (proper reformat)"),
                             ("p then V']=", "Paste, select pasted text, auto-indent (visual way)"),
                         ]},
@@ -421,7 +421,7 @@ dd
 :reg a
 :reg 0
 '''),
-                         "expect": "`:reg a` and `:reg 0` both show `TAX_RATE = 0.08`. Discard everything with `:e!`."},
+                         "expect": "`:reg a` and `:reg 0` both show `TAX_RATE = 0.08`. Press `u` three times to undo it all."},
                     ],
                 },
                 {
@@ -450,16 +450,18 @@ dd
                             (":cdo s/old/new/g | w", "Replace in quickfix results"),
                         ]},
                         {"type": "cmd", "where": "nvim", "title": "Touch every file, safely", "code": C('''
+:ASToggle
 :args src/*.py
 :args
-:argdo $put ='# reviewed'
 :next
 :prev
+:argdo $put ='# reviewed'
 :ls
 :argdo e!
+:ASToggle
 '''),
-                         "expect": "`:ls` shows a `+` on every arglist buffer: modified in memory only, since there is no `| w`. `:argdo e!` reloads every buffer from disk and discards the edits."},
-                        {"type": "text", "body": "`:args src/*.py` loads the four real modules plus the empty `__init__.py` (and `scratch.py` if the git drills created it). `:next` and `:prev` flip through the buffers and show the marker at the bottom of each. The full form, `:argdo %s/old/new/g | w`, is for when you want the change saved."},
+                         "expect": "`:ASToggle` pauses autosave. `:ls` shows a `+` on every arglist buffer: modified in memory only, since there is no `| w`. `:argdo e!` reloads every buffer from disk and discards the edits, because nothing was written. The last `:ASToggle` turns autosave back on."},
+                        {"type": "text", "body": "`:args src/*.py` loads the four real modules plus the empty `__init__.py` (and `scratch.py` if the git drills created it). `:next` and `:prev` flip through the buffers and show the marker at the bottom of each. Run them before the edit: with autosave on, leaving a changed buffer writes it. The full form, `:argdo %s/old/new/g | w`, is for when you want the change saved."},
                     ],
                 },
             ],
@@ -502,7 +504,7 @@ dd
                     (("line 18", "`18G`"), "`dd`", "Deletes the `note` line. Only the default register changes."),
                     (None, '`"ap`', "The `TAX_RATE` line is pasted below."),
                     (None, '`"0p`', 'The same line again: `"0` survives deletes.'),
-                    (None, "`:e!`", "Discards it all."),
+                    (None, "`u` three times", "Undoes the paste, the second paste and the delete. Autosave writes the original back."),
                 ],
                 "before": 'note = "rush"\ntotal = calc_totl(price, qty)',
                 "after": "total = calc_totl(price, qty)\nTAX_RATE = 0.08\nTAX_RATE = 0.08",
@@ -525,8 +527,8 @@ dd
                      "`mA`, then `'A`."),
                     ("Common mistake", "After `:argdo` your files show `+` and you do not want them. What do you run?",
                      "Nothing was saved.",
-                     ["The edits live in memory.", "Run `:argdo e!` to reload from disk."],
-                     "`:argdo e!`."),
+                     ["The edits live in memory only while autosave is paused (`:ASToggle`).", "Then `:argdo e!` reloads from disk. If autosave already wrote them, undo with `u` in each buffer."],
+                     "`:argdo e!`, with autosave paused."),
                 ],
             },
         },
@@ -579,7 +581,7 @@ Esc
 .
 .
 '''),
-                         "expect": "All five `qty` words now read `quantity`: lines 6, 7, 16, 19 and 20. The search wraps from the end of the file back to the top. Discard with `:e!`."},
+                         "expect": "All five `qty` words now read `quantity`: lines 6, 7, 16, 19 and 20. The search wraps from the end of the file back to the top. Press `u` five times to undo it."},
                         {"type": "text", "body": "Why `.` here and not `ciw`? After `ciw`, `.` changes the word under the cursor again, so the cursor must walk to the next copy first. After `cgn`, `.` finds the next copy itself."},
                         {"type": "text", "body": "`.` changes the copy you stand on, or the next one if you are not on a copy. To skip one, press `n` to land on it, then `n` again to pass it, then `.`."},
                     ],
@@ -609,7 +611,7 @@ Esc
 *
 :%s//cost/g
 '''),
-                         "expect": "Neovim reports `5 substitutions on 5 lines`: lines 6, 7, 17, 19 and 20. `PRICES` on lines 3 and 12 is untouched, because `*` matches whole words. Discard with `:e!`."},
+                         "expect": "Neovim reports `5 substitutions on 5 lines`: lines 6, 7, 17, 19 and 20. `PRICES` on lines 3 and 12 is untouched, because `*` matches whole words. Press `u` to undo it."},
                     ],
                 },
                 {
@@ -639,11 +641,11 @@ A
  (done)
 Esc
 '''),
-                         "expect": "Lines 1 to 10 end with `pending (done)`, including `item 10`. Without the `$`, `A` would append after the first column, and the text would land inside the word `item`. Discard with `:e!`."},
+                         "expect": "Lines 1 to 10 end with `pending (done)`, including `item 10`. Without the `$`, `A` would append after the first column, and the text would land inside the word `item`. Press `u` to undo it."},
                         {"type": "cmd", "where": "nvim", "title": "Mark every TODO line", "code": C('''
 :g/TODO/norm A !
 '''),
-                         "expect": "The three `TODO` lines (12, 14 and 16) end with ` !`. The `buy` lines are untouched. Discard with `:e!`."},
+                         "expect": "The three `TODO` lines (12, 14 and 16) end with ` !`. The `buy` lines are untouched. Press `u` to undo it."},
                     ],
                 },
                 {
@@ -651,9 +653,9 @@ Esc
                     "intro": "Searching text is not the same as knowing code. The language server renames the real symbol, and grug-far replaces text across files.",
                     "blocks": [
                         {"type": "keys", "where": "nvim", "title": "Across files", "rows": [
-                            ("<Space>cr", "Rename the symbol in every file. Type the new name, then Enter"),
-                            ("grn", "The same rename, built in to Neovim"),
-                            ("<Space>sr", "Search and replace panel. On a word it fills that word; in visual mode it fills the selection"),
+                            ("<Space>cr", "Rename a symbol in every file: type the new name, then Enter"),
+                            ("grn", "Rename a symbol with Neovim's built-in rename (same as `<Space>cr`)"),
+                            ("<Space>sr", "Replace text across files: open the search and replace panel (grug-far). On a word it fills that word; in visual mode it fills the selection"),
                             ("]]", "Jump to the next copy of the word under the cursor"),
                             ("[[", "Jump to the previous copy"),
                         ], "try": "In `~/tw/orders.py` press `6G`, `fq`, wait a moment, then `]]`.",
@@ -694,7 +696,7 @@ Esc
                     (("line 16, on `qty`", "`16G`"), "`*`", "Searches for `qty` and jumps to line 19."),
                     (None, "`cgn` `quantity` `Esc`", "Changes the match on line 19."),
                     (None, "`.` four times", "Changes lines 20, 6, 7 and then 16. The search wraps to the top."),
-                    (None, "`:e!`", "Discards the edit."),
+                    (None, "`u` five times", "Undoes the edit. Autosave then writes the original back."),
                 ],
                 "before": "total = calc_totl(price, qty)\nprint(name, qty, price, note, total)",
                 "after": "total = calc_totl(price, quantity)\nprint(name, quantity, price, note, total)",
