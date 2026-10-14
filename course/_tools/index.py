@@ -4,7 +4,7 @@ import os
 import kit
 
 TIERS = {
-    1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Intermediate", 5: "Advanced", 6: "Advanced", 7: "Expert",
+    1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Intermediate", 5: "Advanced", 6: "Advanced", 7: "Expert", 8: "Reference",
 }
 
 HERO_SUBTITLE = "tmux for sessions, Neovim for editing, git worktrees for parallel branches, and an AI coding agent working beside you."
@@ -15,6 +15,7 @@ LEARNING_PATH = [
     ("Week 2", "Module 3", "Text objects, macros and registers. This is where Neovim gets fast."),
     ("Week 3", "Module 4", "Git worktrees and an AI coding agent. The three-window pattern becomes your default."),
     ("Week 4+", "Modules 5–7", "Code navigation, LazyGit, project search and expert motions. Speed, not essentials."),
+    ("Any time", "Module 8", "Coming from VS Code? Look up each shortcut you know and press the Neovim key for it."),
 ]
 
 START = {
@@ -105,7 +106,7 @@ def write(course, mods, version, cheat):
       </section>
       <section class="block">
         <div class="section-label">Modules</div>
-        <h2>Seven modules</h2>
+        <h2>{len(mods)} modules</h2>
         <div class="cm-grid">{"".join(cards)}</div>
       </section>
     </main>
