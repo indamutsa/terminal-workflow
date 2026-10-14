@@ -1438,7 +1438,15 @@ if (!("name" in HTMLDetailsElement.prototype)) {
         hits.push({ i, score, exact: matched.exact });
       });
       hits.sort((a, b) => b.exact - a.exact || b.score - a.score || a.i - b.i);
-      return { items: hits.slice(0, limit).map((hit) => data.items[hit.i]), total: hits.length };
+      // The same row often appears on several pages; keep only its best-ranked copy.
+      const seen = new Set();
+      const unique = hits.filter((hit) => {
+        const key = text[hit.i];
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return { items: unique.slice(0, limit).map((hit) => data.items[hit.i]), total: unique.length };
     }
     return { ...matcher, search };
   }

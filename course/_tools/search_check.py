@@ -118,8 +118,8 @@ const ties = core.createSearch({ syn: [], files: ["local", "other"], items: [
 ] });
 check(ties.search("undo").items[0][3] === "first", "stable index tie break");
 check(ties.search("undo", "other").items[0][3] === "second", "same-file bonus");
-check(ties.search("undo", "", 1).items.length === 1 && ties.search("undo", "", 1).total === 2,
-  "uncapped total with capped results");
+check(ties.search("undo").items.length === 1 && ties.search("undo").total === 1,
+  "identical rows from different pages collapse to one result");
 const starts = core.createSearch({ syn: data.syn, files: ["local"], items: [
   ["k", 0, 1, "later", "", "x  An undo"],
   ["k", 0, 1, "synonym", "", "z  Reset undo"],
