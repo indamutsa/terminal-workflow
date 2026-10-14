@@ -10,11 +10,12 @@ Content lives in `_tools/content/mN.py`. Never edit `kit.py`, `build.py`, `site.
 |---|---|---|
 | 1 tmux and the shell | `m1-tmux` | Sessions that outlive the window; Windows and panes; Copy mode, the command line and fzf; Make tmux yours |
 | 2 Neovim essentials | `m2-nvim-essentials` | Open, move, save, quit; Move fast and search; Delete, yank, paste, undo; Buffers, terminals, splits, tabs, leader |
-| 3 Power editing | `m3-power-editing` | Operators, motions, text objects; Visual mode, macros, search and replace; Indent, registers, marks, many files |
+| 3 Power editing | `m3-power-editing` | Operators, motions, text objects; Visual mode, macros, search and replace; Indent, registers, marks, many files; Change every copy of a word |
 | 4 Worktrees and the agent loop | `m4-worktrees` | Parallel branches without stashing; Worktrees in tmux; The three-window pattern; Test, ship, clean up |
 | 5 Code intelligence and git | `m5-lsp-git` | Navigate code with LSP; Git inside Neovim; Refactor, files and project search; Tests and the debugger |
 | 6 Plugins and the key map | `m6-plugins-keymaps` | Jump and select; Sessions, history and UI helpers; The g, [ ], and z maps; Ctrl, Space and : maps |
 | 7 Expert Neovim | `m7-expert` | Motions and the dot formula; Expert macros and registers; Quickfix, marks, substitution, :g; Windows, insert, block, ranges, undo |
+| 8 Coming from VS Code | `m8-from-vscode` | Your VS Code shortcuts in Neovim; View, layout and focus; Editing helpers VS Code gave you free |
 
 ## Schema
 

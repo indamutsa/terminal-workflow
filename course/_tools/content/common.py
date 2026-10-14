@@ -8,6 +8,7 @@ MODULE_META = [
     {"n": 5, "folder": "m5-lsp-git", "title": "Code intelligence and git"},
     {"n": 6, "folder": "m6-plugins-keymaps", "title": "Plugins and the key map"},
     {"n": 7, "folder": "m7-expert", "title": "Expert Neovim"},
+    {"n": 8, "folder": "m8-from-vscode", "title": "Coming from VS Code"},
 ]
 
 # (id, label, forms, definition) — shared by every module; a module's own glossary wins on a clash.

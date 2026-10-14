@@ -530,5 +530,197 @@ dd
                 ],
             },
         },
+        # ============================================================ page 4
+        {
+            "h1": "Change every copy of a word",
+            "subtitle": "Do VS Code's Cmd+D, Cmd+Shift+L and F2 in Neovim.",
+            "idea": (
+                "Search for a word once, then let one key change each copy.",
+                [
+                    ("One copy at a time", "* cgn .", "Cmd+D the Vim way."),
+                    ("Every copy at once", ":%s//new/g", "Reuses the word you just searched."),
+                    ("Same column", "Ctrl-v", "Edit many lines together."),
+                    ("Rename a symbol", "<Space>cr", "Every file, real references only."),
+                ],
+                None,
+            ),
+            "problem": {
+                "fail": "A name appears five times. In VS Code you press Cmd+D five times. In Neovim you retype the same change five times.",
+                "fix": "Search the word with `*`, change the first copy with `cgn`, then press `.` for each next copy. Or change them all with `:%s//new/g`.",
+            },
+            "drills": [
+                {
+                    "h2": "Cmd+D the Vim way: * then cgn",
+                    "intro": "`*` searches the word under the cursor. `cgn` changes the next match. `.` repeats it on the one after.",
+                    "blocks": [
+                        {"type": "keys", "where": "nvim", "title": "One copy at a time", "rows": [
+                            ("*", "Search the word under the cursor and jump to the next copy"),
+                            ("#", "Same search, jump backward"),
+                            ("gn", "Select the next match"),
+                            ("cgn", "Change the next match"),
+                            (".", "Repeat on the next copy"),
+                            ("n", "Jump to the next copy without changing it"),
+                            ("dgn", "Delete the next match"),
+                            ("u", "Undo one change"),
+                        ]},
+                        {"type": "keys", "where": "nvim", "title": "Search any text, not only a word", "rows": [
+                            ("v ... *", "Select text, then `*` searches exactly that text"),
+                        ], "try": "In `~/tw/notes.md` press `3G`, `fR`, `w`, `v`, `ee`, then `*`.",
+                         "expect": "The cursor jumps to `Orders ship` at the start of line 3. The words you selected are now the search, so `cgn` would change them."},
+                        {"type": "text", "body": "Open the file with `nvim ~/tw/orders.py`. `*` jumps to the next copy of the word, so the first `cgn` changes line 19 and the dots go on from there."},
+                        {"type": "cmd", "where": "nvim", "title": "Rename qty to quantity", "code": C('''
+16G
+*
+cgn
+quantity
+Esc
+.
+.
+.
+.
+'''),
+                         "expect": "All five `qty` words now read `quantity`: lines 6, 7, 16, 19 and 20. The search wraps from the end of the file back to the top. Discard with `:e!`."},
+                        {"type": "text", "body": "Why `.` here and not `ciw`? After `ciw`, `.` changes the word under the cursor again, so the cursor must walk to the next copy first. After `cgn`, `.` finds the next copy itself."},
+                        {"type": "text", "body": "`.` changes the copy you stand on, or the next one if you are not on a copy. To skip one, press `n` to land on it, then `n` again to pass it, then `.`."},
+                    ],
+                },
+                {
+                    "h2": "Cmd+Shift+L: change them all with :s",
+                    "intro": "An empty pattern means the last search. Press `*`, then substitute with nothing between the slashes.",
+                    "blocks": [
+                        {"type": "keys", "where": "nvim", "title": "Substitute every copy", "rows": [
+                            (":%s//new/g", "Change every copy of the word you just searched"),
+                            (":%s/\\<old\\>/new/g", "Same, with the word typed out"),
+                            (":%s/old/new/gc", "Ask first: y yes, n no, a all, q quit, l last"),
+                            ("Ctrl-r Ctrl-w", "In the command line: put in the word under the cursor"),
+                            (":%s//new/gn", "Only count the copies"),
+                            ("\\C", "Inside the pattern: match upper and lower case exactly"),
+                        ]},
+                        {"type": "keys", "where": "nvim", "title": "Change fewer copies", "rows": [
+                            (":s/old/new/g", "This line only"),
+                            (":'<,'>s/old/new/g", "The selected lines"),
+                            (":'<,'>s/\\%Vold/new/g", "Only inside the selected characters or block"),
+                            ("&", "Repeat the last `:s` on this line"),
+                            ("g&", "Repeat it on every line, with the last search"),
+                        ]},
+                        {"type": "text", "body": "As you type a `:s` command, Neovim previews the change in the file before you press Enter. Press `Esc` to cancel."},
+                        {"type": "cmd", "where": "nvim", "title": "Rename price to cost everywhere", "code": C('''
+17G
+*
+:%s//cost/g
+'''),
+                         "expect": "Neovim reports `5 substitutions on 5 lines`: lines 6, 7, 17, 19 and 20. `PRICES` on lines 3 and 12 is untouched, because `*` matches whole words. Discard with `:e!`."},
+                    ],
+                },
+                {
+                    "h2": "Alt+Click and Cmd+Option+Down: column and line edits",
+                    "intro": "A column edit adds the same text to a run of lines. `:g` with `norm` does it to every matching line.",
+                    "blocks": [
+                        {"type": "keys", "where": "nvim", "title": "Column keys", "rows": [
+                            ("Ctrl-v", "Start a column, then `j` to extend it down"),
+                            ("I", "Insert before the column on every line"),
+                            ("A", "Append after the column on every line"),
+                            ("$A", "Append at the end of each line, even when lines differ in length"),
+                            ("c", "Change the whole column"),
+                            ("r", "Replace every selected character with one you type"),
+                            ("o", "Jump to the other corner"),
+                            ("gv", "Select the last selection again"),
+                        ]},
+                        {"type": "keys", "where": "nvim", "title": "Same edit on matching lines", "rows": [
+                            (":g/pat/norm A text", "Run `A text` on every line that matches `pat`"),
+                        ]},
+                        {"type": "text", "body": "Open the file with `nvim ~/tw/todo.txt`. Lines 1 to 10 are `item N: pending`, and `item 10` is longer than the rest."},
+                        {"type": "cmd", "where": "nvim", "title": "Add a note to the end of ten lines", "code": C('''
+gg
+Ctrl-v
+9j
+$
+A
+ (done)
+Esc
+'''),
+                         "expect": "Lines 1 to 10 end with `pending (done)`, including `item 10`. Without the `$`, `A` would append after the first column, and the text would land inside the word `item`. Discard with `:e!`."},
+                        {"type": "cmd", "where": "nvim", "title": "Mark every TODO line", "code": C('''
+:g/TODO/norm A !
+'''),
+                         "expect": "The three `TODO` lines (12, 14 and 16) end with ` !`. The `buy` lines are untouched. Discard with `:e!`."},
+                    ],
+                },
+                {
+                    "h2": "F2 and Cmd+Shift+H: rename a symbol, replace across files",
+                    "intro": "Searching text is not the same as knowing code. The language server renames the real symbol, and grug-far replaces text across files.",
+                    "blocks": [
+                        {"type": "keys", "where": "nvim", "title": "Across files", "rows": [
+                            ("<Space>cr", "Rename the symbol in every file. Type the new name, then Enter"),
+                            ("grn", "The same rename, built in to Neovim"),
+                            ("<Space>sr", "Search and replace panel. On a word it fills that word; in visual mode it fills the selection"),
+                            ("]]", "Jump to the next copy of the word under the cursor"),
+                            ("[[", "Jump to the previous copy"),
+                        ], "try": "In `~/tw/orders.py` press `6G`, `fq`, wait a moment, then `]]`.",
+                         "expect": "Every `qty` in the file is highlighted. `]]` moves the cursor to the next one, on line 7. `[[` moves back."},
+                        {"type": "text", "body": "Module 5 teaches `<Space>cr` and `<Space>sr` step by step, with the same `orders.py` rename."},
+                        {"type": "text", "body": "A plugin called multicursor.nvim brings VS Code's multiple cursors to Neovim. It is not installed here, and the keys above do the same jobs."},
+                    ],
+                },
+            ],
+            "rules": {
+                "h2": "Pick the right tool",
+                "cards": [
+                    ("Which tool for which job", "Match the size of the job to the tool.", ["The job", "Use"], [
+                        ["A few copies, you choose each", "`*` `cgn` `.` (`n` skips)"],
+                        ["Every copy in the file", "`*` then `:%s//new/g`"],
+                        ["Some copies, reviewed one by one", "`:%s/old/new/gc`"],
+                        ["A code symbol in every file", "`<Space>cr`"],
+                        ["Text across the project", "`<Space>sr`"],
+                        ["The same column on many lines", "`Ctrl-v`"],
+                        ["Edits that differ per line", "A macro: `qa` ... `q`"],
+                    ]),
+                    ("VS Code to Neovim", "The shortcut you know and its Neovim answer.", ["VS Code", "Neovim"], [
+                        ["Cmd+D", "`*` `cgn` `.`"],
+                        ["Cmd+K Cmd+D (skip one)", "`n`"],
+                        ["Cmd+Shift+L", "`*` then `:%s//new/g`"],
+                        ["Cmd+F2 (change all occurrences)", "`*` then `:%s//new/g`"],
+                        ["F2", "`<Space>cr`"],
+                        ["Cmd+Shift+H", "`<Space>sr`"],
+                        ["Option+Click, Cmd+Option+Down", "`Ctrl-v` then `j`"],
+                    ]),
+                ],
+            },
+            "worked": {
+                "h2": "Rename qty in one file",
+                "frame": "The name `qty` appears five times and should read `quantity`.",
+                "open": "nvim ~/tw/orders.py",
+                "steps": [
+                    (("line 16, on `qty`", "`16G`"), "`*`", "Searches for `qty` and jumps to line 19."),
+                    (None, "`cgn` `quantity` `Esc`", "Changes the match on line 19."),
+                    (None, "`.` four times", "Changes lines 20, 6, 7 and then 16. The search wraps to the top."),
+                    (None, "`:e!`", "Discards the edit."),
+                ],
+                "before": "total = calc_totl(price, qty)\nprint(name, qty, price, note, total)",
+                "after": "total = calc_totl(price, quantity)\nprint(name, quantity, price, note, total)",
+                "meaning": "The first `cgn` changes one copy, and each `.` finds the next, so one clean edit becomes five.",
+            },
+            "practice": {
+                "h2": "Practice: change every copy",
+                "qs": [
+                    ("Mechanism", "Why does `.` after `cgn` move on to the next copy?",
+                     "What does `gn` select?",
+                     ["`gn` selects the next match.", "`.` repeats `cgn`, so it changes the next match."],
+                     "`.` repeats `cgn`, which finds the next match itself. After `ciw`, `.` stays on the cursor."),
+                    ("Keystrokes", "You changed one copy with `cgn`. Skip the next copy and change the one after.",
+                     "`n` moves without changing.",
+                     ["Press `n` to land on the next copy.", "Press `n` again to pass it.", "Press `.`."],
+                     "`n` `n` `.`."),
+                    ("Application", "Rename the loop variable `code` on lines 11 and 12 without touching `codes`.",
+                     "Whole words only.",
+                     ["Press `11G`, then `fc` to land on `code`.", "Press `*`, then `cgn`, the new name and `Esc`.", "Press `.` twice."],
+                     "`*` matches whole words, so `codes` stays. Three copies change."),
+                    ("Common mistake", "You rename with `cw` and `.`, and the next edit lands in the wrong place. Why?",
+                     "Where does `.` act?",
+                     ["`.` repeats at the cursor.", "Only `cgn` finds the next match for you."],
+                     "Use `cgn`, not `cw`, so each `.` jumps to the next copy."),
+                ],
+            },
+        },
     ],
 }
