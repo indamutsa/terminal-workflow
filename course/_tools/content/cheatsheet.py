@@ -201,6 +201,7 @@ CHEATSHEET = [
         ("<Space>sr", "VS Code: Cmd+Shift+H — replace across files"),
         ("gcc", "VS Code: Cmd+/ — comment a line"),
         ("Option+k / Option+j", "VS Code: Option+Up/Down — move a line"),
+        ("V, then Option+k / Option+j", "VS Code: Option+Up/Down on a selection — move the selected lines"),
         ("yyp", "VS Code: Shift+Option+Down — copy a line down"),
         ("dd", "VS Code: Cmd+Shift+K — delete a line"),
         ("<C-Space>", "VS Code: Ctrl+Shift+Right — grow the selection"),

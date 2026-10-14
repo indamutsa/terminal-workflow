@@ -249,7 +249,7 @@ BRACKETS = r'''
 ]m / [m          Next / previous method/function start
 ]M / [M          Next / previous method/function end
 ]{ / [{          Next / previous unmatched {
-]] / [[          Next / previous section/class
+]] / [[          Next / previous reference to the word under the cursor
 ]s / [s          Next / previous misspelled word
 ]q / [q          Next / previous quickfix item
 ]b / [b          Next / previous buffer
@@ -922,28 +922,28 @@ MODULE = {
                     "h2": "The Space leader: find and search",
                     "intro": "Press `<Space>` and wait for which-key. The main groups follow.",
                     "blocks": [
-                        K("Find (`<Space>f`) and the quick-finders", L_FIND),
+                        K("Find (<Space>f) and the quick-finders", L_FIND),
                         {"type": "text", "body": "In the current config `<Space><Space>`, `<Space>ff` and `<Space>sf` search the current directory, not the root dir. The arrow keys are disabled in normal, visual and insert mode."},
-                        K("Search (`<Space>s`)", L_SEARCH),
+                        K("Search (<Space>s)", L_SEARCH),
                     ],
                 },
                 {
                     "h2": "The Space leader: git, diagnostics and buffers",
                     "intro": "Git, Trouble and buffer groups.",
                     "blocks": [
-                        K("Git (`<Space>g`)", L_GIT),
+                        K("Git (<Space>g)", L_GIT),
                         {"type": "text", "body": "Direct Diffview commands are also available: `:DiffviewOpen` and `:DiffviewFileHistory %`."},
-                        K("Diagnostics and Trouble (`<Space>x`)", L_TROUBLE),
-                        K("Buffers (`<Space>b`)", L_BUFFERS),
+                        K("Diagnostics and Trouble (<Space>x)", L_TROUBLE),
+                        K("Buffers (<Space>b)", L_BUFFERS),
                     ],
                 },
                 {
                     "h2": "The Space leader: code, hunks, terminals and tests",
                     "intro": "Code actions, hunk staging, terminals and the test prefix.",
                     "blocks": [
-                        K("Code (`<Space>c`)", L_CODE),
-                        K("Hunks and git signs (`<Space>gh`)", L_HUNKS),
-                        K("Terminal (`<Space>f` and `<Space>T`) and Test (`<Space>t`)", L_TERMINAL),
+                        K("Code (<Space>c)", L_CODE),
+                        K("Hunks and git signs (<Space>gh)", L_HUNKS),
+                        K("Terminal (<Space>f and <Space>T) and Test (<Space>t)", L_TERMINAL),
                         {"type": "text", "body": "Do not confuse them: `<Space>t*` is test, `<Space>T*` is the split terminal (the lesson's mapping, not in the current config), and `<Space>ft`, `Ctrl-\\` and `Ctrl-/` are the floating terminal. The inlay-hints toggle lives under `<Space>u`: verify the subkey in which-key."},
                     ],
                 },
