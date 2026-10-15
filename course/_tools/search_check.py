@@ -76,13 +76,13 @@ QUERIES = [
     ("find big files", {"module": 9, "snippet": "Find files bigger than 100 MB"}),
     ("locate large files", {"module": 9, "snippet": "Find files bigger than 100 MB"}),
     ("look for hidden files", {"module": 9, "snippet": "Find hidden files"}),
-    ("search ignoring case", {"module": 9, "snippet": "Search ignoring upper and lower case"}),
+    ("search ignoring case", {"module": 9, "snippet": "Search for a word ignoring upper and lower case"}),
     ("count lines", {"module": 9, "snippet": "Count lines"}),
     ("how many lines", {"module": 9, "snippet": "Count lines"}),
-    ("print a column", {"module": 9, "snippet": "Print one or two columns"}),
-    ("top ips in log", {"module": 9, "snippet": "Show the top 5 IPs in a log"}),
+    ("print a column", {"module": 9, "snippet": "Get selected columns from a log or CSV file"}),
+    ("top ips in log", {"module": 9, "snippet": "Find the 5 IP addresses with the most requests in a log"}),
     ("replace text in file", {"module": 9, "snippet": "Replace"}),
-    ("read json field", {"module": 9, "snippet": "Read one field from JSON"}),
+    ("read json field", {"module": 9, "snippet": "Get names from JSON with or without quotes"}),
     ("run on every file", {"module": 9, "snippet": "Run a command on every file"}),
     ("loop over files", {"module": 10, "snippet": "Loop over every .txt file"}),
     ("read script arguments", {"module": 10, "snippet": "Read the arguments"}),
@@ -135,6 +135,38 @@ check(core.stem("ctrl-s") === "ctrl-s", "keys are not stemmed");
 check(core.norm("<C-w>v") === core.norm("Ctrl+w v"), "key normalization");
 check(matches("<C-w>v", "Ctrl-w v"), "key matching");
 check(engine.search("  ").total === 0, "empty queries");
+check(engine.search("how do i with this in the").total === 0, "stopword-only queries stay empty");
+check(engine.query("why does my file break on spaces").map((token) => token.original).join(" ") === "file break spaces",
+  "question scaffolding is ignored");
+check(engine.query("not no every all").length === 4, "meaningful qualifiers remain searchable");
+check(matches("stop process on port 49152", "Kill a process by port"), "literal numbers never exclude a match");
+check(matches("find report.txt", "Find files"), "example filenames never exclude a match");
+check(matches("files modified yesterday", "Find files with -mtime"), "time words find modification commands");
+check(matches("files accessed recently", "Find files with -atime"), "time words find access commands");
+check(matches("opened", "mdfind kMDItemLastUsedDate"), "access words find Spotlight dates");
+check(matches("names spaces", "name space"), "plural nouns retain their final e");
+const natural = core.createSearch({ syn: [], files: ["local"], items: [
+  ["c", 0, 1, "partial", "Find files", "fd"],
+  ["t", 0, 1, "full", "Find hidden files", "Show hidden files"],
+  ["c", 0, 1, "number", "Find files", "fd 49152"],
+] });
+check(natural.search("find hidden files").items[0][3] === "full", "full coverage outranks partial actions");
+check(natural.search("find unknown files").total > 0, "unknown words allow useful partial results");
+check(natural.search("find files 49152").items[0][3] === "number", "matching literal arguments boost ranking");
+check(natural.search("find files 59321").total > 0, "unmatched literal arguments allow results");
+check(natural.match(core.norm("Find files"), natural.query("find unknown files"), true).variants.length > 0,
+  "partial results provide safe highlight variants");
+const fields = core.createSearch({ syn: [], files: ["local"], items: [
+  ["c", 0, 1, "body", "Reference", "Detach session"],
+  ["c", 0, 1, "title", "Detach session", "td"],
+] });
+check(fields.search("detach session").items[0][3] === "title", "task titles outrank body mentions");
+const rarity = core.createSearch({ syn: [], files: ["local"], items: [
+  ...Array.from({ length: 8 }, (_, i) => ["t", 0, 1, "common-" + i, "Reference", "common topic " + i]),
+  ["t", 0, 1, "rare", "Reference", "zircon topic"],
+] });
+check(rarity.search("common zircon unknown").items[0][3] === "rare", "rare terms carry more weight in partial matches");
+check(rarity.search("unlistedword").total === 0, "queries without any matching terms stay empty");
 const synthetic = core.createSearch({ syn: data.syn, files: ["local"], items: [
   ["c", 0, 1, "syn", "Switch pane", "Switch pane"],
   ["t", 0, 1, "exact", "Change pane", "A change pane action with a longer description"],

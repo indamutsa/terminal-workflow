@@ -10,6 +10,14 @@
   const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
   const ACTION_BONUS = PHRASE_BONUS + START_BONUS;
   const WORD_BONUS = 40;
+  const SHORT_QUERY_MAX = 3, OPTIONAL_WEIGHT = 0.15;
+  const LITERAL_WEIGHT = 4, TITLE_WEIGHT = 3, DOMAIN_WEIGHT = 6, CONTEXT_WEIGHT = 0.5;
+  const COMMAND_WORDS = new Set("find rg fd sed awk jq git tmux xargs grep cut sort uniq wc head tail fzf mdfind du ls cat printf echo bash curl tar case".split(" "));
+  const COMMAND_BONUS = 1000, TITLE_PAIR_BONUS = 150;
+  const DOMAIN_WORDS = new Set(["tmux", "nvim", "neovim", "bash"]);
+  const STOPWORDS = new Set(("a an the with this that on in at of to my me i how do does can what which where why is are it from into by some any " +
+    "for and or your you its as when has have had did but than then im please was were just once before after using always passed " +
+    "own like something several somewhere properly get straight away out").split(" "));
   // A module lives at <folder>/index.html but is linked as <folder>/.
   const MODULE_FILE_RE = /(^|\/)index\.html$/;
   const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
@@ -19,20 +27,31 @@
     return String(s).toLowerCase()
       .replace(/<c-([^>]+)>/g, " ctrl-$1 ")
       .replace(/<leader>/g, "<space>")
-      .replace(/\bctrl\+/g, "ctrl-")
-      .replace(/\s+/g, " ").trim();
+      .replace(/\bctrl\+/g, "ctrl-").replace(/\bctrl\s+([a-z])\b/g, "ctrl-$1")
+      .replace(/([a-z0-9])[?,](?=\s|$)/g, "$1").replace(/\s+/g, " ").trim();
   }
 
   function stem(token) {
     if (!/^[a-z]+$/.test(token)) return token;
-    const base = token.replace(/(?:ing|ed|es|s)$/, "");
+    const base = token.replace(/ies$/, "y").replace(/(?:ing|ed)$/, "")
+      .replace(/(ch|sh|ss|x|z)es$/, "$1").replace(/([^s])s$/, "$1");
     return base.length >= 3 ? base : token;
   }
 
-  function whole(hay, word) {
+  function whole(hay, word, inflect = true) {
+    if (!word) return false;
     for (let at = hay.indexOf(word); at !== -1; at = hay.indexOf(word, at + word.length)) {
       const tail = hay.slice(at + word.length).match(/^[a-z0-9]*/)[0];
-      if (!/[a-z0-9]/.test(hay[at - 1] || "") && /^(?:s|es|ed|ing)?$/.test(tail)) return true;
+      if (!/[a-z0-9]/.test(hay[at - 1] || "") && /^(?:s|es|ed|ing|er|est)?$/.test(tail)) return true;
+    }
+    if (!inflect) return false;
+    if (/[aeiou][bcdfgklmnprt]$/.test(word)) {
+      const doubled = word + word.slice(-1);
+      if (["ed", "ing", "er", "est"].some(suffix => whole(hay, doubled + suffix, false))) return true;
+    }
+    if (/e$/.test(word) && word.length > 3) {
+      const base = word.slice(0, -1);
+      return whole(hay, base + "ed", false) || whole(hay, base + "ing", false) || whole(hay, word + "r", false) || whole(hay, word + "st", false);
     }
     return false;
   }
@@ -51,71 +70,144 @@
     });
     function query(q) {
       const normalized = phrases.reduce((text, [pattern, word]) => text.replace(pattern, word), norm(q));
-      return normalized ? normalized.split(" ").map((original) => {
+      return normalized ? [...new Set(normalized.split(" "))].filter((word) => !STOPWORDS.has(word)).map((original) => {
         const base = stem(original);
         // saved -> sav must discover save's groups as well as literal sav matches.
         const inflected = base === original ? [] : [...aliases.keys()]
           .filter((word) => word.startsWith(base)).flatMap((word) => [...aliases.get(word)]);
-        return { original, variants: [...new Set([original, base,
+        return { original, optional: /^(?:yesterday|today|recent|recently|older|day|days|week|weeks|statement|command)$/.test(original) || /\d|[./]/.test(original) || DOMAIN_WORDS.has(original) ||
+          /^(one|two|three|five|first|third)$/.test(original), variants: [...new Set([original, base,
+          ...(/(?:ing|ed)$/.test(original) && base !== original ? [base + "e"] : []),
           ...(aliases.get(original) || []), ...(aliases.get(base) || []), ...inflected])] };
       }) : [];
     }
-    function match(hay, tokens) {
-      let exact = 0;
+    function match(hay, tokens, partial = false) {
+      let exact = 0, missing = 0;
       const variants = [];
       for (const token of tokens) {
-        const variant = token.variants.find((word) => hay.includes(word));
-        if (!variant) return null;
+        const variant = token.variants.find((word) => whole(hay, word));
+        if (!variant) {
+          if (!partial && !token.optional) missing++;
+          continue;
+        }
         if (hay.includes(token.original)) exact++;
         variants.push(variant);
       }
-      return { exact, variants };
+      return variants.length && (partial || !missing || (tokens.length >= 3 && missing === 1 && exact >= 2)) ? { exact, variants } : null;
     }
     return { query, match };
   }
 
   function createSearch(data) {
     const matcher = createMatcher(data.syn || []);
-    const both = data.items.map((it) => norm(it[4] + " " + it[5]));
+    const both = data.items.map((it) => norm(it[4] + " " + it[5]).replace(/<[^>]+>\S*/g, ""));
     const text = data.items.map((it) => norm(it[5]));
     const description = data.items.map((it) => it[0] === "k"
-      ? norm(it[5].split(/ {2,}/).slice(1).join("  ")) : "");
-    const title = data.items.map((it) => it[0] === "c" ? norm(it[4]) : "");
+      ? norm(it[5].split(/ {2,}/).slice(1).join("  ")).replace(/<[^>]+>\S*/g, "") : "");
+    const title = data.items.map((it) => norm(it[4]).replace(/<[^>]+>\S*/g, ""));
+    const context = data.items.map((it) => norm(it[6] || ""));
+    const drillContext = data.items.map((it) => norm(it[7] || ""));
+    const blockKey = (it) => it[1] + "|" + it[3];
+    const blocks = new Map();
+    data.items.forEach((it, i) => blocks.set(blockKey(it), (blocks.get(blockKey(it)) || "") + " " + both[i]));
+    const frequencies = new Map();
+    both.forEach((hay) => new Set((hay.match(/[a-z0-9_-]+/g) || []).map(stem))
+      .forEach((word) => frequencies.set(word, (frequencies.get(word) || 0) + 1)));
+    const weight = (token) => 1 + Math.log(1 + data.items.length / (1 + Math.max(0,
+      ...token.variants.map((word) => frequencies.get(stem(word)) || 0))));
     function search(q, here = "", limit = MAX_RESULTS) {
       q = norm(q);
       const tokens = matcher.query(q);
+      if (tokens.length > 1 && /^(read|show|get)$/.test(tokens[0].original)) tokens[0].optional = true;
       if (!tokens.length) return { items: [], total: 0 };
+      const terse = tokens.length <= SHORT_QUERY_MAX;
+      const weighted = tokens.map((token) => ({ ...token, weight: weight(token) *
+        (token.optional && !DOMAIN_WORDS.has(token.original) ? OPTIONAL_WEIGHT : 1) }));
       const phrase = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])");
       const hits = [];
       data.items.forEach((it, i) => {
-        const matched = matcher.match(both[i], tokens);
+        const matched = matcher.match(both[i], tokens, true);
         if (!matched) return;
-        let score = KIND_WEIGHT[it[0]] || 0;
+        let score = KIND_WEIGHT[it[0]] || 0, literalScore;
         if (it[0] === "c" || it[0] === "k") score += ACTION_BONUS;
         if (it[0] === "c" && /^\s*(#|\/\/)/.test(it[5])) score -= ACTION_BONUS * 2;
-        tokens.forEach((token) => {
-          if (token.variants.some((variant) => whole(both[i], variant))) score += WORD_BONUS;
+        literalScore = score;
+        let coverage = 0, full = true, actionScore = 0, start = 0, localCoverage = 0;
+        weighted.forEach((token) => {
+          const literal = whole(both[i], token.original) || whole(both[i], stem(token.original));
+          const found = token.variants.some((variant) => whole(both[i], variant));
+          if (found) { literalScore += WORD_BONUS; if (!token.optional) localCoverage += token.weight; }
+          const domain = DOMAIN_WORDS.has(token.original);
+          const inBlock = token.variants.some((variant) => whole(blocks.get(blockKey(it)), variant) || (domain && whole(context[i], variant)));
+          if (inBlock && !token.optional) coverage += token.weight;
+          if (!inBlock && (!token.optional || domain)) full = false;
+          if (found) {
+            score += WORD_BONUS * token.weight * (literal ? LITERAL_WEIGHT : 1);
+            const actionText = title[i] + " " + description[i];
+            if (whole(actionText, token.original) || whole(actionText, stem(token.original))) actionScore += WORD_BONUS * token.weight * TITLE_WEIGHT;
+            else if (token.variants.some((variant) => whole(actionText, variant))) actionScore += WORD_BONUS * token.weight;
+          }
+          if (token.variants.some((variant) => whole(context[i], variant))) score += WORD_BONUS * token.weight *
+            (domain ? DOMAIN_WEIGHT : CONTEXT_WEIGHT);
         });
-        if (phrase.test(both[i])) score += PHRASE_BONUS;
+        score += actionScore;
+        if (phrase.test(text[i]) || (it[0] === "c" && phrase.test(title[i]))) { score += PHRASE_BONUS * 2; literalScore += PHRASE_BONUS * 2; }
+        if (phrase.test(both[i])) { score += PHRASE_BONUS; literalScore += PHRASE_BONUS; }
         // Task titles retain command relevance for multiword queries; single words prefer key actions.
-        const action = description[i] || (tokens.length > 1 ? title[i] : "");
+        const action = description[i] || (tokens.length > 1 && it[0] === "c" ? title[i] : "");
         const starts = (variant) => action.startsWith(variant) && whole(action.split(" ")[0], variant);
         if (text[i].startsWith(q) || (action && (action.startsWith(q) || starts(tokens[0].original)))) {
           score += START_BONUS;
+          literalScore += START_BONUS;
+          start = 2;
         } else if (action && tokens[0].variants.some(starts)) {
           score += SYNONYM_START_BONUS;
+          literalScore += SYNONYM_START_BONUS;
+          start = 1;
         }
         if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
         score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
-        hits.push({ i, score, exact: matched.exact });
+        literalScore += (data.files[it[1]] === here ? SAME_FILE_BONUS : 0) - Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
+        score += coverage * WORD_BONUS;
+        score += localCoverage * WORD_BONUS * LITERAL_WEIGHT;
+        for (let at = 0; at + 1 < tokens.length; at++) {
+          if (whole(title[i], tokens[at].original + " " + tokens[at + 1].original)) score += TITLE_PAIR_BONUS;
+        }
+        const taskWords = (description[i] || title[i]).split(" ").filter(word => !STOPWORDS.has(word));
+        if (tokens.length > 1 && (whole(taskWords[0] || "", tokens[0].original) || whole(taskWords[0] || "", stem(tokens[0].original)))) score += PHRASE_BONUS * LITERAL_WEIGHT;
+        const conciseTitle = title[i].split(" ").filter(word => !STOPWORDS.has(word)).map(stem).join(" ");
+        for (let at = 0; at + 1 < tokens.length; at++) {
+          if (whole(conciseTitle, stem(tokens[at].original) + " " + stem(tokens[at + 1].original))) score += TITLE_PAIR_BONUS;
+        }
+        const label = title[i].replace(/([a-z])-([a-z])/g, "$1 $2");
+        const detail = (description[i] || text[i]).replace(/([a-z])-([a-z])/g, "$1 $2");
+        for (let at = 0; at + 1 < tokens.length; at++) {
+          const pair = tokens[at].original + " " + tokens[at + 1].original;
+          if ((it[0] === "k" || it[0] === "c") && whole(label, pair) && whole(detail, pair)) literalScore += PHRASE_BONUS;
+        }
+        if (tokens.length > 1 && (it[0] === "k" || it[0] === "c") && /^(open|enter|close|run|find|search|change|show|save|copy|paste|delete|quit|rename|switch|go|scroll|move|select|start|get|read|count|format)\b/.test(description[i] || title[i])) {
+          literalScore += SYNONYM_START_BONUS;
+        }
+        const commandText = it[0] === "c" ? text[i] : it[0] === "k" ? norm(it[5].split(/ {2,}/)[0]) : "";
+        for (const token of tokens) {
+          if (COMMAND_WORDS.has(token.original) && !DOMAIN_WORDS.has(token.original) && (token.original !== "find" || tokens.some(t => t.original === "command")) && whole(commandText, token.original)) score += COMMAND_BONUS;
+        }
+        const direct = tokens.every(token => token.optional || token.variants.some(variant => whole(both[i] + " " + drillContext[i], variant)));
+        // Short key/command lookups retain literal ordering; incomplete queries use weighted coverage.
+        hits.push({ i, score: terse && direct ? literalScore : score,
+          full: terse ? direct : full, start, exact: tokens.filter(token => (!token.optional || DOMAIN_WORDS.has(token.original)) && (both[i].includes(token.original) || whole(drillContext[i], token.original))).length });
       });
-      hits.sort((a, b) => b.exact - a.exact || b.score - a.score || a.i - b.i);
+      hits.sort((a, b) => (terse ? b.full - a.full : 0) || (terse && a.full ? b.exact - a.exact : 0) ||
+        (tokens.length === 1 ? b.start - a.start : 0) || b.score - a.score || a.i - b.i);
       // The same row often appears on several pages; keep only its best-ranked copy.
       const seen = new Set();
+      const seenBlocks = new Set();
       const unique = hits.filter((hit) => {
         const key = text[hit.i];
-        if (seen.has(key)) return false;
+        const block = blockKey(data.items[hit.i]);
+        if (seen.has(key) || (tokens.length > 1 && seenBlocks.has(block))) return false;
         seen.add(key);
+        seenBlocks.add(block);
         return true;
       });
       return { items: unique.slice(0, limit).map((hit) => data.items[hit.i]), total: unique.length };
@@ -492,7 +584,7 @@
       meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
       const title = document.createElement("div");
       title.className = "tw-r-title";
-      const variants = engine.match(norm(it[4] + " " + it[5]), tokens).variants;
+      const variants = engine.match(norm(it[4] + " " + it[5]), tokens, true).variants;
       highlight(title, it[4], variants);
       const snippet = document.createElement("div");
       snippet.className = "tw-r-text";

@@ -59,7 +59,7 @@ SYNONYMS: list[list[str]] = [
     ["nvim", "neovim", "lazyvim"],
     ["find", "search", "locate", "look for", "seek"],
     ["big", "large", "size", "biggest", "largest"],
-    ["loop", "repeat", "iterate", "each", "every"],
+    ["loop", "repeat", "iterate"],
     ["argument", "flag", "option", "parameter", "args"],
     ["replace", "substitute", "change", "edit"],
     ["count", "how many", "total", "number"],
@@ -70,6 +70,37 @@ SYNONYMS: list[list[str]] = [
     ["print", "output", "show"],
     ["ips", "ip"],
     ["string", "text"],
+    ["stop", "kill", "terminate"],
+    ["screen", "pane"],
+    ["screen", "window"],
+    ["fullscreen", "full screen", "zoom", "maximize"],
+    ["all", "every", "whole", "entire"],
+    ["math", "arithmetic", "calculate"],
+    ["debug", "trace", "tracing"],
+    ["error", "stderr", "fail", "failure", "failed", "failing"],
+    ["match", "matching", "contain", "contains", "mention"],
+    ["filename", "file name"],
+    ["clipboard", "copy", "yank"],
+    ["sum", "add up", "total"],
+    ["accessed", "opened", "used", "atime", "kMDItemLastUsedDate"],
+    ["changed", "modified", "edited", "mtime", "newer", "changed-within"],
+    ["created", "new", "ctime", "newer", "kMDItemFSCreationDate"],
+    ["pretty print", "format", "pretty"],
+    ["python", "py"],
+    ["installed", "exists", "available"],
+    ["bind", "bound", "binding"],
+    ["reattach", "attach", "reconnect", "get back"],
+    ["leave", "exit", "get out", "quit"],
+    ["blame", "author", "who changed"],
+    ["break", "broken", "breaking", "breaks", "unsafe"],
+    ["space", "spaces", "whitespace", "splitting"],
+    ["suffix", "extension"],
+    ["retry", "try", "attempt"],
+    ["size", "disk space", "usage", "big", "large", "biggest", "largest"],
+    ["stderr", "error messages", "standard error"],
+    ["stdout", "standard output"],
+    ["diff", "diffview", "DiffviewOpen"],
+    ["variable", "symbol", "identifier"],
 ]
 
 
@@ -100,7 +131,16 @@ def entries(mods):
         if key in seen:
             return
         seen.add(key)
-        out.append([kind, fi, n, aid, clean(title), text])
+        mod = mods[fi]
+        drill_context = ""
+        context = f"{mod['title']} {mod['pages'][n - 1]['h1']}"
+        for k, drill in enumerate(mod["pages"][n - 1]["drills"], 1):
+            drill_anchor = anchor(n, f"d{k}")
+            if aid == drill_anchor or aid.startswith(drill_anchor + "-"):
+                drill_context = f"{drill['h2']} {drill['intro']}"
+                context += " " + drill_context
+                break
+        out.append([kind, fi, n, aid, clean(title), text, clean(context), clean(drill_context)])
 
     for fi, mod in enumerate(mods):
         for n, page in enumerate(mod["pages"], 1):

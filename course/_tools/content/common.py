@@ -9,7 +9,7 @@ MODULE_META = [
     {"n": 6, "folder": "m6-plugins-keymaps", "title": "Plugins and the key map", "group": "tmux & Neovim"},
     {"n": 7, "folder": "m7-expert", "title": "Expert Neovim", "group": "tmux & Neovim"},
     {"n": 8, "folder": "m8-from-vscode", "title": "Coming from VS Code", "group": "tmux & Neovim"},
-    {"n": 9, "folder": "m9-find-text", "title": "Find and text tools", "group": "Linux & Bash"},
+    {"n": 9, "folder": "m9-find-text", "title": "Find files, search text and change output", "group": "Linux & Bash"},
     {"n": 10, "folder": "m10-bash-basics", "title": "Bash basics", "group": "Linux & Bash"},
     {"n": 11, "folder": "m11-bash-expert", "title": "Bash expert", "group": "Linux & Bash"},
 ]

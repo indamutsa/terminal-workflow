@@ -9,36 +9,36 @@ def C(s):
 MODULE = {
     "n": 9,
     "folder": "m9-find-text",
-    "title": "Find and text tools",
-    "footer": "Find files and text: fd, find, mdfind, rg, grep, cut, sort, uniq, tr, awk, sed, xargs and jq with real output",
-    "tagline": "Find any file, search any text, and reshape output with short pipelines.",
+    "title": "Find files, search text and change output",
+    "footer": "Find files, search text, sort and count lines, replace words and read JSON; see the output of each command.",
+    "tagline": "Find a file, search for a word, and change command output with short pipelines.",
     "glossary": [],
     "coverage_allow": [],
     "pages": [
         # ============================================================ page 1
         {
-            "h1": "Find files",
-            "subtitle": "Find a file by name, size or age with fd, find and mdfind, and spot the biggest folders.",
+            "h1": "Find files by name, size or date on your Mac",
+            "subtitle": "Find a file by name, find big files, find files changed before or after a date, see the biggest folders",
             "idea": (
-                "Pick the tool by where you search: fd or find inside a folder, mdfind across the whole Mac.",
+                "Find files in a folder with fd or find; search the whole Mac with mdfind.",
                 [
-                    ("Find files by name", "fd report", "Add -e pdf for one extension."),
-                    ("Find files bigger than 100 MB", "fd -S +100m", "find: -size +100M."),
-                    ("Find a file anywhere on the Mac", "mdfind -name report", "Add -onlyin ~/Documents to narrow it."),
-                    ("Find the biggest folders", "du -sh * | sort -h", "The last line is the biggest."),
+                    ("Find a file by part of its name", "fd report", "Find only PDF files: add -e pdf."),
+                    ("Find files bigger than 100 MB", "fd -S +100m", "Find the same size with find: use -size +100M."),
+                    ("Find a file anywhere on your Mac", "mdfind -name report", "Search only Documents: add -onlyin ~/Documents."),
+                    ("See which folders use the most space", "du -sh * | sort -h", "Read the last line for the biggest entry."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "You know a file exists but not where, so you open folder after folder and scroll.",
-                "fix": "Type what you know: a name, an extension, a size or a day. `fd` and `find` search a folder tree. `mdfind` searches the whole Mac at once.",
+                "fail": "How do I find a file when I know it exists but cannot remember the folder? Opening and scrolling through folders takes time.",
+                "fix": "Find the file by its name, extension, size or date. Search a folder and its subfolders with `fd` or `find`. Search the whole Mac at once with `mdfind`.",
             },
             "drills": [
                 {
-                    "h2": "Find files by name with fd",
-                    "intro": "`fd` searches below the current folder. The pattern is part of a file name. The sample files live in `/tmp/tw/find`.",
+                    "h2": "Find a file by part of its name (fd)",
+                    "intro": "Find a file below the current folder: give `fd` part of its name. Use the practice files in `/tmp/tw/find`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Make the sample files for this page", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Create the practice files for finding files", "code": C('''
 mkdir -p /tmp/tw/find/src /tmp/tw/find/docs /tmp/tw/find/.cfg && cd /tmp/tw/find
 echo 'print("hi")' > src/app.py
 echo 'print("test")' > src/test_app.py
@@ -57,12 +57,12 @@ touch -t 202401010000 old.txt
 fd
 '''),
                          "expect": "`fd` lists the 11 entries: `big.bin`, `docs/`, `docs/Notes.md`, `docs/data.bin`, `docs/todo.txt`, `my file.txt`, `old.txt`, `run.log`, `src/`, `src/app.py`, `src/test_app.py`. The order can differ. `.cfg` is missing because it is hidden."},
-                        {"type": "text", "body": "On Linux, `dd` wants `bs=1M` with a capital M. Everything else in the setup is the same."},
+                        {"type": "text", "body": "Create the same practice files on Linux: give `dd` a capital M in `bs=1M`. Keep the rest of the setup the same."},
                         {"type": "cmd", "where": "shell", "title": "Find files by part of the name", "code": C('''
 fd app
 '''),
                          "expect": "`src/app.py` and `src/test_app.py`. Both names contain `app`."},
-                        {"type": "cmd", "where": "shell", "title": "Find files by extension", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find every file of one type (.md or .py)", "code": C('''
 fd -e md
 fd -e py
 '''),
@@ -72,7 +72,7 @@ fd -t d
 fd -t f log
 '''),
                          "expect": "`-t d` prints the folders `docs/` and `src/`. `-t f log` prints the file `run.log`."},
-                        {"type": "cmd", "where": "shell", "title": "Find hidden files", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find hidden files that fd skips", "code": C('''
 fd env
 fd -H env
 '''),
@@ -81,12 +81,12 @@ fd -H env
 fd -e txt -E docs
 '''),
                          "expect": "`my file.txt` and `old.txt`. `docs/todo.txt` is skipped."},
-                        {"type": "text", "body": "fd also skips files that `.gitignore` lists. `-I` shows them, and `-u` shows hidden and ignored files together."},
+                        {"type": "text", "body": "Find files excluded by `.gitignore`: add `-I`, because fd skips them too. Find hidden and ignored files together with `-u`."},
                     ],
                 },
                 {
-                    "h2": "Find files by size or age with fd",
-                    "intro": "Add a size or time filter to the same command. Units are `k`, `m`, `g` for size and `d`, `h`, `min` for time.",
+                    "h2": "Find files by size or when they last changed (fd)",
+                    "intro": "Find files by size or when they changed: add a filter to the same command. Give sizes in `k`, `m`, `g` and times in `d`, `h`, `min`.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Find files bigger than 100 MB", "code": C('''
 fd -S +100m
@@ -96,7 +96,7 @@ fd -S +100m
 fd -t f -S +100k
 '''),
                          "expect": "`big.bin` and `docs/data.bin`. The order can differ."},
-                        {"type": "cmd", "where": "shell", "title": "Find files older than one day", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find files last changed more than one day ago", "code": C('''
 fd -t f --changed-before 1d
 '''),
                          "expect": "`old.txt`, which `touch -t` dated 1 January 2024."},
@@ -112,15 +112,15 @@ fd -e md -x echo found {}
                     ],
                 },
                 {
-                    "h2": "Find files with find",
-                    "intro": "`find` is on every Mac and Linux box, so these work on a server where fd is not installed. It needs a start folder (`.`) and quotes around patterns.",
+                    "h2": "Find files on a Mac or Linux server without fd",
+                    "intro": "Find files when fd is not installed: use `find`, available on every Mac and Linux machine. Give it a starting folder (`.`) and put patterns in quotes.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Find a file by name with find", "code": C('''
 find . -name "*.py"
 find . -iname "notes*"
 '''),
                          "expect": "`./src/app.py` and `./src/test_app.py`. Then `./docs/Notes.md`: `-iname` ignores case, so `notes*` matches `Notes.md`."},
-                        {"type": "cmd", "where": "shell", "title": "Find only folders, or only the top level", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find folders or list files without searching subfolders", "code": C('''
 find . -type d
 find . -maxdepth 1 -type f
 '''),
@@ -129,7 +129,7 @@ find . -maxdepth 1 -type f
 find . -type f -size +100M
 '''),
                          "expect": "`./big.bin`."},
-                        {"type": "cmd", "where": "shell", "title": "Find files by age with find", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find files changed over 30 days ago or logs changed in the last day", "code": C('''
 find . -type f -mmin +43200
 find . -type f -mtime -1 -name "*.log"
 '''),
@@ -138,26 +138,26 @@ find . -type f -mtime -1 -name "*.log"
 find . -name "*.log" -exec wc -l {} +
 '''),
                          "expect": "`3 ./run.log`. The `+` hands many files to one `wc` call."},
-                        {"type": "cmd", "where": "shell", "title": "List what -delete would remove (dry run)", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Preview which files find would delete (dry run)", "code": C('''
 find . -name "*.log" -print
 '''),
                          "expect": "`./run.log`. Nothing is deleted. These are the files `-delete` would remove."},
-                        {"type": "text", "body": "Warning: `-delete` has no undo and no prompt. Run the command with `-print` first and read the list. Put `-delete` last, because find acts on tests in order."},
-                        {"type": "code", "file": "shell", "title": "Delete the files you just listed (only after the dry run)", "code": C('''
+                        {"type": "text", "body": "Check which files find will delete: run with `-print` first and read the list. `-delete` asks no questions and has no undo. Put `-delete` last because find checks each test in order."},
+                        {"type": "code", "file": "shell", "title": "Delete files only after checking the preview", "code": C('''
 find . -name "*.log" -print
 find . -name "*.log" -delete
 ''')},
                     ],
                 },
                 {
-                    "h2": "Fuzzy find a file and pick it interactively with fzf",
-                    "intro": "`fzf` turns any list into a picker. Pipe the output of `fd` into it, type a few letters of the name, then press Enter. Letters can be spread out: `sapp` finds `src/app.py`. These use the same sample files in `/tmp/tw/find`.",
+                    "h2": "Find and pick a file by typing a few letters (fzf)",
+                    "intro": "Pick a file from a searchable list: pipe `fd` output into `fzf`, type a few letters, then press Enter. Use letters from different parts of the name: `sapp` finds `src/app.py`. `fzf` can turn any list into a picker. Use the same practice files in `/tmp/tw/find`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Pick a file interactively from a list (fuzzy find a file)", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Search a list of files and pick one (fuzzy find)", "code": C('''
 fd -e py | fzf
 '''),
                          "expect": "A list with `src/app.py` and `src/test_app.py` and a prompt `>`. Type `tes`: the list narrows to `src/test_app.py` and the counter reads `1/2`. Press Enter: fzf prints the pick, `src/test_app.py`, and exits. Esc leaves without printing."},
-                        {"type": "cmd", "where": "shell", "title": "Fuzzy find a file without the picker (fzf --filter)", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find files with fzf in a script without opening the picker", "code": C('''
 fd -t f | fzf --filter app
 fd -t f | fzf --filter 'md$'
 fd -t f | fzf --filter '^src !test'
@@ -167,31 +167,31 @@ fd -t f | fzf --filter '^src !test'
 fd -t f | fzf --preview 'bat --color=always {}'
 '''),
                          "expect": "The list sits on the left and the preview on the right. Type `app`: the list narrows to `src/app.py` and `src/test_app.py` (`2/9`). The preview of the highlighted file shows `File: src/app.py` and `1 │ print(\"hi\")`, with colors. `{}` stands for the highlighted line."},
-                        {"type": "cmd", "where": "shell", "title": "Open the picked files in nvim (pick several)", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Pick several files and open them in nvim", "code": C('''
 nvim $(fd -e py | fzf -m)
 '''),
                          "expect": "`-m` allows several picks. Move to a line and press `Tab` to mark it, mark a second one, then press Enter. nvim opens `src/app.py` and `src/test_app.py` as two buffers. The top bar shows `app.py` and `test_app.py`, and `:bn` jumps to the other file. With one pick, nvim opens that single file."},
-                        {"type": "text", "body": "File names with spaces split into pieces inside `$(...)`. With a single pick, put quotes around it: `nvim \"$(fzf)\"`."},
-                        {"type": "keys", "where": "fzf", "title": "Pick a file, search history or change folder from the prompt, then the keys inside fzf", "rows": [
-                            ("Ctrl-T", "Insert the path of a file you pick at the cursor (unbound in this setup, use `ff`)"),
-                            ("Ctrl-R", "Search your command history and paste the pick on the prompt"),
-                            ("Alt-C", "cd into a folder you pick. If Option types a letter, press Esc then c"),
-                            ("Tab", "Mark or unmark the highlighted line and move down (with -m)"),
-                            ("Enter", "Accept the marked lines, or the highlighted line if none are marked"),
-                            ("Esc", "Leave without a pick"),
+                        {"type": "text", "body": "Open one picked file with spaces in its name: quote the pick as `nvim \"$(fzf)\"`. Unquoted file names split at spaces inside `$(...)`."},
+                        {"type": "keys", "where": "fzf", "title": "Pick files, search command history and change folders with fzf keys", "rows": [
+                            ("Ctrl-T", "Insert a picked file path at the cursor; use `ff` here because this key is unbound"),
+                            ("Ctrl-R", "Find a previous command and paste it at the prompt"),
+                            ("Alt-C", "Change to a picked folder; press Esc then c if Option types a letter"),
+                            ("Tab", "Select or deselect the highlighted line and move down (with -m)"),
+                            ("Enter", "Accept selected lines, or the highlighted line when none are selected"),
+                            ("Esc", "Close the picker without choosing an item"),
                         ]},
-                        {"type": "text", "body": "More fzf helpers for this machine, such as `ff` (find a file), `frg` (search text), `fcd` (go up to a parent folder) and `fkill` (kill a process), are in module 1, page 3: Copy mode, the command line and fzf."},
+                        {"type": "text", "body": "Find a file with `ff`, search text with `frg`, go up to a parent folder with `fcd`, or kill a process with `fkill`. Find these fzf helpers for this machine in module 1, page 3: Copy mode, the command line and fzf."},
                     ],
                 },
                 {
-                    "h2": "Find anything on my Mac",
-                    "intro": "`mdfind` asks the Spotlight index, so it is fast, but it only finds files Spotlight has indexed. Folders you excluded in System Settings, new files not indexed yet and `/tmp` are missing. These run on your own folders and your results will differ.",
+                    "h2": "Find files across your Mac with Spotlight (mdfind)",
+                    "intro": "Search your Mac quickly with `mdfind`: it uses the Spotlight index. Find only files Spotlight has indexed; folders excluded in System Settings, new files awaiting indexing and `/tmp` are missing. Search your own folders with these commands; your results will differ.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Find a file anywhere by part of its name", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find a file in Downloads by part of its name", "code": C('''
 mdfind -name zshrc -onlyin ~/Downloads
 '''),
                          "expect": "One full path for each file whose name contains `zshrc`, such as `/Users/you/Downloads/zshrc.sh`. `-onlyin` limits the search to one folder."},
-                        {"type": "cmd", "where": "shell", "title": "Find files that contain a word", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find Documents files with a word in the name or text", "code": C('''
 mdfind -onlyin ~/Documents invoice | head -3
 '''),
                          "expect": "Up to three full paths of files in Documents whose name or text contains `invoice`. Without `-name`, mdfind looks inside files too."},
@@ -203,11 +203,11 @@ mdfind -count -onlyin ~/Documents invoice
 mdfind -onlyin ~/Documents 'kMDItemContentModificationDate >= $time.today(-7)' | head -3
 '''),
                          "expect": "Up to three full paths of recently changed files. The single quotes keep the shell from touching `$time`."},
-                        {"type": "cmd", "where": "shell", "title": "Find files bigger than 500 MB anywhere under home", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find large files over 500 MB in your home folder", "code": C('''
 mdfind -onlyin ~ 'kMDItemFSSize > 500000000' | head -3
 '''),
                          "expect": "Up to three full paths of files over 500 MB, often under `~/Library`. The size is in bytes."},
-                        {"type": "cmd", "where": "shell", "title": "Find the biggest folders and files", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "See which files and folders use the most disk space", "code": C('''
 du -sh * | sort -h
 du -sh * | sort -rh | head -3
 '''),
@@ -220,23 +220,23 @@ command ls -lt | head -4
                 },
             ],
             "rules": {
-                "h2": "Which find tool at a glance",
+                "h2": "Choose a command to find files by name, size or date",
                 "cards": [
-                    ("Pick the tool", "One question picks the command.", ["You want to find", "Type"], [
-                        ["A file by part of its name in this folder", "`fd name`"],
-                        ["The same on any Linux box", "`find . -name \"*name*\"`"],
-                        ["A file Spotlight has indexed, by name", "`mdfind -name name`"],
-                        ["An indexed file, by a word inside", "`mdfind -onlyin ~ word`"],
-                        ["The biggest folders here", "`du -sh * | sort -h`"],
+                    ("Choose how to find a file", "Match what you want to find to a command.", ["Find a file or folder", "Run this command"], [
+                        ["Find a file here by part of its name", "`fd name`"],
+                        ["Find a file by name on any Linux machine", "`find . -name \"*name*\"`"],
+                        ["Find an indexed file by name with Spotlight", "`mdfind -name name`"],
+                        ["Find an indexed file by a word inside it", "`mdfind -onlyin ~ word`"],
+                        ["See the biggest folders here", "`du -sh * | sort -h`"],
                     ]),
-                    ("Size and age tests", "The same job in fd and in find.", ["You want", "fd", "find"], [
-                        ["Bigger than 100 MB", "`-S +100m`", "`-size +100M`"],
-                        ["Changed in the last day", "`--changed-within 1d`", "`-mtime -1`"],
-                        ["Not changed for 30 days", "`--changed-before 30d`", "`-mmin +43200`"],
-                        ["Only files", "`-t f`", "`-type f`"],
-                        ["Only folders", "`-t d`", "`-type d`"],
+                    ("Find files by size or last change", "Find the same files with fd or find using these filters.", ["Find matching files", "fd", "find"], [
+                        ["Find files bigger than 100 MB", "`-S +100m`", "`-size +100M`"],
+                        ["Find files changed in the last day", "`--changed-within 1d`", "`-mtime -1`"],
+                        ["Find files not changed for 30 days", "`--changed-before 30d`", "`-mmin +43200`"],
+                        ["Find files only", "`-t f`", "`-type f`"],
+                        ["Find folders (directories) only", "`-t d`", "`-type d`"],
                     ]),
-                    ("Delete with find, safely", "Three steps, always in this order.", ["Step", "Type"], [
+                    ("Check files before deleting them with find", "List the files, count them, then delete them, always in that order.", ["Check and delete files", "Run this command"], [
                         ["1. List the matches", "`find . -name \"*.log\" -print`"],
                         ["2. Count them", "`find . -name \"*.log\" -print | wc -l`"],
                         ["3. Delete them", "`find . -name \"*.log\" -delete`"],
@@ -244,63 +244,63 @@ command ls -lt | head -4
                 ],
             },
             "worked": {
-                "h2": "Find the file eating your disk",
-                "frame": "The folder feels heavy. You want the biggest file and the biggest folder.",
+                "h2": "Find the files and folders taking up disk space",
+                "frame": "Find the biggest file and folder when a folder uses too much space.",
                 "open": "cd /tmp/tw/find",
                 "steps": [
-                    (None, "`fd -S +100m`", "Lists every file over 100 MB: `big.bin`."),
-                    (None, "`du -sh * | sort -rh | head -3`", "Ranks files and folders by size and keeps the top three. Sizes can differ a little."),
-                    (None, "`fd -t f --changed-before 1d`", "Lists files you have not touched since yesterday: `old.txt`."),
+                    (None, "`fd -S +100m`", "Find every file over 100 MB: `big.bin`."),
+                    (None, "`du -sh * | sort -rh | head -3`", "Show the three biggest files and folders, ranked by size. Sizes can differ a little."),
+                    (None, "`fd -t f --changed-before 1d`", "Find files you have not changed since yesterday: `old.txt`."),
                 ],
                 "after": "120M\tbig.bin\n204K\tdocs\n8.0K\tsrc",
-                "meaning": "Size first, then age: two short commands point at what to clean up.",
+                "meaning": "Find what to clean up: check size, then age, with two short commands.",
             },
             "practice": {
-                "h2": "Practice: find files",
+                "h2": "Check how to find files and preview deletions",
                 "qs": [
-                    ("Mechanism", "`.cfg/.env` exists, but `fd env` prints nothing. Why?",
-                     "What does fd skip unless you ask?",
-                     ["fd skips hidden files and folders by default.", "Both `.cfg` and `.env` start with a dot."],
-                     "Run `fd -H env`. It prints `.cfg/.env`."),
-                    ("Keystrokes", "Which find command lists regular files bigger than 100 MB?",
-                     "Two tests: the type and the size.",
-                     ["Start in the current folder with `find .`.", "Add `-type f` for files only.", "Add `-size +100M`."],
-                     "`find . -type f -size +100M` prints `./big.bin`."),
-                    ("Application", "Count the lines of every Markdown file below the current folder.",
-                     "Find by extension, then run a command on each match.",
-                     ["`fd -e md` finds the files.", "`-x wc -l` runs `wc -l` on each one."],
-                     "`fd -e md -x wc -l` prints `1 ./docs/Notes.md`."),
-                    ("Common mistake", "You ran `find . -name \"*.log\" -delete` and lost a file you wanted. What should you have done first?",
-                     "Does -delete ask or keep a copy?",
-                     ["`-delete` removes at once, with no prompt and no undo.", "Swap `-delete` for `-print` and read the list."],
-                     "Run `find . -name \"*.log\" -print` first. Replace `-print` with `-delete` only when the list is right."),
+                    ("Mechanism", "Why does `fd env` find nothing when `.cfg/.env` exists?",
+                     "Check which files fd skips unless you ask for them.",
+                     ["Find hidden files by asking for them; fd skips them by default.", "Recognize hidden names by the leading dot in both `.cfg` and `.env`."],
+                     "Find the hidden file with `fd -H env`: it prints `.cfg/.env`."),
+                    ("Keystrokes", "How do I list regular files bigger than 100 MB with find?",
+                     "Filter by both file type and size.",
+                     ["Search the current folder with `find .`.", "Keep files only with `-type f`.", "Find files over 100 MB with `-size +100M`."],
+                     "Find the large file with `find . -type f -size +100M`: it prints `./big.bin`."),
+                    ("Application", "How do I count lines in every Markdown file below the current folder?",
+                     "Find files by extension, then run a command on each match.",
+                     ["Find Markdown files with `fd -e md`.", "Count each file's lines: `-x wc -l` runs `wc -l` on each one."],
+                     "Count Markdown lines with `fd -e md -x wc -l`: it prints `1 ./docs/Notes.md`."),
+                    ("Common mistake", "How should I have checked the files before `find . -name \"*.log\" -delete` deleted one I needed?",
+                     "Check whether -delete asks first or keeps a copy.",
+                     ["Expect immediate removal with `-delete`, without a prompt or undo.", "Preview the files: swap `-delete` for `-print` and read the list."],
+                     "Preview files with `find . -name \"*.log\" -print` first. Replace `-print` with `-delete` only after checking the list."),
                 ],
             },
         },
         # ============================================================ page 2
         {
-            "h1": "Search inside files",
-            "subtitle": "Find a word in a folder of files with rg, grep it from any output, and show the lines around it.",
+            "h1": "Search for a word in every file (rg and grep)",
+            "subtitle": "Find a word in a folder of files, filter command output, show lines around a match",
             "idea": (
-                "rg searches every file below the current folder. grep searches the files you name, or any output you pipe in.",
+                "Search files below the current folder with rg. Search named files or piped command output with grep.",
                 [
-                    ("Find a word in every file", "rg word", "rg is case sensitive. Add -i to ignore case."),
-                    ("List only the files that contain a word", "rg -l word", "-c counts the matches per file."),
-                    ("Show lines around a match", "rg -C 2 word", "Two lines before and after."),
-                    ("Filter any output for a word", "command | grep word", "-v keeps the lines without it."),
+                    ("Find a word in every file", "rg word", "Ignore upper and lower case with -i; rg matches case by default."),
+                    ("List only files that contain a word", "rg -l word", "Count matches in each file with -c."),
+                    ("Show lines before and after a match", "rg -C 2 word", "Show two lines on each side."),
+                    ("Find a word in command output", "command | grep word", "Keep lines without the word with -v."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "A word is somewhere in a project of hundreds of files, and opening them one by one takes forever.",
-                "fix": "Give rg the word. It prints each file name, the line number and the line. Narrow it with a file type, a glob or a flag.",
+                "fail": "How do I find a word in hundreds of project files without opening each file? Opening them one by one takes too long.",
+                "fix": "Search for the word with rg to see each file name, line number and matching line. Search fewer files by adding a file type, a glob or a flag.",
             },
             "drills": [
                 {
-                    "h2": "Search for a word with rg",
-                    "intro": "Run these in a terminal: rg shows a file name, then `line:text` for each match. Piped into another command, rg drops the headings.",
+                    "h2": "Find a word and its line number in files (rg)",
+                    "intro": "Find matching lines in a terminal: rg shows the file name, then `line:text` for each match. Pipe rg into another command to get output without the headings.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Make the sample files for this page", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Create the practice files for searching text", "code": C('''
 mkdir -p /tmp/tw/grep && cd /tmp/tw/grep
 cat > app.log <<'EOF'
 2026-10-14 10:01:02 INFO  start worker=1
@@ -325,11 +325,11 @@ rg --files
 rg error
 '''),
                          "expect": "`notes.md`, then `3:- error budget review`. The lines with `ERROR` in `app.log` do not match, because rg is case sensitive."},
-                        {"type": "cmd", "where": "shell", "title": "Search ignoring upper and lower case", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Search for a word ignoring upper and lower case", "code": C('''
 rg -i error
 '''),
                          "expect": "Both files. `notes.md` with `3:- error budget review`, and `app.log` with `2:` (the `ERROR disk full` line) and `4:` (the `ERROR timeout` line). The file order can differ."},
-                        {"type": "cmd", "where": "shell", "title": "Match a whole word only", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find a whole word without matching part of another word", "code": C('''
 rg ERR
 rg -w ERR
 '''),
@@ -349,18 +349,18 @@ rg -c ERROR
                     ],
                 },
                 {
-                    "h2": "Narrow the search to some files",
-                    "intro": "Name a file type with `-t`, or a glob with `-g`. A `!` in front of the glob leaves those files out.",
+                    "h2": "Search only certain file types or skip files (rg)",
+                    "intro": "Search one file type with `-t`, or match file names with a glob using `-g`. Exclude files by putting `!` before the glob.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Search only Python files", "code": C('''
 rg -t py load
 '''),
                          "expect": "`main.py`, then `2:def load(path):` and `5:print(load(\"app.log\"))`."},
-                        {"type": "cmd", "where": "shell", "title": "Search only files that match a glob", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Search only .log files with a file-name pattern (glob)", "code": C('''
 rg -g '*.log' ERROR
 '''),
                          "expect": "`app.log` with its two `ERROR` lines, 2 and 4."},
-                        {"type": "cmd", "where": "shell", "title": "Search every file except one kind", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Search files while excluding Markdown files", "code": C('''
 rg -g '!*.md' -i error
 '''),
                          "expect": "Only `app.log`, lines 2 and 4. `notes.md` is left out."},
@@ -375,14 +375,14 @@ rg --files | rg app
                     ],
                 },
                 {
-                    "h2": "Show context and match patterns",
-                    "intro": "Use `-F` for text with special characters. Use `-e` for several words. Quote any regex.",
+                    "h2": "Show nearby lines and search text or patterns (rg)",
+                    "intro": "Search text containing special characters with `-F`. Search several words with `-e`. Put every regex in quotes.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Show the lines around a match", "code": C('''
 rg -C 1 timeout
 '''),
                          "expect": "`app.log`, then line 3 (`WARN slow query`) with a `-`, line 4 (the `ERROR timeout` line) with a `:`, and line 5 (`INFO done`) with a `-`. A `:` marks the match and a `-` marks the context."},
-                        {"type": "cmd", "where": "shell", "title": "Search for text with special characters as it is", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Search for literal text containing special characters", "code": C('''
 rg -F 'path=/data'
 '''),
                          "expect": "`app.log`, then `2:2026-10-14 10:01:05 ERROR disk full path=/data`. `-F` reads the pattern as plain text, not a regex."},
@@ -394,15 +394,15 @@ rg -e ERROR -e WARN
 rg 'worker=[0-9]+'
 '''),
                          "expect": "`app.log`, then lines 1 (`INFO start worker=1`) and 5 (`INFO done worker=1`)."},
-                        {"type": "cmd", "where": "shell", "title": "Print only the part that matched", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Show only matching text instead of the whole line", "code": C('''
 rg -o 'host=\\w+'
 '''),
                          "expect": "`app.log`, then `4:host=db1`. `-o` prints the match and not the whole line."},
                     ],
                 },
                 {
-                    "h2": "Search with grep",
-                    "intro": "`grep` is on every Linux box and Mac. It reads the files you name, or its input from a pipe.",
+                    "h2": "Find words in files or folders with grep",
+                    "intro": "Search on any Linux machine or Mac with `grep`. Give it file names or pipe in command output to search.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Search a file for a word with grep", "code": C('''
 grep ERROR app.log
@@ -435,15 +435,15 @@ grep -B1 timeout app.log
                     ],
                 },
                 {
-                    "h2": "Pipe into grep to filter any output",
-                    "intro": "Put `| grep word` after any command to keep only the lines with that word. Chain it to narrow further.",
+                    "h2": "Find a word in any command's output (grep)",
+                    "intro": "Keep output lines containing a word: put `| grep word` after any command. Add another grep to narrow the results further.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Filter a command's output with grep", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Show command output lines containing one word or both words", "code": C('''
 cat app.log | grep ERROR
 cat app.log | grep ERROR | grep timeout
 '''),
                          "expect": "The two `ERROR` lines. Then only the `ERROR timeout host=db1` line."},
-                        {"type": "cmd", "where": "shell", "title": "Filter rg output with grep", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Search rg results for another word with grep", "code": C('''
 rg -n ERROR app.log | grep timeout
 '''),
                          "expect": "`4:2026-10-14 10:03:40 ERROR timeout host=db1`."},
@@ -455,22 +455,22 @@ cat app.log | grep -c INFO
                 },
             ],
             "rules": {
-                "h2": "Search flags at a glance",
+                "h2": "Choose flags to find words, files and matching lines",
                 "cards": [
-                    ("rg and grep side by side", "Most flags have the same letter in both.", ["Task", "rg", "grep"], [
+                    ("Find the same text with rg or grep", "Use the same flag letter for most searches in either tool.", ["Find matching text", "rg", "grep"], [
                         ["Search a folder", "`rg word`", "`grep -r word .`"],
-                        ["Ignore case", "`-i`", "`-i`"],
-                        ["Whole word only", "`-w`", "`-w`"],
-                        ["Line numbers", "`-n` (on in a terminal)", "`-n`"],
-                        ["File names only", "`-l`", "`-l`"],
+                        ["Ignore upper and lower case", "`-i`", "`-i`"],
+                        ["Match whole words only", "`-w`", "`-w`"],
+                        ["Show line numbers", "`-n` (already on in a terminal)", "`-n`"],
+                        ["List matching file names only", "`-l`", "`-l`"],
                         ["Count matching lines", "`-c`", "`-c`"],
                         ["Skip matching lines", "`-v`", "`-v`"],
-                        ["Lines around a match", "`-C 2`", "`-C 2`"],
-                        ["Several patterns", "`-e a -e b`", "`-E 'a|b'`"],
-                        ["Only the match", "`-o`", "`-o`"],
-                        ["Plain text, no regex", "`-F`", "`-F`"],
+                        ["Show lines before and after a match", "`-C 2`", "`-C 2`"],
+                        ["Search for several patterns", "`-e a -e b`", "`-E 'a|b'`"],
+                        ["Print only the matching text", "`-o`", "`-o`"],
+                        ["Search plain text without regex", "`-F`", "`-F`"],
                     ]),
-                    ("Narrow where rg looks", "rg skips hidden, git-ignored and binary files unless you say otherwise.", ["Task", "Type"], [
+                    ("Choose which files rg searches", "Include skipped files when needed; rg skips hidden, git-ignored and binary files by default.", ["Choose files to search", "Run this command"], [
                         ["Search Python files only", "`rg -t py word`"],
                         ["Search files that match a glob", "`rg -g '*.log' word`"],
                         ["Search everything except Markdown", "`rg -g '!*.md' word`"],
@@ -479,71 +479,71 @@ cat app.log | grep -c INFO
                         ["Search hidden and git-ignored files too", "`rg -uu word`"],
                         ["Find a file by name", "`rg --files | rg name`"],
                     ]),
-                    ("Filter any output", "grep reads from a pipe, so it works on any command.", ["Task", "Type"], [
+                    ("Find words in command output", "Search output from any command by piping it into grep.", ["Find matching output lines", "Run this command"], [
                         ["List processes that mention nginx", "`ps aux | grep nginx`"],
-                        ["Show ERROR lines, minus the disk ones", "`cat app.log | grep ERROR | grep -v disk`"],
-                        ["Keep rg hits that also contain another word", "`rg -n word | grep other`"],
+                        ["Show ERROR lines without the word disk", "`cat app.log | grep ERROR | grep -v disk`"],
+                        ["Keep rg matches containing another word too", "`rg -n word | grep other`"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Find the failing host in a log",
-                "frame": "A log has errors. You want to know which file holds the timeout and what happened around it.",
+                "h2": "Find a timeout in a log and see what happened around it",
+                "frame": "Find which error log contains a timeout and see the nearby events.",
                 "open": "cd /tmp/tw/grep",
                 "steps": [
-                    (None, "`rg -l ERROR`", "Names the files with an error: `app.log`."),
-                    (None, "`rg -c ERROR`", "Counts them: `app.log:2`."),
-                    (None, "`rg -C 1 timeout`", "Shows the timeout line and one line each side."),
+                    (None, "`rg -l ERROR`", "Find file names containing an error: `app.log`."),
+                    (None, "`rg -c ERROR`", "Count the error lines: `app.log:2`."),
+                    (None, "`rg -C 1 timeout`", "Show the timeout with one line before and after it."),
                 ],
                 "after": "app.log\n3-2026-10-14 10:02:11 WARN  slow query ms=950\n4:2026-10-14 10:03:40 ERROR timeout host=db1\n5-2026-10-14 10:04:00 INFO  done worker=1",
-                "meaning": "Names first, counts next, then the lines around the one you care about.",
+                "meaning": "Find the file names, count the matches, then show the lines around the match you need.",
             },
             "practice": {
-                "h2": "Practice: search inside files",
+                "h2": "Check how to find words and show nearby lines",
                 "qs": [
-                    ("Mechanism", "`rg error` shows only `notes.md`, not the ERROR lines of `app.log`. Why?",
-                     "Is rg case sensitive?",
-                     ["rg matches letter case by default.", "`app.log` has `ERROR` in capitals, and the pattern is lower case."],
-                     "Add `-i`: `rg -i error` finds both files."),
-                    ("Keystrokes", "Which command prints only the names of the files that contain ERROR?",
-                     "One letter, lower case L.",
-                     ["Type `rg`.", "Add `-l`.", "Add the word."],
-                     "`rg -l ERROR` prints `app.log`."),
-                    ("Application", "Show the `timeout` line with one line before and one after.",
-                     "C for context.",
-                     ["Use `-C` for lines on both sides.", "Give it the count `1`."],
-                     "`rg -C 1 timeout` prints lines 3, 4 and 5 of `app.log`."),
-                    ("Common mistake", "`grep ERROR .` prints `grep: .: Is a directory`. What do you add?",
-                     "grep reads files, not folders, until you tell it to walk them.",
-                     ["`.` is a folder, and grep skips folders by default.", "`-r` makes grep walk the folder.", "`-n` adds the line numbers."],
-                     "`grep -rn ERROR .` prints each match as `./app.log:2:...`. Plain `-r` leaves out the line numbers."),
+                    ("Mechanism", "Why does `rg error` find only `notes.md` and skip the ERROR lines in `app.log`?",
+                     "Check whether rg matches upper and lower case.",
+                     ["Match letter case when searching with rg by default.", "Compare the lower-case pattern with the capital `ERROR` in `app.log`."],
+                     "Find both files regardless of case: add `-i` to run `rg -i error`."),
+                    ("Keystrokes", "How do I list only file names containing ERROR?",
+                     "List file names with the lower-case L flag.",
+                     ["Start the search with `rg`.", "List file names by adding `-l`.", "Search for the word by adding it."],
+                     "List matching files with `rg -l ERROR`: it prints `app.log`."),
+                    ("Application", "How do I show the `timeout` line with one line before and after it?",
+                     "Show context with the C flag.",
+                     ["Show lines on both sides with `-C`.", "Show one line on each side by giving it `1`."],
+                     "Show the nearby lines with `rg -C 1 timeout`: it prints lines 3, 4 and 5 of `app.log`."),
+                    ("Common mistake", "Why does `grep ERROR .` print `grep: .: Is a directory`, and which flag fixes it?",
+                     "Search folders by telling grep to walk them; it reads files otherwise.",
+                     ["Recognize `.` as a folder; grep skips folders by default.", "Search inside the folder with `-r`.", "Show line numbers with `-n`."],
+                     "Search the folder with `grep -rn ERROR .`: each match looks like `./app.log:2:...`. Use plain `-r` for output without line numbers."),
                 ],
             },
         },
         # ============================================================ page 3
         {
-            "h1": "Slice, sort and count",
-            "subtitle": "Cut columns, sort, count repeats and tidy output with cut, sort, uniq, wc, tr, head, tail, column and paste.",
+            "h1": "Get columns, sort lines and count repeated values",
+            "subtitle": "Get a column from a file, sort numbers, count repeated lines, change characters, line up output",
             "idea": (
-                "Each tool does one small job and passes its output on. Chain them with |.",
+                "Get columns, sort lines and count values by joining tools with |. Each tool does one small job and passes its output to the next.",
                 [
-                    ("Pick one column from a file", "cut -d' ' -f1 access.log", "-d is the separator, -f the column."),
-                    ("Count how many times each line appears", "sort | uniq -c", "Sort first, then count."),
-                    ("Show the top 5 most common lines", "sort | uniq -c | sort -rn | head -5", "The most common line comes first."),
-                    ("Count the lines in a file", "wc -l file", "-w counts words, -c bytes."),
+                    ("Get one column from a file", "cut -d' ' -f1 access.log", "Choose the separator with -d and the column with -f."),
+                    ("Count how many times each line appears", "sort | uniq -c", "Count repeated lines after sorting them."),
+                    ("Show the 5 most common lines", "sort | uniq -c | sort -rn | head -5", "Read the first line for the most common value."),
+                    ("Count the lines in a file", "wc -l file", "Count words with -w and bytes with -c."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "You have a long log or CSV and need one column, a ranking or a count, and a spreadsheet is too much for it.",
-                "fix": "Chain small tools. `cut` picks the column, `sort` orders it, `uniq -c` counts, `head` keeps the top. Each step shows its result, so you can build the chain one tool at a time.",
+                "fail": "How do I get a column, rank values or count rows in a long log or CSV without a spreadsheet? A spreadsheet is too much for this job.",
+                "fix": "Get the column with `cut`, put it in order with `sort`, count repeats with `uniq -c`, and keep the top results with `head`. Build the pipeline one tool at a time and see the result of each step.",
             },
             "drills": [
                 {
-                    "h2": "Pick columns with cut",
-                    "intro": "`cut` takes a column from each line. The sample files live in `/tmp/tw/cols`.",
+                    "h2": "Get columns or characters from each line (cut)",
+                    "intro": "Get a column from each line with `cut`. Use the practice files in `/tmp/tw/cols`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Make the sample files for this page", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Create the practice files for sorting and counting", "code": C('''
 mkdir -p /tmp/tw/cols && cd /tmp/tw/cols
 cat > access.log <<'EOF'
 10.0.0.1 GET /home 200 512
@@ -563,30 +563,30 @@ EOF
 wc -l access.log users.csv
 '''),
                          "expect": "`6 access.log`, `5 users.csv` and `11 total`."},
-                        {"type": "cmd", "where": "shell", "title": "Cut one column from a file", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Get the first column of a space-separated file", "code": C('''
 cut -d' ' -f1 access.log
 '''),
                          "expect": "The first column of each line: `10.0.0.1`, `10.0.0.2`, `10.0.0.1`, `10.0.0.3`, `10.0.0.1`, `10.0.0.2`. `-d' '` splits on spaces and `-f1` keeps field 1."},
-                        {"type": "cmd", "where": "shell", "title": "Cut columns from a CSV file", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Get columns 1 and 3 from a CSV file", "code": C('''
 cut -d, -f1,3 users.csv
 '''),
                          "expect": "`name,age`, `ana,31`, `ben,28`, `cleo,35`, `dan,28`. Fields 1 and 3, split on commas."},
-                        {"type": "cmd", "where": "shell", "title": "Cut the first characters of each line", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Get the first 8 characters of every line", "code": C('''
 cut -c1-8 access.log
 '''),
                          "expect": "The first 8 characters of each line: `10.0.0.1`, `10.0.0.2`, `10.0.0.1`, `10.0.0.3`, `10.0.0.1`, `10.0.0.2`."},
                     ],
                 },
                 {
-                    "h2": "Sort lines",
-                    "intro": "`sort` compares text, so `100` comes before `9`. Add `-n` for numbers and `-h` for sizes such as `2M`.",
+                    "h2": "Sort text, numbers, file sizes or CSV columns",
+                    "intro": "Sort numbers by value with `-n` and sizes such as `2M` with `-h`. Plain `sort` compares text, putting `100` before `9`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Sort numbers by value, not as text", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Sort numbers in numeric order", "code": C('''
 printf '10\\n9\\n100\\n' | sort
 printf '10\\n9\\n100\\n' | sort -n
 '''),
                          "expect": "The first prints `10`, `100`, `9`. The second prints `9`, `10`, `100`."},
-                        {"type": "cmd", "where": "shell", "title": "Sort backwards or drop duplicates", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Sort lines in reverse order or remove duplicates", "code": C('''
 printf 'b\\na\\nb\\n' | sort -r
 printf 'b\\na\\nb\\n' | sort -u
 '''),
@@ -595,7 +595,7 @@ printf 'b\\na\\nb\\n' | sort -u
 printf '1K\\n2M\\n500\\n' | sort -h
 '''),
                          "expect": "`500`, `1K`, `2M`."},
-                        {"type": "cmd", "where": "shell", "title": "Sort a CSV by a column", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Sort CSV rows by age or team and skip the header", "code": C('''
 tail -n +2 users.csv | sort -t, -k3 -nr
 tail -n +2 users.csv | sort -t, -k2,2
 '''),
@@ -607,8 +607,8 @@ cut -d' ' -f1 access.log | sort -u
                     ],
                 },
                 {
-                    "h2": "Count and rank",
-                    "intro": "`uniq` only compares neighbouring lines, so sort first. The last recipe is the one to remember.",
+                    "h2": "Count repeated lines and show the most common values",
+                    "intro": "Count repeats after sorting: `uniq` compares only neighbouring lines. Use the last recipe to rank the most common values.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Count how many times each line appears", "code": C('''
 cut -d' ' -f1 access.log | sort | uniq -c
@@ -632,8 +632,8 @@ echo "one two three" | wc -w
                     ],
                 },
                 {
-                    "h2": "Change characters with tr",
-                    "intro": "`tr` swaps or removes single characters. It reads standard input, from a pipe or from `< file`, and takes no file name argument.",
+                    "h2": "Change letters, remove characters and join lines (tr)",
+                    "intro": "Replace or remove individual characters with `tr`. Feed it standard input through a pipe or `< file`; it takes no file name argument.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Change text to upper case", "code": C('''
 echo "Hello World" | tr 'a-z' 'A-Z'
@@ -643,7 +643,7 @@ echo "Hello World" | tr 'a-z' 'A-Z'
 echo "Hello World" | tr -d 'l'
 '''),
                          "expect": "`Heo Word`."},
-                        {"type": "cmd", "where": "shell", "title": "Squeeze repeated spaces into one", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Replace multiple spaces with one space", "code": C('''
 echo "a    b     c" | tr -s ' '
 '''),
                          "expect": "`a b c`."},
@@ -651,15 +651,15 @@ echo "a    b     c" | tr -s ' '
 cut -d' ' -f1 access.log | sort -u | tr '\\n' ','
 '''),
                          "expect": "`10.0.0.1,10.0.0.2,10.0.0.3,` on one line, with a trailing comma and no newline, so the next prompt follows on the same line."},
-                        {"type": "cmd", "where": "shell", "title": "Turn a comma-separated line into lines", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Split a comma-separated line into separate lines", "code": C('''
 echo "a,b,c" | tr ',' '\\n'
 '''),
                          "expect": "`a`, `b` and `c`, one per line."},
                     ],
                 },
                 {
-                    "h2": "Look at the start and end, line up columns, save as you go",
-                    "intro": "`head` and `tail` keep the first or last lines. `column -t` lines up columns. `paste` joins files side by side. `tee` saves a copy mid-pipe.",
+                    "h2": "Show file lines, align columns and save command output",
+                    "intro": "Show the first or last lines with `head` and `tail`. Align columns with `column -t`. Join files side by side with `paste`. Save a copy of output within a pipeline with `tee`.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Show the first or last lines of a file", "code": C('''
 head -n 2 access.log
@@ -681,43 +681,145 @@ paste -d: names.txt ages.txt
 paste -sd, names.txt
 '''),
                          "expect": "`ana:31`, `ben:28`, `cleo:35`, `dan:28`. Then all names on one line: `ana,ben,cleo,dan`."},
-                        {"type": "cmd", "where": "shell", "title": "Save a copy of the output and keep going", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Save command output to a file and pass it to the next command", "code": C('''
 cut -d' ' -f1 access.log | sort -u | tee ips.txt | wc -l
 cat ips.txt
 '''),
                          "expect": "`3`, the number of different IPs. Then `ips.txt` holds `10.0.0.1`, `10.0.0.2`, `10.0.0.3`."},
-                        {"type": "cmd", "where": "shell", "title": "Watch a file grow", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Watch new log lines appear as a file changes", "code": C('''
 cp access.log live.log
 tail -n 2 -f live.log
 '''),
                          "expect": "The last 2 lines of `live.log`, then the command waits. In a second pane run `echo \"10.0.0.9 GET /new 200 1\" >> live.log`: the new line appears at once. Press `Ctrl-c` to stop."},
                     ],
                 },
+                {
+                    "h2": "Compare two files: find lines in only one and see what changed (comm, join, diff)",
+                    "intro": "Compare two lists with `comm`; both lists must be sorted first. Match rows of two files by a shared first column with `join`. See what changed between two versions with `diff`. Use the practice files in `/tmp/tw/cols`.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Create two lists and two file versions to compare", "code": C('''
+cd /tmp/tw/cols
+printf 'ana\\nben\\ncleo\\ndan\\n' > team-a.txt
+printf 'ben\\ndan\\neve\\nfay\\n' > team-b.txt
+printf 'one\\ntwo\\nthree\\n' > v1.txt
+printf 'one\\n2\\nthree\\nfour\\n' > v2.txt
+wc -l team-a.txt team-b.txt v1.txt v2.txt
+'''),
+                         "expect": "`4 team-a.txt`, `4 team-b.txt`, `3 v1.txt`, `4 v2.txt` and `15 total`."},
+                        {"type": "cmd", "where": "shell", "title": "Find lines that are in one file but not the other", "code": C('''
+comm -23 team-a.txt team-b.txt
+comm -13 team-a.txt team-b.txt
+'''),
+                         "expect": "The first prints the lines only in `team-a.txt`: `ana` and `cleo`. The second prints the lines only in `team-b.txt`: `eve` and `fay`. `-1` hides the lines only in file 1, `-2` hides the lines only in file 2 and `-3` hides the lines in both."},
+                        {"type": "cmd", "where": "shell", "title": "Find lines that are in both files", "code": C('''
+comm -12 team-a.txt team-b.txt
+'''),
+                         "expect": "`ben` and `dan`, the two names in both lists."},
+                        {"type": "cmd", "where": "shell", "title": "Compare two lists that are not sorted", "code": C('''
+printf 'dan\\nana\\nben\\n' > late.txt
+printf 'ben\\neve\\nana\\n' > early.txt
+comm -12 <(sort late.txt) <(sort early.txt)
+'''),
+                         "expect": "`ana` and `ben`. `<(sort file)` hands `comm` a sorted copy of each list. `comm` on unsorted input gives wrong results."},
+                        {"type": "cmd", "where": "shell", "title": "Match rows of two files by a shared ID (join)", "code": C('''
+printf '1,ana\\n2,ben\\n3,cleo\\n' > who.csv
+printf '1,ops\\n3,dev\\n4,hr\\n' > where.csv
+join -t, who.csv where.csv
+join -t, -v1 who.csv where.csv
+'''),
+                         "expect": "The first prints the rows whose first column is in both files: `1,ana,ops` and `3,cleo,dev`. The second adds `-v1` and prints the rows only in the first file: `2,ben`. Both files must be sorted on the first column."},
+                        {"type": "cmd", "where": "shell", "title": "See what changed between two files (diff)", "code": C('''
+diff v1.txt v2.txt
+'''),
+                         "expect": "`2c2`, `< two`, `---`, `> 2`, `3a4` and `> four`. `<` marks a line from the first file and `>` a line from the second. `2c2` means line 2 changed; `3a4` means a line was added after line 3. `diff` prints nothing when the files are the same."},
+                        {"type": "cmd", "where": "shell", "title": "See what changed with context, like a git diff (diff -u)", "code": C('''
+diff -u v1.txt v2.txt | tail -n +3
+'''),
+                         "expect": "`@@ -1,3 +1,4 @@`, ` one`, `-two`, `+2`, ` three` and `+four`. `-` marks a removed line and `+` an added line. `tail -n +3` drops the two header lines that show each file's name and change time."},
+                    ],
+                },
+                {
+                    "h2": "Number lines, reverse text, wrap long lines and split a big file (nl, rev, fold, split)",
+                    "intro": "Number lines with `nl` or `cat -n`. Reverse the characters of a line with `rev`. Wrap long lines with `fold` and cut a big file into parts with `split`. Use the practice files in `/tmp/tw/cols`.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Number the lines of a file", "code": C('''
+nl users.csv
+cat -n users.csv
+'''),
+                         "expect": "Both print the same five lines with a number in front: `1 name,team,age`, `2 ana,ops,31`, `3 ben,dev,28`, `4 cleo,dev,35`, `5 dan,ops,28`. `nl` leaves blank lines unnumbered; `cat -n` numbers them."},
+                        {"type": "cmd", "where": "shell", "title": "Reverse the characters on a line (rev)", "code": C('''
+echo "hello" | rev
+'''),
+                         "expect": "`olleh`."},
+                        {"type": "cmd", "where": "shell", "title": "Reverse the order of the lines in a file (tail -r)", "code": C('''
+tail -r users.csv
+'''),
+                         "expect": "The lines in reverse order: `dan,ops,28`, `cleo,dev,35`, `ben,dev,28`, `ana,ops,31`, `name,team,age`."},
+                        {"type": "text", "body": "Reverse the order of the lines on Linux with `tac users.csv`. macOS has no `tac`, and GNU `tail` on Linux has no `-r`."},
+                        {"type": "cmd", "where": "shell", "title": "Wrap long lines at a fixed width (fold)", "code": C('''
+echo abcdefghijklmnopqrstuvwxyz | fold -w 10
+echo "the quick brown fox jumps over the lazy dog" | fold -s -w 15
+'''),
+                         "expect": "The first prints `abcdefghij`, `klmnopqrst` and `uvwxyz`: the line breaks after 10 characters, even inside a word. The second adds `-s` to break at spaces and prints `the quick`, `brown fox`, `jumps over the` and `lazy dog`."},
+                        {"type": "cmd", "where": "shell", "title": "Break a big file into smaller files (split)", "code": C('''
+split -l 2 access.log part-
+wc -l part-*
+'''),
+                         "expect": "`2 part-aa`, `2 part-ab`, `2 part-ac` and `6 total`. `-l 2` puts 2 lines in each file and `part-` is the start of each file name."},
+                    ],
+                },
+                {
+                    "h2": "Save output and still see it, or read a long file page by page (tee, less)",
+                    "intro": "Write output to a file and see it on screen with `tee`. Read a file longer than the screen with `less`. Use the practice files in `/tmp/tw/cols`.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Save output to a file and still see it", "code": C('''
+echo "first" | tee out.txt
+'''),
+                         "expect": "`first` on screen, and `out.txt` now holds the same line."},
+                        {"type": "cmd", "where": "shell", "title": "Add output to the end of a file instead of overwriting it (tee -a)", "code": C('''
+echo "second" | tee -a out.txt
+cat out.txt
+'''),
+                         "expect": "`second` from `tee`, then `cat` shows both lines: `first` and `second`. Without `-a`, `tee` replaces the file."},
+                        {"type": "keys", "where": "shell", "title": "Read a huge file page by page and search in it (less)", "rows": [
+                            ("less access.log", "Open the file and read it one screen at a time"),
+                            ("Space", "Show the next page"),
+                            ("b", "Show the previous page"),
+                            ("/word", "Search forward for a word"),
+                            ("n", "Jump to the next match"),
+                            ("N", "Jump to the previous match"),
+                            ("G", "Jump to the end of the file"),
+                            ("g", "Jump back to the start of the file"),
+                            ("F", "Follow new lines as they are added, like tail -f; press Ctrl-c to stop following"),
+                            ("q", "Quit less and return to the prompt"),
+                        ]},
+                    ],
+                },
             ],
             "rules": {
-                "h2": "Text tools at a glance",
+                "h2": "Choose commands to get columns, sort and count lines",
                 "cards": [
-                    ("cut, sort and uniq", "The flags that do the work.", ["Task", "Type"], [
-                        ["Take field 2, split on commas", "`cut -d, -f2`"],
-                        ["Take the first 8 characters", "`cut -c1-8`"],
+                    ("Get columns, sort lines and count repeats", "Choose flags for cut, sort and uniq to get the output you need.", ["Get and sort text", "Run this command"], [
+                        ["Get column 2 from comma-separated text", "`cut -d, -f2`"],
+                        ["Get the first 8 characters of each line", "`cut -c1-8`"],
                         ["Sort numbers by value", "`sort -n`"],
                         ["Sort in reverse order", "`sort -r`"],
-                        ["Sort sizes such as 500, 1K, 2M", "`sort -h`"],
+                        ["Sort sizes such as 500, 1K and 2M by size", "`sort -h`"],
                         ["Sort and keep each line once", "`sort -u`"],
                         ["Sort a CSV by column 3", "`sort -t, -k3`"],
-                        ["Count each line (sort first)", "`uniq -c`"],
+                        ["Count occurrences of each line after sorting", "`uniq -c`"],
                         ["Show only the lines that repeat", "`uniq -d`"],
                     ]),
-                    ("The top-N recipe", "Count repeated values and rank them. Change the field or the 5.", None, C('''
+                    ("Show the most common values in a column", "Count and rank repeated values. Choose another column or change the 5 to get a different number of results.", None, C('''
 cut -d' ' -f1 access.log | sort | uniq -c | sort -rn | head -5
 ''')),
-                    ("wc, tr, head and tail", "Count, change and trim.", ["Task", "Type"], [
+                    ("Count text, change characters and show file lines", "Count with wc, change characters with tr, and keep first or last lines with head and tail.", ["Count or change text", "Run this command"], [
                         ["Count lines", "`wc -l file`"],
                         ["Count words", "`wc -w file`"],
                         ["Count bytes", "`wc -c file`"],
-                        ["Change to upper case", "`tr 'a-z' 'A-Z'`"],
-                        ["Remove a character", "`tr -d 'l'`"],
-                        ["Squeeze repeated characters into one", "`tr -s ' '`"],
+                        ["Change text to upper case", "`tr 'a-z' 'A-Z'`"],
+                        ["Remove a character from text", "`tr -d 'l'`"],
+                        ["Replace repeated characters with one", "`tr -s ' '`"],
                         ["Turn newlines into commas", "`tr '\\n' ','`"],
                         ["Show the first or last 3 lines", "`head -n 3` or `tail -n 3`"],
                         ["Skip the header line", "`tail -n +2`"],
@@ -725,64 +827,64 @@ cut -d' ' -f1 access.log | sort | uniq -c | sort -rn | head -5
                 ],
             },
             "worked": {
-                "h2": "Find the busiest IP in a log",
-                "frame": "A web server log has one line per request. Who asks the most?",
+                "h2": "Find which IP address makes the most requests",
+                "frame": "Find the IP making the most requests in a web server log with one request per line.",
                 "open": "cd /tmp/tw/cols",
                 "steps": [
-                    (None, "`cut -d' ' -f1 access.log`", "Keeps only the IP column."),
-                    (None, "`| sort`", "Puts equal IPs next to each other."),
-                    (None, "`| uniq -c`", "Collapses them and counts each."),
-                    (None, "`| sort -rn | head -3`", "Ranks the counts from high to low and keeps three."),
+                    (None, "`cut -d' ' -f1 access.log`", "Get only the IP address column."),
+                    (None, "`| sort`", "Put repeated IP addresses next to each other."),
+                    (None, "`| uniq -c`", "Keep one line for each IP and count its occurrences."),
+                    (None, "`| sort -rn | head -3`", "Show the three highest counts, largest first."),
                 ],
                 "after": "   3 10.0.0.1\n   2 10.0.0.2\n   1 10.0.0.3",
-                "meaning": "The same four steps rank anything: IPs, pages, error codes or words.",
+                "meaning": "Rank IP addresses, pages, error codes or words with the same four steps.",
             },
             "practice": {
-                "h2": "Practice: slice, sort and count",
+                "h2": "Check how to count repeats and sort numbers",
                 "qs": [
-                    ("Mechanism", "Why does `uniq -c` count each IP once when you skip `sort`?",
-                     "What does uniq compare?",
-                     ["`uniq` only collapses neighbouring identical lines.", "Unsorted, the same IP sits in several places."],
-                     "Without `sort`, `cut -d' ' -f1 access.log | uniq -c` prints six lines, each with a count of `1`. Sort first."),
-                    ("Keystrokes", "Which pipeline prints the most requested page in `access.log`?",
-                     "Field 3, then the top-N recipe with one line kept.",
-                     ["`cut -d' ' -f3 access.log` keeps the page.", "`sort | uniq -c` counts each page.", "`sort -rn | head -1` keeps the highest."],
-                     "`cut -d' ' -f3 access.log | sort | uniq -c | sort -rn | head -1` prints `3 /home`."),
-                    ("Application", "Turn the different IPs into one comma-separated line with no trailing comma.",
-                     "paste can join lines.",
-                     ["`cut -d' ' -f1 access.log | sort -u` lists each IP once.", "`paste -sd, -` joins the lines with commas. The last `-` reads the pipe."],
-                     "`cut -d' ' -f1 access.log | sort -u | paste -sd, -` prints `10.0.0.1,10.0.0.2,10.0.0.3`."),
-                    ("Common mistake", "`sort` puts `100` before `9`. How do you fix it?",
-                     "Plain sort compares characters.",
-                     ["Plain `sort` compares text, and `1` comes before `9`.", "`-n` compares by number."],
-                     "Use `sort -n`: `9`, `10`, `100`."),
+                    ("Mechanism", "Why does `uniq -c` give every IP a count of one when I skip `sort`?",
+                     "Check which lines uniq compares.",
+                     ["Combine identical lines with `uniq` only when they are next to each other.", "Find the same IP in several places when the input is unsorted."],
+                     "Sort first: without `sort`, `cut -d' ' -f1 access.log | uniq -c` prints six lines, each counted as `1`."),
+                    ("Keystrokes", "How do I find the most requested page in `access.log`?",
+                     "Get column 3, count and rank repeats, then keep one line.",
+                     ["Get the page with `cut -d' ' -f3 access.log`.", "Count requests for each page with `sort | uniq -c`.", "Keep the highest count with `sort -rn | head -1`."],
+                     "Find the most requested page with `cut -d' ' -f3 access.log | sort | uniq -c | sort -rn | head -1`: it prints `3 /home`."),
+                    ("Application", "How do I put unique IPs on one comma-separated line without a trailing comma?",
+                     "Join lines with paste.",
+                     ["List each IP once with `cut -d' ' -f1 access.log | sort -u`.", "Join lines with commas using `paste -sd, -`. Read piped input with the last `-`."],
+                     "Join the unique IPs with `cut -d' ' -f1 access.log | sort -u | paste -sd, -`: it prints `10.0.0.1,10.0.0.2,10.0.0.3`."),
+                    ("Common mistake", "Why does `sort` put `100` before `9`, and how do I sort by number?",
+                     "Check how plain sort compares characters.",
+                     ["Compare text with plain `sort`: `1` comes before `9`.", "Compare numbers by adding `-n`."],
+                     "Sort numerically with `sort -n`: `9`, `10`, `100`."),
                 ],
             },
         },
         # ============================================================ page 4
         {
-            "h1": "Transform",
-            "subtitle": "Reshape text with awk, sed, xargs and jq, then chain them to answer real questions.",
+            "h1": "Replace text, total columns and read JSON",
+            "subtitle": "Add up a column, replace words in a file, run a command on each input line, get a JSON field, chain commands for an answer",
             "idea": (
-                "awk works on columns, sed on patterns, xargs turns lines into arguments, and jq reads JSON.",
+                "Get or change columns with awk, change text patterns with sed, turn lines into command arguments with xargs, and read JSON with jq.",
                 [
-                    ("Print one column", "awk '{print $3}' file", "Add -F, for a CSV."),
-                    ("Replace text in a file", "sed -i '' 's/old/new/g' file", "macOS needs the empty ''."),
-                    ("Run a command on every line of output", "xargs", "Add -0 for names with spaces."),
-                    ("Read one field from JSON", "jq -r '.name' file.json", "-r removes the quotes."),
+                    ("Get one column from a file", "awk '{print $3}' file", "Read CSV columns by adding -F,."),
+                    ("Replace text in a file", "sed -i '' 's/old/new/g' file", "Keep the empty '' on macOS."),
+                    ("Run a command on every output line", "xargs", "Handle file names with spaces by adding -0."),
+                    ("Get a field from JSON without quotes", "jq -r '.name' file.json", "Remove the quotes with -r."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "The output is almost what you need: one column, one changed word, one field out of a JSON file.",
-                "fix": "Pick the tool by the shape of the data: awk for columns, sed for text patterns, jq for JSON. Use xargs to feed lines to another command.",
+                "fail": "How do I get one column, change a word or read one JSON field when the output is almost what I need?",
+                "fix": "Work on columns with awk, text patterns with sed, or JSON with jq. Pass lines to another command with xargs. Choose the tool that fits the data.",
             },
             "drills": [
                 {
-                    "h2": "Work with columns using awk",
-                    "intro": "`awk` splits every line into `$1`, `$2` and so on. `-F,` changes the separator. The sample files live in `/tmp/tw/xf`.",
+                    "h2": "Get columns, filter rows and add up values (awk)",
+                    "intro": "Read columns with `awk`: it splits each line into `$1`, `$2` and so on. Change the separator with `-F,`. Use the practice files in `/tmp/tw/xf`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Make the sample files for this page", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Create the practice files for changing text and reading JSON", "code": C('''
 mkdir -p /tmp/tw/xf/logs && cd /tmp/tw/xf
 cat > access.log <<'EOF'
 10.0.0.1 GET /home 200 512
@@ -808,12 +910,12 @@ echo y > "old notes.txt"
 wc -l access.log pay.csv notes.txt
 '''),
                          "expect": "`6 access.log`, `5 pay.csv`, `3 notes.txt` and `14 total`."},
-                        {"type": "cmd", "where": "shell", "title": "Print one or two columns", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Get selected columns from a log or CSV file", "code": C('''
 awk '{print $3, $5}' access.log | head -2
 awk -F, '{print $1, $3}' pay.csv
 '''),
                          "expect": "`/home 512` and `/about 1024`. Then the name and pay of every row: `name pay`, `ana 3100`, `ben 2800`, `cleo 3500`, `dan 2800`."},
-                        {"type": "cmd", "where": "shell", "title": "Print only the rows that match a condition", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find rows by pay, team or HTTP status code", "code": C('''
 awk -F, 'NR > 1 && $3 > 3000' pay.csv
 awk -F, '$2 == "dev" {print $1}' pay.csv
 awk '$4 == 404' access.log
@@ -824,17 +926,17 @@ awk '{sum += $5} END {print sum}' access.log
 awk -F, 'NR > 1 {sum += $3} END {print sum}' pay.csv
 '''),
                          "expect": "`2650`, the total bytes served. Then `12200`, the total pay."},
-                        {"type": "cmd", "where": "shell", "title": "Count rows by a key", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Count log rows for each IP address", "code": C('''
 awk '{n[$1]++} END {for (k in n) print k, n[k]}' access.log | sort
 '''),
                          "expect": "`10.0.0.1 3`, `10.0.0.2 2`, `10.0.0.3 1`. The `sort` fixes the order, because awk loops over keys in no set order."},
-                        {"type": "cmd", "where": "shell", "title": "Count lines and fields with NR and NF", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Count lines and columns or print the last column (NR and NF)", "code": C('''
 awk 'END {print NR}' access.log
 awk '{print NF}' access.log | head -1
 awk '{print $NF}' access.log | head -2
 '''),
                          "expect": "`6` lines. Then `5` fields on the first line. Then the last field of the first two lines: `512` and `1024`."},
-                        {"type": "cmd", "where": "shell", "title": "Format the output with printf", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Align output columns and show average pay to one decimal place", "code": C('''
 awk '{printf "%-10s %s\\n", $1, $3}' access.log | head -3
 awk -F, 'NR > 1 {sum += $3} END {printf "avg %.1f\\n", sum / (NR - 1)}' pay.csv
 '''),
@@ -842,14 +944,14 @@ awk -F, 'NR > 1 {sum += $3} END {printf "avg %.1f\\n", sum / (NR - 1)}' pay.csv
                     ],
                 },
                 {
-                    "h2": "Replace and delete text with sed",
-                    "intro": "`sed 's/old/new/'` replaces the first match on each line. Add `g` for every match. Nothing is saved unless you use `-i`.",
+                    "h2": "Replace words, remove lines and save file edits (sed)",
+                    "intro": "Replace the first match on each line with `sed 's/old/new/'`. Replace every match by adding `g`. Save the changes only when you use `-i`.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Replace a word in every line", "code": C('''
 sed 's/hello/hi/' notes.txt
 '''),
                          "expect": "`hi world`, `hi bash`, `bye world`. The file itself is unchanged."},
-                        {"type": "cmd", "where": "shell", "title": "Replace every match on a line, not just the first", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Replace every occurrence of a character on each line", "code": C('''
 sed 's/o/0/g' notes.txt
 '''),
                          "expect": "`hell0 w0rld`, `hell0 bash`, `bye w0rld`. Without the `g`, only the first `o` on each line changes."},
@@ -858,7 +960,7 @@ sed '2d' notes.txt
 sed '/bye/d' notes.txt
 '''),
                          "expect": "`2d` leaves `hello world` and `bye world`. `/bye/d` leaves `hello world` and `hello bash`."},
-                        {"type": "cmd", "where": "shell", "title": "Print only some lines", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Show a range of lines, matching lines or the last line", "code": C('''
 sed -n '2,3p' notes.txt
 sed -n '/bash/p' notes.txt
 sed -n '$p' notes.txt
@@ -868,28 +970,72 @@ sed -n '$p' notes.txt
 sed -e 's/hello/hi/' -e 's/world/earth/' notes.txt
 '''),
                          "expect": "`hi earth`, `hi bash`, `bye earth`."},
-                        {"type": "cmd", "where": "shell", "title": "Edit a file in place (macOS)", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Replace text and save changes in the file on macOS", "code": C('''
 cp notes.txt edit.txt
 sed -i '' 's/hello/hi/' edit.txt
 cat edit.txt
 '''),
                          "expect": "`hi world`, `hi bash`, `bye world`. `edit.txt` itself changed. The `''` after `-i` is the backup suffix, empty here."},
-                        {"type": "text", "body": "GNU and Linux: `sed -i 's/old/new/' file` has no `''`. On a Mac, without the `''`, sed fails with `invalid command code`."},
+                        {"type": "text", "body": "Fix `invalid command code` when saving sed changes on a Mac: include `''`. Use `sed -i 's/old/new/' file` without `''` with GNU sed on Linux."},
                         {"type": "cmd", "where": "shell", "title": "Add text at the start of every line", "code": C('''
 sed 's/^/> /' notes.txt
 '''),
                          "expect": "`> hello world`, `> hello bash`, `> bye world`."},
-                        {"type": "cmd", "where": "shell", "title": "Swap two words with a regex group", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Swap the order of two words with regex groups", "code": C('''
 sed -E 's/([a-z]+) ([a-z]+)/\\2 \\1/' notes.txt
 '''),
                          "expect": "`world hello`, `bash hello`, `world bye`. `-E` turns on groups and `\\1`, `\\2` paste them back."},
                     ],
                 },
                 {
-                    "h2": "Run a command on every line with xargs",
-                    "intro": "`xargs` reads lines and builds a command from them. Names that contain spaces need `-0` with a null-separated list.",
+                    "h2": "Edit a file in place the same way on Mac and Linux (perl)",
+                    "intro": "Replace text in a file with `perl -pi -e`. It works the same on macOS and Linux, so you do not need the `''` that macOS `sed -i` requires. Use the practice files in `/tmp/tw/xf`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Run a command once per argument", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Edit a file in place the same way on Mac and Linux", "code": C('''
+cp notes.txt perl.txt
+perl -pi -e 's/hello/hi/g' perl.txt
+cat perl.txt
+'''),
+                         "expect": "`hi world`, `hi bash`, `bye world`. `perl.txt` itself changed. `-p` prints every line, `-i` saves the result in the file and `-e` takes the command."},
+                        {"type": "cmd", "where": "shell", "title": "Edit a file in place and keep a backup copy", "code": C('''
+cp notes.txt keep.txt
+perl -pi.bak -e 's/world/earth/g' keep.txt
+cat keep.txt keep.txt.bak
+'''),
+                         "expect": "`keep.txt` now reads `hello earth`, `hello bash`, `bye earth`. The original is saved as `keep.txt.bak`: `hello world`, `hello bash`, `bye world`."},
+                        {"type": "cmd", "where": "shell", "title": "Search a file or get a column with perl (grep and awk alternative)", "code": C('''
+perl -ne 'print if /bash/' notes.txt
+perl -ne 'print "$.: $_" if /world/' notes.txt
+perl -lane 'print $F[2]' access.log | head -3
+'''),
+                         "expect": "The first prints the line with `bash`: `hello bash`. The second adds the line number: `1: hello world` and `3: bye world`. The third prints column 3 of the log: `/home`, `/about`, `/home`. `-n` reads each line without printing it, `$.` is the line number and `-a` splits the line into `@F`."},
+                    ],
+                },
+                {
+                    "h2": "Edit a file quickly without Neovim (nano) or from a script (ed)",
+                    "intro": "Open a small file in `nano` for a quick edit; the shortcuts are listed at the bottom of its screen. Use `ed` to edit a file from a script, with no screen. Use the practice files in `/tmp/tw/xf`.",
+                    "blocks": [
+                        {"type": "keys", "where": "shell", "title": "Edit a file quickly without Neovim (nano)", "rows": [
+                            ("nano notes.txt", "Open the file for editing"),
+                            ("Ctrl-O", "Save the file; press Enter to keep the name"),
+                            ("Ctrl-X", "Exit nano; it asks to save if you have unsaved changes"),
+                            ("Ctrl-W", "Search for text in the file"),
+                            ("Ctrl-K", "Cut the current line"),
+                            ("Ctrl-U", "Paste the cut line"),
+                        ]},
+                        {"type": "cmd", "where": "shell", "title": "Edit a file from a script with ed", "code": C('''
+cp notes.txt ed.txt
+printf '%s\\n' '2s/bash/shell/' 'a' 'added line' '.' 'w' 'q' | ed -s ed.txt
+cat ed.txt
+'''),
+                         "expect": "`hello world`, `hello shell`, `added line`, `bye world`. Each `printf` line is one `ed` command: `2s/bash/shell/` replaces text on line 2, `a` starts adding lines after it, `.` ends the new text, `w` saves and `q` quits. `-s` hides `ed` messages."},
+                    ],
+                },
+                {
+                    "h2": "Pass input lines to a command and run jobs in parallel (xargs)",
+                    "intro": "Build a command from input lines with `xargs`. Pass file names containing spaces as a null-separated list and use `-0`.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Run a command with one or two arguments at a time", "code": C('''
 printf 'a\\nb\\nc\\n' | xargs -n 1 echo item
 printf 'a\\nb\\nc\\n' | xargs -n 2 echo
 '''),
@@ -898,11 +1044,11 @@ printf 'a\\nb\\nc\\n' | xargs -n 2 echo
 printf 'a\\nb\\nc\\n' | xargs -I {} echo file-{}.txt
 '''),
                          "expect": "`file-a.txt`, `file-b.txt`, `file-c.txt`. `-I {}` marks where each line goes."},
-                        {"type": "cmd", "where": "shell", "title": "Run jobs in parallel", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Run up to three commands at once with xargs", "code": C('''
 printf 'a\\nb\\nc\\n' | xargs -P 3 -I {} echo job {}
 '''),
                          "expect": "`job a`, `job b` and `job c`. `-P 3` runs up to three at once, so the order can differ."},
-                        {"type": "cmd", "where": "shell", "title": "Handle file names with spaces", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Pass file names with spaces to xargs without splitting them", "code": C('''
 fd -e txt | xargs wc -c
 fd -e log -0 | xargs -0 wc -c
 '''),
@@ -914,29 +1060,29 @@ find . -name "*.log" -print0 | xargs -0 wc -c
                     ],
                 },
                 {
-                    "h2": "Read JSON with jq",
-                    "intro": "`jq` takes a path like `.users[0].name`. `.[]` walks a list. The pipe `|` inside the quotes feeds one step into the next.",
+                    "h2": "Get JSON fields, filter items and count them (jq)",
+                    "intro": "Get a JSON value by giving `jq` a path such as `.users[0].name`. Go through a list with `.[]`. Pass results to the next step with `|` inside the quotes.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Pretty-print a JSON file", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Format a JSON file with readable lines and indentation", "code": C('''
 jq . users.json | head -8
 '''),
                          "expect": "The JSON spread over lines with two-space indents: `{`, `\"users\": [`, `{`, `\"name\": \"ana\",`, `\"age\": 31,`, `\"team\": \"ops\"` and so on."},
-                        {"type": "cmd", "where": "shell", "title": "Read one field from JSON", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Get names from JSON with or without quotes", "code": C('''
 jq '.users[0].name' users.json
 jq -r '.users[].name' users.json
 '''),
                          "expect": "`\"ana\"` with quotes. Then the names without quotes, one per line: `ana`, `ben`, `cleo`. `-r` prints raw text."},
-                        {"type": "cmd", "where": "shell", "title": "Count items and list the field names", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Count JSON items and list an object's field names", "code": C('''
 jq '.users | length' users.json
 jq '.users[0] | keys' users.json
 '''),
                          "expect": "`3`. Then the keys of the first user, in order: `\"age\"`, `\"name\"`, `\"team\"`."},
-                        {"type": "cmd", "where": "shell", "title": "Keep only the items that match a condition", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find JSON users by age or team", "code": C('''
 jq '.users[] | select(.age > 30) | .name' users.json
 jq -r '.users[] | select(.team == "dev") | "\\(.name) \\(.age)"' users.json
 '''),
                          "expect": "`\"ana\"` and `\"cleo\"`, the users over 30. Then the dev team as text: `ben 28` and `cleo 35`."},
-                        {"type": "cmd", "where": "shell", "title": "Turn a list into one value", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Join JSON names with commas or add up ages", "code": C('''
 jq -r '.users | map(.name) | join(",")' users.json
 jq '.users | map(.age) | add' users.json
 '''),
@@ -944,10 +1090,10 @@ jq '.users | map(.age) | add' users.json
                     ],
                 },
                 {
-                    "h2": "Pipelines that answer a real question",
-                    "intro": "Each one chains the tools above. Build them one step at a time: run the first command, add a pipe, run again.",
+                    "h2": "Find the busiest IPs, total log sizes and rename files",
+                    "intro": "Answer these searches by joining the tools above in a pipeline. Build each pipeline one step at a time: run the first command, add a pipe, then run it again.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Show the top 5 IPs in a log", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Find the 5 IP addresses with the most requests in a log", "code": C('''
 awk '{print $1}' access.log | sort | uniq -c | sort -rn | head -5
 '''),
                          "expect": "`3 10.0.0.1`, `2 10.0.0.2`, `1 10.0.0.3`. The log has only three IPs, so `head -5` shows all three."},
@@ -956,11 +1102,11 @@ find . -name "*.log" -print0 | xargs -0 wc -c | tail -n 1
 fd -e log -x stat -f %z | awk '{s += $1} END {print s " bytes"}'
 '''),
                          "expect": "`4666 total`, then `4666 bytes`. On Linux, `stat -c %s` replaces `stat -f %z`."},
-                        {"type": "cmd", "where": "shell", "title": "Show what a rename would do before you do it", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Preview file names before replacing spaces with underscores", "code": C('''
 for f in *\\ *; do echo mv "'$f'" "'${f// /_}'"; done
 '''),
                          "expect": "`mv 'my first file.txt' 'my_first_file.txt'` and `mv 'old notes.txt' 'old_notes.txt'`. Nothing is renamed: `echo` only prints the commands."},
-                        {"type": "cmd", "where": "shell", "title": "Rename files: replace spaces with underscores", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Rename files by replacing spaces with underscores", "code": C('''
 for f in *\\ *; do mv "$f" "${f// /_}"; done
 printf '%s\\n' *.txt
 '''),
@@ -969,9 +1115,9 @@ printf '%s\\n' *.txt
                 },
             ],
             "rules": {
-                "h2": "Transform tools at a glance",
+                "h2": "Choose commands to change text, run jobs and read JSON",
                 "cards": [
-                    ("awk", "Columns, conditions and totals.", ["Task", "Type"], [
+                    ("Get columns, filter rows and add totals with awk", "Choose columns, keep matching rows and add up values.", ["Get or count rows and columns", "Run this command"], [
                         ["Print column 1", "`awk '{print $1}'`"],
                         ["Print column 2 of a CSV", "`awk -F, '{print $2}'`"],
                         ["Print rows where column 3 is over 100", "`awk '$3 > 100'`"],
@@ -980,59 +1126,59 @@ printf '%s\\n' *.txt
                         ["Skip the first line", "`awk 'NR > 1'`"],
                         ["Count lines", "`awk 'END {print NR}'`"],
                     ]),
-                    ("sed", "Replace, delete and print.", ["Task", "Type"], [
+                    ("Replace words, delete lines and save edits with sed", "Replace text, remove lines or print the lines you need.", ["Change or show text", "Run this command"], [
                         ["Replace the first match on each line", "`sed 's/old/new/'`"],
                         ["Replace every match", "`sed 's/old/new/g'`"],
                         ["Delete line 2", "`sed '2d'`"],
                         ["Delete lines that contain a word", "`sed '/word/d'`"],
                         ["Print lines 2 to 3", "`sed -n '2,3p'`"],
                         ["Make two replacements", "`sed -e 's/a/b/' -e 's/c/d/'`"],
-                        ["Edit the file in place (macOS)", "`sed -i '' 's/old/new/' file`"],
-                        ["Edit the file in place (GNU and Linux)", "`sed -i 's/old/new/' file`"],
+                        ["Save text changes in the file on macOS", "`sed -i '' 's/old/new/' file`"],
+                        ["Save text changes in the file with GNU sed on Linux", "`sed -i 's/old/new/' file`"],
                     ]),
-                    ("xargs and jq", "Feed lines to commands, and read JSON.", ["Task", "Type"], [
+                    ("Run commands on input lines and get JSON values", "Pass lines to commands with xargs and read JSON with jq.", ["Run commands or read JSON", "Run this command"], [
                         ["Run a command once per argument", "`xargs -n 1 cmd`"],
                         ["Put each line in the middle of a command", "`xargs -I {} cmd {}`"],
-                        ["Handle names with spaces", "`fd -0 | xargs -0 cmd`"],
+                        ["Pass file names with spaces without splitting them", "`fd -0 | xargs -0 cmd`"],
                         ["Run up to four jobs at once", "`xargs -n 1 -P 4 cmd`"],
-                        ["Read field b of a without quotes", "`jq -r '.a.b'`"],
-                        ["Count the items", "`jq '.items | length'`"],
-                        ["Keep items where n is over 3", "`jq '.[] | select(.n > 3)'`"],
+                        ["Get JSON field b inside a without quotes", "`jq -r '.a.b'`"],
+                        ["Count JSON items", "`jq '.items | length'`"],
+                        ["Keep JSON items where n is over 3", "`jq '.[] | select(.n > 3)'`"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Rename files that have spaces",
-                "frame": "Two files have spaces in their names, and scripts keep choking on them.",
+                "h2": "Replace spaces in file names with underscores",
+                "frame": "Rename two files whose names contain spaces and keep causing scripts to fail.",
                 "open": "cd /tmp/tw/xf",
                 "steps": [
-                    (None, "`for f in *\\ *; do echo mv \"'$f'\" \"'${f// /_}'\"; done`", "Prints the two `mv` commands. Check them."),
-                    (None, "`for f in *\\ *; do mv \"$f\" \"${f// /_}\"; done`", "Runs them: drop the `echo`."),
-                    (None, "`printf '%s\\n' *.txt`", "Lists the `.txt` files to confirm."),
+                    (None, "`for f in *\\ *; do echo mv \"'$f'\" \"'${f// /_}'\"; done`", "Preview the two `mv` commands and check them."),
+                    (None, "`for f in *\\ *; do mv \"$f\" \"${f// /_}\"; done`", "Run the rename commands by dropping `echo`."),
+                    (None, "`printf '%s\\n' *.txt`", "List the `.txt` files to check the new names."),
                 ],
                 "before": "my first file.txt\nold notes.txt",
                 "after": "my_first_file.txt\nold_notes.txt",
-                "meaning": "Print the command first, then drop the `echo`. A mistake costs one line of output, not your files.",
+                "meaning": "Check the printed command before dropping `echo` to run it. Catch a mistake in one line of output before it affects your files.",
             },
             "practice": {
-                "h2": "Practice: transform text",
+                "h2": "Check how to pass file names, select lines and total columns",
                 "qs": [
-                    ("Mechanism", "`fd -e txt | xargs wc -c` fails on `my first file.txt`. Why?",
-                     "How does xargs split its input?",
-                     ["xargs splits on spaces and newlines.", "`my first file.txt` becomes three arguments."],
-                     "Use `fd -e txt -0 | xargs -0 wc -c`. The null byte never appears in a name."),
-                    ("Keystrokes", "Which command prints lines 2 and 3 of `notes.txt`?",
-                     "-n and p.",
-                     ["`-n` stops sed from printing every line.", "`2,3p` prints lines 2 to 3."],
-                     "`sed -n '2,3p' notes.txt` prints `hello bash` and `bye world`."),
-                    ("Application", "Add up the pay column of `pay.csv`, skipping the header.",
-                     "awk with NR and END.",
-                     ["`-F,` splits on commas.", "`NR > 1` skips the header.", "`END` prints the sum after the last line."],
-                     "`awk -F, 'NR > 1 {sum += $3} END {print sum}' pay.csv` prints `12200`."),
-                    ("Common mistake", "`sed -i 's/hello/hi/' edit.txt` fails on a Mac with `invalid command code`. What changes?",
-                     "BSD sed wants a value after -i.",
-                     ["On macOS, `-i` takes a backup suffix.", "Pass an empty one: `''`."],
-                     "`sed -i '' 's/hello/hi/' edit.txt`. On Linux, drop the `''`."),
+                    ("Mechanism", "Why does `fd -e txt | xargs wc -c` fail on `my first file.txt`?",
+                     "Check how xargs splits input into arguments.",
+                     ["Split input at spaces and newlines with xargs by default.", "See why the name breaks: `my first file.txt` becomes three arguments."],
+                     "Keep file names intact with `fd -e txt -0 | xargs -0 wc -c`. A null byte never appears in a file name."),
+                    ("Keystrokes", "How do I print only lines 2 and 3 of `notes.txt`?",
+                     "Select the lines with -n and p.",
+                     ["Stop sed from printing every line with `-n`.", "Print lines 2 to 3 with `2,3p`."],
+                     "Show the selected lines with `sed -n '2,3p' notes.txt`: it prints `hello bash` and `bye world`."),
+                    ("Application", "How do I add up the pay column of `pay.csv` without the header?",
+                     "Skip the header and print the total with awk, NR and END.",
+                     ["Split columns at commas with `-F,`.", "Skip the header with `NR > 1`.", "Print the sum after the last line with `END`."],
+                     "Total the pay column with `awk -F, 'NR > 1 {sum += $3} END {print sum}' pay.csv`: it prints `12200`."),
+                    ("Common mistake", "Why does `sed -i 's/hello/hi/' edit.txt` fail with `invalid command code` on a Mac?",
+                     "Give BSD sed a value after -i.",
+                     ["Supply the backup suffix required by `-i` on macOS.", "Use an empty suffix: `''`."],
+                     "Save the edit on macOS with `sed -i '' 's/hello/hi/' edit.txt`. Drop the `''` on Linux."),
                 ],
             },
         },
