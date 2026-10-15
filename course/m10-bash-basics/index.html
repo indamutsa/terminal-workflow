@@ -1,0 +1,2068 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bash basics — Terminal Workflow</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <style>
+/* Terminal Workflow course styles. Base from the SQL course.
+   Fonts are local files so the course runs offline. */
+@font-face{font-family:"Kalam";font-weight:400;font-display:swap;src:url("../_shared/fonts/kalam-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Kalam";font-weight:700;font-display:swap;src:url("../_shared/fonts/kalam-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;font-display:swap;src:url("../_shared/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("../_shared/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("../_shared/fonts/inter-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:700;font-display:swap;src:url("../_shared/fonts/inter-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:600;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2")}
+:root {
+  --board: #1c2b24;
+  --alt: #17231d;
+  --raised: #213328;
+  --chalk: #ede6d6;
+  --dim: #9faea3;
+  --gold: #e8c468;
+  --gold-dim: #b99a54;
+  --blue: #7fa8c9;
+  --coral: #e2897d;
+  --mint: #8fc9a8;
+  --line: rgba(237, 230, 214, 0.14);
+  --soft: rgba(237, 230, 214, 0.07);
+  --r: 10px;
+  --display: "Kalam", cursive;
+  --body: "Inter", -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: var(--chalk);
+  background:
+    radial-gradient(
+      ellipse at 10% 0,
+      rgba(127, 168, 201, 0.07),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 100%,
+      rgba(232, 196, 104, 0.06),
+      transparent 48%
+    ),
+    var(--board);
+  font: 15px/1.62 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+a {
+  color: var(--blue);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+::selection {
+  color: var(--board);
+  background: var(--gold);
+}
+main,
+footer,
+.tabbar-inner,
+.group-nav {
+  width: min(780px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.lesson {
+  display: none;
+}
+.lesson.active {
+  display: block;
+  animation: rise 0.35s ease both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+.lesson-header {
+  padding: 46px 0 26px;
+  text-align: center;
+}
+.eyebrow,
+.section-label,
+.label {
+  color: var(--blue);
+  font: 600 11px/1.3 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  color: var(--gold);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.18;
+}
+h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 6vw, 43px);
+}
+h2 {
+  margin: 4px 0 9px;
+  font-size: 26px;
+}
+h3 {
+  margin: 16px 0 6px;
+  font-size: 20px;
+}
+p {
+  margin: 8px 0;
+}
+.subtitle,
+.section-intro,
+.lede {
+  color: var(--dim);
+}
+.subtitle {
+  max-width: 560px;
+  margin-inline: auto;
+}
+.rule {
+  width: 120px;
+  height: 2px;
+  margin: 24px auto 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--dim) 0 6px,
+    transparent 6px 12px
+  );
+}
+.block {
+  margin-top: 44px;
+}
+.one-idea,
+.word-problem {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--raised);
+}
+.one-idea {
+  text-align: center;
+}
+.one-idea .tag,
+.word-problem .tag {
+  color: var(--gold);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.one-idea > p {
+  margin-top: 12px;
+  font-size: 17px;
+}
+.one-idea em {
+  color: var(--gold);
+  font-style: normal;
+  border-bottom: 2px dashed var(--gold-dim);
+}
+.one-idea .kitchen-links {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.one-idea .kitchen-links li {
+  margin-top: 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+.one-idea .kitchen-links li:first-child {
+  margin-top: 0;
+}
+.one-idea .kitchen-links strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+.one-idea .kitchen-links .kl-nowrap {
+  white-space: nowrap;
+}
+.term-definition {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+  font-size: 13px;
+  text-align: left;
+}
+.term-definition strong,
+.rule-body strong,
+.solution-body strong {
+  color: var(--chalk);
+}
+.explorer {
+  margin-top: 16px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.control label,
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--dim);
+  font: 12px var(--mono);
+}
+output,
+.val {
+  color: var(--gold);
+  font-weight: 600;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.button-row,
+.arch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.btn,
+.toggle-btn {
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.btn:hover,
+.btn[aria-pressed="true"],
+.toggle-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.stage,
+.arch-stage {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.stage svg,
+.arch-stage svg {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+}
+.wire {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 4;
+}
+.node {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.node.hot {
+  fill: rgba(232, 196, 104, 0.16);
+  stroke: var(--gold);
+}
+.node.off {
+  fill: rgba(226, 137, 125, 0.08);
+  stroke: var(--coral);
+}
+.svg-label {
+  fill: var(--chalk);
+  font: 600 12px var(--mono);
+  text-anchor: middle;
+}
+.svg-small {
+  fill: var(--dim);
+  font: 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-node {
+  opacity: 0.14;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  transform: translateY(4px);
+}
+.arch-node.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.arch-node rect {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 1.5;
+}
+.arch-node.is-current rect {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.arch-node text {
+  fill: var(--chalk);
+  font: 600 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-link {
+  opacity: 0.12;
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.arch-link.is-visible {
+  opacity: 0.85;
+}
+.readout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: var(--board);
+}
+.fact {
+  min-width: 0;
+}
+.fact.wide {
+  grid-column: 1/-1;
+}
+.tiny {
+  display: block;
+  color: var(--dim);
+  font: 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fact p {
+  overflow-wrap: anywhere;
+}
+.rule-card,
+.practice-card {
+  margin-bottom: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.rule-card summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.rule-card summary::-webkit-details-marker,
+.hint summary::-webkit-details-marker,
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+.num,
+.q-num {
+  color: var(--gold-dim);
+  font: 600 12px var(--mono);
+}
+.chevron::after {
+  content: "⌄";
+  color: var(--dim);
+}
+.rule-body {
+  padding: 15px 18px 18px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+}
+.rule-body p:first-child {
+  margin-top: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid var(--soft);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  text-transform: uppercase;
+}
+code {
+  color: var(--gold);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+.word-problem {
+  margin-top: 14px;
+}
+.worked-steps {
+  padding-left: 22px;
+}
+.worked-steps li + li,
+.solution-steps li + li {
+  margin-top: 7px;
+}
+.result-box,
+.interview-answer {
+  margin-top: 13px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  background: rgba(232, 196, 104, 0.06);
+}
+.review-mistakes li::marker {
+  color: var(--coral);
+}
+.practice-card {
+  position: relative;
+  padding: 16px 18px;
+}
+.q-num {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+}
+.q-kind {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.q-text {
+  padding-right: 40px;
+}
+.hint,
+.solution {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+}
+.hint summary,
+.solution summary {
+  color: var(--blue);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+  list-style: none;
+}
+.solution summary {
+  color: var(--mint);
+}
+.hint p,
+.solution-body {
+  color: var(--dim);
+  font-size: 13.5px;
+}
+.solution-steps {
+  padding-left: 22px;
+}
+.solution-final {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--mint);
+  background: rgba(143, 201, 168, 0.08);
+}
+.tabbar {
+  margin-top: 52px;
+  padding: 14px 0;
+  border-block: 1px solid var(--line);
+  background: var(--alt);
+}
+.tabbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+}
+.tab,
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.tab.active {
+  color: var(--board);
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.nav-arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.progress-mini {
+  min-width: 94px;
+  color: var(--dim);
+  font: 11px var(--mono);
+  text-align: right;
+}
+.group-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+}
+footer {
+  padding: 35px 0 70px;
+  color: var(--dim);
+  text-align: center;
+}
+.no-js-note {
+  padding: 10px 24px;
+  color: var(--coral);
+  text-align: center;
+}
+@media (max-width: 650px) {
+  main,
+  footer,
+  .tabbar-inner,
+  .group-nav {
+    width: min(100% - 28px, 780px);
+  }
+  .controls,
+  .readout {
+    grid-template-columns: 1fr;
+  }
+  .fact.wide {
+    grid-column: auto;
+  }
+  .stage svg,
+  .arch-stage svg {
+    min-width: 540px;
+  }
+  .explorer {
+    padding: 17px 14px;
+  }
+  .progress-mini {
+    min-width: 73px;
+    font-size: 10px;
+  }
+  .group-nav {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabs.sq-tabs{justify-content:flex-start}
+    /* contextual glossary v1 */
+.glossary-term {
+  position: relative;
+  display: inline;
+  margin: 0;
+  padding: 0 1px;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 196, 104, 0.72);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='%23E8C468' stroke='%231C2B24' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-family='Arial' font-size='16' font-weight='700' fill='%231C2B24'%3E%3F%3C/text%3E%3C/svg%3E")
+      14 14,
+    help;
+  text-decoration: none;
+  transition:
+    color 0.16s,
+    background 0.16s,
+    border-color 0.16s;
+}
+.glossary-term:hover,
+.glossary-term:focus-visible,
+.glossary-term[aria-expanded="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: rgba(232, 196, 104, 0.08);
+  outline: none;
+}
+.glossary-term:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--board),
+    0 0 0 4px var(--gold);
+}
+.glossary-term::after {
+  content: "?";
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--board);
+  font: 700 11px/1 var(--mono);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px) scale(0.72);
+  transition:
+    opacity 0.14s,
+    transform 0.14s;
+}
+.glossary-term:hover::after,
+.glossary-term:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.glossary-popover {
+  --pointer-x: 50%;
+  position: fixed;
+  z-index: 1000;
+  width: min(430px, calc(100vw - 24px));
+  padding: 16px 42px 15px 17px;
+  border: 1px solid rgba(232, 196, 104, 0.48);
+  border-radius: 11px;
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(0, 0, 0, 0.08)
+    ),
+    var(--raised);
+  color: var(--chalk);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(28, 43, 36, 0.85);
+  animation: glossary-arrive 0.16s ease both;
+}
+.glossary-popover[hidden] {
+  display: none;
+}
+.glossary-popover::after {
+  content: "";
+  position: absolute;
+  left: var(--pointer-x);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid rgba(232, 196, 104, 0.48);
+  border-bottom: 1px solid rgba(232, 196, 104, 0.48);
+  background: var(--raised);
+  transform: translateX(-50%) rotate(-45deg);
+}
+.glossary-popover.below::after {
+  top: -6px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(135deg);
+}
+.glossary-popover strong {
+  display: inline;
+  color: var(--gold);
+  font: 600 15px/1.4 var(--body);
+}
+.glossary-popover strong::after {
+  content: " —";
+  color: var(--dim);
+}
+.glossary-popover p {
+  display: inline;
+  margin: 0;
+  color: #c8d0ca;
+  font-size: 14px;
+  line-height: 1.58;
+}
+.glossary-meta {
+  display: block;
+  margin-top: 10px;
+  color: var(--dim);
+  font: 10px/1.4 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.glossary-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font: 18px/1 var(--body);
+}
+.glossary-close:hover,
+.glossary-close:focus-visible {
+  background: rgba(232, 196, 104, 0.1);
+  color: var(--gold);
+}
+@keyframes glossary-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (max-width: 650px) {
+  .glossary-popover {
+    padding: 15px 40px 14px 15px;
+  }
+  .glossary-popover p {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glossary-popover,
+  .glossary-term::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+
+.sq-code{margin:10px 0;padding:12px 14px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#121c17;color:var(--chalk);font:500 13px/1.55 var(--mono);white-space:pre}
+.sq-code code{padding:0;border:0;background:none;color:inherit;font:inherit}
+.sq-code .hl-c{color:var(--dim);font-style:italic}
+.sq-code .hl-s{color:var(--mint)}
+.sq-code .hl-k{color:var(--blue)}
+.sq-code .hl-cmd{color:var(--gold)}
+.sq-code .hl-f{color:var(--gold-dim)}
+.sq-code .hl-n,.sq-code .hl-v{color:var(--coral)}
+.sq-code .hl-fn,.sq-code .hl-ex{color:var(--blue);font-weight:600}
+.rule-body table{display:block;overflow-x:auto;max-width:100%}
+
+/* Terminal Workflow additions */
+.tw-codebox{margin:14px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--alt);overflow:hidden}
+.tw-code-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.tw-where{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.tw-code-title{flex:1;min-width:0;overflow-wrap:anywhere;color:var(--chalk);font-weight:500}
+.tw-copy{min-height:32px;padding:4px 12px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;font:600 12px var(--mono)}
+.tw-copy:hover{background:rgba(232,196,104,.12)}
+.tw-codebox .sq-code{margin:0;border:0;border-radius:0}
+.tw-expect,.tw-try{margin:0;padding:10px 12px;border-top:1px solid var(--line);color:var(--chalk);font-size:14px}
+.tw-expect-label{display:inline-block;margin-right:8px;color:var(--mint);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-try .tw-expect-label{color:var(--gold)}
+.tw-scroll{overflow-x:auto;max-width:100%}
+.tw-keytable{width:100%;border-collapse:collapse}
+.tw-keytable td{padding:7px 12px;border-top:1px solid var(--soft);vertical-align:top}
+.tw-keytable tr:first-child td{border-top:0}
+.tw-keytable td:first-child{white-space:nowrap}
+.tw-key{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--raised);color:var(--chalk);font:500 12.5px var(--mono)}
+.tw-text{margin:12px 0;color:var(--chalk)}
+[id^="module-"]{scroll-margin-top:76px}
+.tw-hit{outline:2px solid var(--gold);outline-offset:4px}
+.tw-search-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-search-btn:hover{border-color:var(--gold)}
+.tw-search-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-search[hidden]{display:none}
+.tw-search{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55)}
+.tw-search-panel{display:flex;flex-direction:column;width:min(680px,calc(100% - 24px));max-height:80vh;margin:8vh auto 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--board)}
+.tw-q{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);font-size:16px}
+.tw-results{flex:1;margin:10px 0 0;padding:0;overflow-y:auto;list-style:none}
+.tw-results [role=option]{padding:8px 10px;border:1px solid transparent;border-radius:8px;cursor:pointer}
+.tw-results [role=option][aria-selected=true]{border-color:var(--gold);background:var(--soft)}
+.tw-results mark{background:rgba(232,196,104,.25);color:inherit}
+.tw-r-meta{overflow:hidden;color:var(--dim);font:11px var(--mono);text-overflow:ellipsis;white-space:nowrap}
+.tw-r-kind{margin-right:8px;color:var(--blue);font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-r-title{font-weight:600}
+.tw-r-text{color:var(--dim);font-size:13px;overflow-wrap:anywhere}
+.tw-search-foot{margin:8px 0 0;color:var(--dim);font:11px var(--mono)}
+@media (max-width:480px){.tw-search-btn kbd{display:none}}
+body.tw-search-open{overflow:hidden}
+
+/* Cheat sheet */
+.tw-cheat-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-cheat-btn:hover{border-color:var(--gold)}
+.tw-cheat-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-cheat-short{display:none}
+.tw-cheat[hidden]{display:none}
+.tw-cheat{position:fixed;inset:0 0 0 auto;z-index:45;display:flex;flex-direction:column;gap:10px;width:min(440px,100%);padding:12px;border-left:1px solid var(--line);background:var(--board);box-shadow:-12px 0 32px rgba(0,0,0,.35)}
+.tw-cheat-head{display:flex;align-items:center;justify-content:space-between}
+.tw-cheat-title{margin:0;font-size:16px}
+.tw-cheat-close{width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font-size:20px;line-height:1}
+.tw-cheat-close:hover{border-color:var(--gold)}
+.tw-cheat-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tw-cheat-tab{padding:3px 9px;border:1px solid var(--line);border-radius:999px;background:var(--alt);color:var(--dim);cursor:pointer;font:500 12px var(--mono)}
+.tw-cheat-tab:hover{border-color:var(--gold);color:var(--chalk)}
+.tw-cheat-tab[aria-pressed=true]{border-color:var(--gold);background:var(--soft);color:var(--gold)}
+.tw-cheat-body{flex:1;min-height:0;overflow-y:auto}
+.tw-cheat-body .tw-keytable td{padding:6px 8px;font-size:13px}
+.tw-cheat-body .tw-keytable td:first-child{white-space:normal;overflow-wrap:anywhere}
+.tw-cheat-body .tw-key{white-space:pre-wrap;overflow-wrap:anywhere}
+.tw-cheat-group{margin:14px 0 4px;color:var(--mint);font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-cheat-empty{color:var(--dim);font-size:13px}
+@media (min-width:1100px){
+  body.tw-cheat-open{padding-right:440px}
+}
+@media (max-width:480px){
+  .tw-cheat-btn kbd,.tw-cheat-long{display:none}
+  .tw-cheat-short{display:inline}
+}
+
+/* Course map: the same palette, with a wider reading and browsing surface. */
+.course-map main,.course-map footer{width:min(1100px,calc(100% - 48px))}
+.course-map h1,.course-map h2{text-wrap:balance}
+.course-map h3{font-family:var(--body);text-wrap:balance}
+.course-map h2{font-size:28px}
+.course-map a{text-underline-offset:4px}
+.cm-hero{padding:64px 0 52px}
+.cm-hero h1{margin:0 0 14px;font-size:clamp(34px,4.2vw,50px);line-height:1.12}
+.cm-hero .subtitle{max-width:none;margin:0;font-size:16px}
+.cm-search{display:flex;cursor:pointer;border:1px solid var(--line);align-items:center;justify-content:space-between;gap:16px;width:min(680px,100%);margin-top:30px;padding:16px 20px;min-height:58px;border-radius:var(--r);background:var(--raised);color:var(--chalk);font:400 16px var(--body);text-align:left}
+.cm-search:hover{border-color:var(--gold)}
+.cm-search kbd{padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:400 14px var(--mono)}
+.cm-search-hint{margin:10px 0 0;color:var(--dim);font-size:12px}
+.cm-jumps{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px;font-size:13px}
+.cm-jumps a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-jumps a:hover{color:var(--gold)}
+.cm-group{padding:32px 0 12px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-group+.cm-group{margin-top:44px}
+.cm-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:24px}
+.cm-group-head h2{margin:0 0 8px}
+.cm-group-head p{margin:0;color:var(--dim);font-size:14px}
+.cm-group-head>span{flex-shrink:0;color:var(--dim);font-size:12px}
+.cm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cm-card{display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);transition:border-color .18s}
+.cm-card:hover,.cm-card:focus-within{border-color:var(--gold)}
+.cm-num{color:var(--mint);font-size:12px;font-weight:500}
+.cm-card h3{margin:12px 0 10px;font-size:22px;letter-spacing:-.025em}
+.cm-card h3 a{color:var(--chalk);text-decoration:none}
+.cm-card p{margin:0 0 18px;color:var(--dim);font-size:13px}
+.cm-card ol{margin:0 0 22px;padding-left:20px;font-size:13px}
+.cm-card li+li{margin-top:8px}
+.cm-card ol a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-card ol a:hover{color:var(--gold)}
+.cm-open{align-self:flex-start;margin-top:auto;color:var(--gold);font-size:12px;font-weight:600;text-decoration:none}
+.cm-learning{display:grid;grid-template-columns:1fr 2fr;gap:48px;margin-top:64px;padding-top:36px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-learning h2{margin-top:0}
+.cm-path{margin:0;padding-left:20px}
+.cm-path li{padding:0 0 22px 8px}
+.cm-path li::marker{color:var(--gold);font:500 13px var(--mono)}
+.cm-path strong{display:block;margin-bottom:4px;font-size:16px}
+.cm-path a{font-size:12px}
+.cm-path p{margin:6px 0 0;color:var(--dim);font-size:13px}
+.cm-reference{font-size:13px;color:var(--dim)}
+.cm-start{max-width:780px;margin-top:48px;padding-top:36px;border-top:1px solid var(--line)}
+@media (min-width:1000px){.cm-group:first-of-type .cm-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:650px){
+  .course-map main,.course-map footer{width:calc(100% - 40px)}
+  .cm-hero{padding:40px 0 36px}
+  .cm-hero .subtitle{font-size:14px}
+  .cm-search{padding:14px;font-size:14px}
+  .cm-search-hint{max-width:32ch}
+  .cm-jumps{gap:12px 20px}
+  .cm-group-head{display:block}
+  .cm-group-head>span{display:block;margin-top:10px}
+  .cm-grid{grid-template-columns:minmax(0,1fr)}
+  .cm-card{padding:22px}
+  .cm-learning{grid-template-columns:minmax(0,1fr);gap:24px}
+}
+.ws-steps em{color:var(--dim);font:600 11px var(--mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+.ws-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.ws-pair.ws-one{grid-template-columns:minmax(0,1fr)}
+.ws-label{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.ws-pane .sq-code{margin:4px 0 0}
+@media (max-width:640px){.ws-pair{grid-template-columns:minmax(0,1fr)}}
+
+/* Top bar and course menu. Below 1000px (and on the course map) the menu is a slide-in panel. */
+:root{--bar:56px;--side:288px}
+.tw-topbar{position:sticky;top:0;z-index:40;height:var(--bar);border-bottom:1px solid var(--line);background:rgba(23,35,29,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.tw-topbar-in{display:flex;align-items:center;gap:8px;height:100%;padding:0 16px}
+.tw-home{display:inline-flex;flex:0 1 auto;align-items:center;gap:9px;min-width:0;min-height:36px;padding:0 10px 0 8px;border-radius:8px;color:var(--chalk);text-decoration:none;font:700 18px/1 var(--display)}
+.tw-home span{overflow:hidden;padding-top:4px;text-overflow:ellipsis;white-space:nowrap}
+.tw-home svg{flex:none;color:var(--gold)}
+.tw-home:hover{background:var(--soft)}
+.tw-menu-btn{display:none;flex:none;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.js .tw-menu-btn{display:inline-flex}
+.tw-menu-btn:hover,.tw-menu-btn[aria-expanded=true]{border-color:var(--gold)}
+.tw-topbar-end{display:flex;flex:none;align-items:center;gap:8px;margin-left:auto}
+.tw-side{position:fixed;z-index:39;top:var(--bar);bottom:0;left:0;width:min(var(--side),calc(100% - 44px));padding:18px 12px 40px;overflow:hidden auto;overscroll-behavior:contain;border-right:1px solid var(--line);background:var(--alt);box-shadow:12px 0 32px rgba(0,0,0,.35);transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility 0s linear .22s}
+.tw-backdrop{position:fixed;z-index:38;inset:var(--bar) 0 0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s}
+body.tw-side-open{overflow:hidden}
+body.tw-side-open .tw-side{transform:none;visibility:visible;transition-delay:0s}
+body.tw-side-open .tw-backdrop{opacity:1;visibility:visible;transition-delay:0s}
+.tw-side h2{margin:0 0 6px;padding:0 10px;color:var(--gold);font:700 17px/1.3 var(--display)}
+.tw-side-group+.tw-side-group{margin-top:22px}
+.tw-side ul,.tw-side ol{margin:0;padding:0;list-style:none}
+.tw-side :focus-visible{outline-offset:-2px}
+.tw-side-mod summary{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;border-radius:8px;color:var(--chalk);cursor:pointer;font-size:14px;font-weight:500;line-height:1.3;list-style:none}
+.tw-side-mod summary::-webkit-details-marker{display:none}
+.tw-side-mod summary::after{content:"";flex:none;width:7px;height:7px;margin:0 3px 0 auto;border-right:1.5px solid var(--dim);border-bottom:1.5px solid var(--dim);transform:rotate(-45deg);transition:transform .15s}
+.tw-side-mod[open]>summary::after{transform:rotate(45deg)}
+.tw-side-mod summary:hover{background:var(--soft)}
+.tw-side-num{display:grid;flex:none;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;color:var(--mint);font:600 11px var(--mono)}
+.tw-side-mod[data-current]>summary .tw-side-num{border-color:var(--gold);background:var(--gold);color:var(--board)}
+.tw-side .tw-side-pages{margin:2px 0 8px 22px;border-left:1px solid var(--line)}
+.tw-side-pages a{display:block;margin-left:-1px;padding:6px 10px 6px 14px;border-left:2px solid transparent;border-radius:0 6px 6px 0;color:var(--dim);font-size:13px;line-height:1.4;text-decoration:none}
+.tw-side-pages a:hover{background:var(--soft);color:var(--chalk)}
+.tw-side-pages a[aria-current=page]{border-left-color:var(--gold);background:var(--soft);color:var(--gold);font-weight:600}
+.cm-hero .eyebrow{margin-bottom:14px}
+html:not(.js) body:not(.has-side) .tw-side{display:none}
+@media (min-width:1000px){
+  body.has-side .tw-side{width:var(--side);box-shadow:none;transform:none;visibility:visible;transition:none}
+  body.has-side .tw-backdrop,body.has-side .tw-menu-btn{display:none}
+  body.has-side .tw-page{padding-left:var(--side)}
+}
+@media (max-width:999.98px){
+  html:not(.js) body.has-side .tw-side{position:static;width:auto;border:0;border-bottom:1px solid var(--line);box-shadow:none;transform:none;visibility:visible}
+}
+@media (max-width:480px){
+  .tw-topbar-in{gap:6px;padding:0 10px}
+  .tw-topbar-end{gap:6px}
+  .tw-home{gap:7px;padding:0 6px 0 4px;font-size:16px}
+  .tw-menu-label{display:none}
+  .tw-menu-btn,.tw-search-btn,.tw-cheat-btn{padding:6px 8px;font-size:12px}
+}
+@media (max-width:359.98px){.tw-home span{display:none}}
+@media print{
+  .tw-topbar,.tw-side,.tw-backdrop{display:none!important}
+  body.has-side .tw-page{padding-left:0}
+  body.tw-side-open,body.tw-cheat-open{overflow:visible;padding-right:0}
+}
+
+    </style>
+  </head>
+  <body class="has-side" data-root="../" data-file="m10-bash-basics/index.html">
+    <header class="tw-topbar"><div class="tw-topbar-in"><a class="tw-home" href="../" aria-label="Terminal Workflow home"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg><span>Terminal Workflow</span></a><button class="tw-menu-btn" type="button" aria-controls="tw-side" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="tw-menu-label">Menu</span></button><div class="tw-topbar-end"><button class="tw-search-btn" type="button" data-tw-search aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false"><span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button></div></div></header>
+    <nav class="tw-side" id="tw-side" aria-label="Course modules"><section class="tw-side-group"><h2>Linux &amp; Bash</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">9</span><span class="tw-side-title">Find and text tools</span></summary><ol class="tw-side-pages"><li><a href="../m9-find-text/#module-1">Find files</a></li><li><a href="../m9-find-text/#module-2">Search inside files</a></li><li><a href="../m9-find-text/#module-3">Slice, sort and count</a></li><li><a href="../m9-find-text/#module-4">Transform</a></li></ol></details></li><li><details class="tw-side-mod" open data-current><summary><span class="tw-side-num">10</span><span class="tw-side-title">Bash basics</span></summary><ol class="tw-side-pages"><li><a href="#module-1" data-page="1" aria-current="page">Variables, quoting and exit codes</a></li><li><a href="#module-2" data-page="2">Decisions</a></li><li><a href="#module-3" data-page="3">Loops</a></li><li><a href="#module-4" data-page="4">Script input</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">11</span><span class="tw-side-title">Bash expert</span></summary><ol class="tw-side-pages"><li><a href="../m11-bash-expert/#module-1">Functions, strings and arrays</a></li><li><a href="../m11-bash-expert/#module-2">Safe scripts</a></li><li><a href="../m11-bash-expert/#module-3">Redirection, here-docs and process substitution</a></li><li><a href="../m11-bash-expert/#module-4">Ready-made scripts</a></li></ol></details></li></ul></section><section class="tw-side-group"><h2>tmux &amp; Neovim</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">1</span><span class="tw-side-title">tmux and the shell</span></summary><ol class="tw-side-pages"><li><a href="../m1-tmux/#module-1">Sessions that outlive the window</a></li><li><a href="../m1-tmux/#module-2">Windows and panes</a></li><li><a href="../m1-tmux/#module-3">Copy mode, the command line and fzf</a></li><li><a href="../m1-tmux/#module-4">Make tmux yours</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">2</span><span class="tw-side-title">Neovim essentials</span></summary><ol class="tw-side-pages"><li><a href="../m2-nvim-essentials/#module-1">Open, move, save, quit</a></li><li><a href="../m2-nvim-essentials/#module-2">Move fast and search</a></li><li><a href="../m2-nvim-essentials/#module-3">Delete, yank, paste, undo</a></li><li><a href="../m2-nvim-essentials/#module-4">Buffers, terminals, splits, tabs, leader</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">3</span><span class="tw-side-title">Power editing</span></summary><ol class="tw-side-pages"><li><a href="../m3-power-editing/#module-1">Operators, motions, text objects</a></li><li><a href="../m3-power-editing/#module-2">Visual mode, macros, search and replace</a></li><li><a href="../m3-power-editing/#module-3">Indent, registers, marks, many files</a></li><li><a href="../m3-power-editing/#module-4">Change every copy of a word</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">4</span><span class="tw-side-title">Worktrees and the agent loop</span></summary><ol class="tw-side-pages"><li><a href="../m4-worktrees/#module-1">Parallel branches without stashing</a></li><li><a href="../m4-worktrees/#module-2">Worktrees in tmux</a></li><li><a href="../m4-worktrees/#module-3">The three-window pattern</a></li><li><a href="../m4-worktrees/#module-4">Test, ship, clean up</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">5</span><span class="tw-side-title">Code intelligence and git</span></summary><ol class="tw-side-pages"><li><a href="../m5-lsp-git/#module-1">Navigate code with LSP</a></li><li><a href="../m5-lsp-git/#module-2">Git inside Neovim</a></li><li><a href="../m5-lsp-git/#module-3">Refactor, files and project search</a></li><li><a href="../m5-lsp-git/#module-4">Tests and the debugger</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">6</span><span class="tw-side-title">Plugins and the key map</span></summary><ol class="tw-side-pages"><li><a href="../m6-plugins-keymaps/#module-1">Jump and select</a></li><li><a href="../m6-plugins-keymaps/#module-2">Sessions, history and UI helpers</a></li><li><a href="../m6-plugins-keymaps/#module-3">The g, [ ], and z maps</a></li><li><a href="../m6-plugins-keymaps/#module-4">Ctrl, Space and colon maps</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">7</span><span class="tw-side-title">Expert Neovim</span></summary><ol class="tw-side-pages"><li><a href="../m7-expert/#module-1">Motions and the dot formula</a></li><li><a href="../m7-expert/#module-2">Expert macros and registers</a></li><li><a href="../m7-expert/#module-3">Quickfix, marks, substitution and :g</a></li><li><a href="../m7-expert/#module-4">Windows, insert, block, ranges and undo</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">8</span><span class="tw-side-title">Coming from VS Code</span></summary><ol class="tw-side-pages"><li><a href="../m8-from-vscode/#module-1">Your VS Code shortcuts in Neovim</a></li><li><a href="../m8-from-vscode/#module-2">View, layout and focus</a></li><li><a href="../m8-from-vscode/#module-3">Editing helpers VS Code gave you free</a></li></ol></details></li></ul></section></nav><div class="tw-backdrop" id="tw-backdrop"></div>
+    <div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
+    <aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet"><header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2><button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header><input id="tw-cheat-q" class="tw-q" type="search" autocomplete="off" spellcheck="false" aria-label="Filter the cheat sheet" placeholder="Filter keys and actions" /><div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div><div id="tw-cheat-body" class="tw-cheat-body"></div></aside>
+    <div class="tw-page">
+    <main id="lessonRoot">
+<section class="lesson sq-page active" id="module-1" data-module="1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false"><header class="lesson-header"><div class="eyebrow">Bash basics · Page 1 of 4</div><h1>Variables, quoting and exit codes</h1><p class="subtitle">Run a script, keep values in variables, quote them, and read whether a command worked.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Quote every variable, and read $? after a command to know if it worked.</p><ul class="kitchen-links"><li><strong>Run a script <span class="kl-nowrap">→ bash hello.sh.</span></strong> Or chmod +x it and run ./hello.sh.</li><li><strong>Keep a value <span class="kl-nowrap">→ name=Ada.</span></strong> No spaces around the equals sign.</li><li><strong>Use it safely <span class="kl-nowrap">→ &quot;$name&quot;.</span></strong> Double quotes keep spaces inside the value.</li><li><strong>Did it work <span class="kl-nowrap">→ echo $?.</span></strong> 0 is success, anything else is a failure.</li></ul></div></div><div class="block"><figure class="tw-codebox tw-cmd" id="module-1-setup"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get the practice files</span><button class="tw-copy" type="button" aria-label="Copy: Get the practice files">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> ~/tw &amp;&amp; <span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">curl</span> <span class="hl-f">-fsSO</span> https://nvim-workflow.vercel.app/practice/orders.py <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/notes.md <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/todo.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> shows orders.py, notes.md, todo.txt.</p></figure></div><div class="block" id="module-1-problem"><div class="word-problem"><span class="tag">The problem</span><p>A script works on <code>report.txt</code> and breaks on <code>my notes.txt</code>, or <code>name = Ada</code> says <code>command not found</code>.</p><div class="result-box"><strong>The fix:</strong> Write <code>name=Ada</code> with no spaces, and put <code>&quot;$name&quot;</code> in double quotes every time you use it.</div></div></div><section class="block" id="module-1-d1"><div class="section-label">Type it</div><h2>Run a script</h2><p class="section-intro">A script is a text file of commands. Run it with <code>bash</code>, or make it executable and run it by path.</p><figure class="tw-codebox tw-cmd" id="module-1-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create the sample files for this page</span><button class="tw-copy" type="button" aria-label="Copy: Create the sample files for this page">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/vars &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw/vars
+<span class="hl-cmd">cat</span> &gt; hello.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;Hello from a script&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;first line\nsecond line\n&#x27;</span> &gt; <span class="hl-s">&#x27;my notes.txt&#x27;</span>
+<span class="hl-cmd">cat</span> hello.sh</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The two lines of the script print: <code>#!/bin/bash</code> and <code>echo &quot;Hello from a script&quot;</code>. The folder <code>/tmp/tw/vars</code> now holds <code>hello.sh</code> and <code>my notes.txt</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Run a script with bash, then run it as ./hello.sh</span><button class="tw-copy" type="button" aria-label="Copy: Run a script with bash, then run it as ./hello.sh">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/vars
+<span class="hl-cmd">bash</span> hello.sh
+<span class="hl-cmd">chmod</span> +x hello.sh
+<span class="hl-cmd">./hello.sh</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Hello from a script</code> prints twice, once from <code>bash hello.sh</code> and once from <code>./hello.sh</code>. Without the <code>chmod +x</code>, <code>./hello.sh</code> fails with <code>Permission denied</code>.</p></figure><p class="tw-text">The first line <code>#!/bin/bash</code> is the shebang. It tells the system which program runs the file when you run <code>./hello.sh</code>. <code>bash hello.sh</code> ignores it.</p></section><section class="block" id="module-1-d2"><div class="section-label">Type it</div><h2>Variables and quotes</h2><p class="section-intro">Type <code>bash</code> first: these snippets are bash, and zsh splits words differently. Type <code>exit</code> to return to zsh.</p><figure class="tw-codebox tw-cmd" id="module-1-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Set a variable and print it</span><button class="tw-copy" type="button" aria-label="Copy: Set a variable and print it">Copy</button></figcaption><pre class="sq-code"><code>name=Ada
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;Hello, $name&quot;</span>
+<span class="hl-cmd">name</span> = Ada</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Hello, Ada</code> prints, then <code>bash: name: command not found</code>. With spaces, bash runs <code>name</code> as a command.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Keep a $variable literal or expand it: double, single or no quotes</span><button class="tw-copy" type="button" aria-label="Copy: Keep a $variable literal or expand it: double, single or no quotes">Copy</button></figcaption><pre class="sq-code"><code>name=Ada
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;Hi $name&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;Hi $name&#x27;</span>
+<span class="hl-cmd">echo</span> Hi <span class="hl-v">$name</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>Hi Ada</code>, <code>Hi $name</code>, <code>Hi Ada</code>. Single quotes print the text, double quotes and no quotes expand it.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Stop a filename with a space from breaking</span><button class="tw-copy" type="button" aria-label="Copy: Stop a filename with a space from breaking">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/vars
+f=<span class="hl-s">&#x27;my notes.txt&#x27;</span>
+<span class="hl-cmd">cat</span> <span class="hl-v">$f</span>
+<span class="hl-cmd">cat</span> <span class="hl-s">&quot;$f&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>cat $f</code> fails twice: <code>cat: my: No such file or directory</code> and <code>cat: notes.txt: No such file or directory</code>. <code>cat &quot;$f&quot;</code> prints <code>first line</code> and <code>second line</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Put text right after a variable with ${var}</span><button class="tw-copy" type="button" aria-label="Copy: Put text right after a variable with ${var}">Copy</button></figcaption><pre class="sq-code"><code>fruit=apple
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;$fruits&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;${fruit}s&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first <code>echo</code> prints an empty line, because <code>$fruits</code> is a different, unset variable. The second prints <code>apples</code>.</p></figure></section><section class="block" id="module-1-d3"><div class="section-label">Type it</div><h2>Capture output and do arithmetic</h2><p class="section-intro"><code>$(command)</code> swaps in what the command prints. <code>$(( ))</code> does whole-number maths.</p><figure class="tw-codebox tw-cmd" id="module-1-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Save a command&#x27;s output in a variable with $(...)</span><button class="tw-copy" type="button" aria-label="Copy: Save a command&#x27;s output in a variable with $(...)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/vars
+first=<span class="hl-v">$(</span><span class="hl-cmd">head</span> <span class="hl-n">-1</span> <span class="hl-s">&#x27;my notes.txt&#x27;</span>)
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;First line: $first&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;Lines: $(wc -l &lt; &#x27;my notes.txt&#x27; | tr -d &#x27; &#x27;)&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>First line: first line</code> and <code>Lines: 2</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Do arithmetic with $(( ))</span><button class="tw-copy" type="button" aria-label="Copy: Do arithmetic with $(( ))">Copy</button></figcaption><pre class="sq-code"><code>a=7; b=3
+<span class="hl-cmd">echo</span> <span class="hl-v">$(</span>(<span class="hl-cmd">a</span> + b)) <span class="hl-v">$(</span>(<span class="hl-cmd">a</span> * b)) <span class="hl-v">$(</span>(<span class="hl-cmd">a</span> / b)) <span class="hl-v">$(</span>(<span class="hl-cmd">a</span> % b))
+((<span class="hl-cmd">a++</span>)); <span class="hl-cmd">echo</span> <span class="hl-v">$a</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;scale=2; 7/3&quot;</span> | <span class="hl-cmd">bc</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>10 21 2 1</code>, then <code>8</code>, then <code>2.33</code>. The integer sum, product, quotient and remainder come first, <code>((a++))</code> makes 7 into 8, and <code>bc</code> gives the decimals.</p></figure><p class="tw-text"><code>$(( ))</code> drops the decimals: <code>7 / 3</code> is <code>2</code>. For decimals pipe the sum to <code>bc</code>.</p><figure class="tw-codebox tw-cmd" id="module-1-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Print with echo or printf (tabs, padding, decimals)</span><button class="tw-copy" type="button" aria-label="Copy: Print with echo or printf (tabs, padding, decimals)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&quot;a\tb&quot;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;a\tb\n&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s\n&#x27;</span> one two three
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%05.2f\n&#x27;</span> <span class="hl-n">3.14159</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%-6s|%4d\n&#x27;</span> ab <span class="hl-n">7</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>echo</code> prints <code>a\tb</code> with the backslash-t as typed. <code>printf</code> prints <code>a</code> and <code>b</code> with a real tab between them. Then <code>one</code>, <code>two</code>, <code>three</code> on separate lines, <code>03.14</code>, and <code>ab    |   7</code>.</p></figure></section><section class="block" id="module-1-d4"><div class="section-label">Type it</div><h2>Exit codes</h2><p class="section-intro">Every command leaves a number: <code>0</code> for success, anything else for failure. <code>$?</code> holds the last one.</p><figure class="tw-codebox tw-cmd" id="module-1-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check if the last command worked with $?</span><button class="tw-copy" type="button" aria-label="Copy: Check if the last command worked with $?">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/vars
+<span class="hl-cmd">ls</span> hello.sh
+<span class="hl-cmd">echo</span> <span class="hl-v">$?</span>
+<span class="hl-cmd">ls</span> nope
+<span class="hl-cmd">echo</span> <span class="hl-v">$?</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>hello.sh</code> and <code>0</code>, then <code>ls: nope: No such file or directory</code> and <code>1</code>.</p></figure><p class="tw-text">Linux differs: GNU <code>ls</code> exits with <code>2</code> for a missing file where macOS <code>ls</code> exits with <code>1</code>. Only <code>0</code> versus not <code>0</code> is portable.</p><figure class="tw-codebox tw-cmd" id="module-1-d4-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Exit a script with your own code, and read true and false</span><button class="tw-copy" type="button" aria-label="Copy: Exit a script with your own code, and read true and false">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/vars
+<span class="hl-cmd">true</span>; <span class="hl-cmd">echo</span> <span class="hl-v">$?</span>
+<span class="hl-cmd">false</span>; <span class="hl-cmd">echo</span> <span class="hl-v">$?</span>
+<span class="hl-cmd">cat</span> &gt; check.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;checking&quot;</span>
+<span class="hl-cmd">exit</span> <span class="hl-n">3</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> check.sh
+<span class="hl-cmd">echo</span> <span class="hl-v">$?</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>0</code> for <code>true</code>, <code>1</code> for <code>false</code>, then <code>checking</code> from the script and <code>3</code>, the code <code>exit 3</code> set.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Variables and exit codes at a glance</h2><details class="rule-card" id="module-1-r1" name="rules-1" open><summary><span><span class="num">01</span>Keep a value whole or let it split</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Bash splits an unquoted value at spaces, tabs and newlines (IFS), then expands <code>*</code> patterns. Quotes stop both.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Keep a value whole</td><td><code>&quot;$name&quot;</code>: one word, spaces kept. Use this by default.</td></tr><tr><td>Print the text <code>$name</code> as typed</td><td><code>&#x27;$name&#x27;</code>: nothing expands.</td></tr><tr><td>See what unquoted does</td><td><code>$name</code>: split and pattern-expanded, so <code>my notes.txt</code> breaks.</td></tr><tr><td>Put text right after a value</td><td><code>&quot;${name}s&quot;</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r2" name="rules-1"><summary><span><span class="num">02</span>Save output or do maths</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Three dollar forms that look alike.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Use a variable</td><td><code>$name</code></td></tr><tr><td>Save what a command prints</td><td><code>first=$(head -1 file)</code></td></tr><tr><td>Add or multiply whole numbers</td><td><code>$((a + b))</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r3" name="rules-1"><summary><span><span class="num">03</span>Check if a command worked</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">A command&#x27;s success is a number.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Read the last command&#x27;s result</td><td><code>echo $?</code>: 0 is success. Read it before running anything else.</td></tr><tr><td>End a script with your own code</td><td><code>exit 3</code></td></tr><tr><td>Make a command that always succeeds or fails</td><td><code>true</code> (code 0) or <code>false</code> (code 1)</td></tr></tbody></table></div></details></section><section class="block" id="module-1-worked"><div class="section-label">Worked application</div><h2>Print the line count of a file with a space in its name</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You want one sentence that says how many lines <code>my notes.txt</code> has.</p><figure class="tw-codebox tw-cmd" id="module-1-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/vars</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>file=&#x27;my notes.txt&#x27;</code></span> · <span>The quotes keep the space inside the value.</span></li><li><span><em>Keys:</em> <code>n=$(wc -l &lt; &quot;$file&quot; | tr -d &#x27; &#x27;)</code></span> · <span><code>wc -l</code> counts the lines. <code>tr -d &#x27; &#x27;</code> removes the padding spaces macOS adds.</span></li><li><span><em>Keys:</em> <code>echo &quot;$file has $n lines&quot;</code></span> · <span>Double quotes keep the filename whole.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>my notes.txt has 2 lines</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> Quote the variable and the filename stays one word, whatever is in it.</div></div></section><section class="block" id="module-1-practice"><div class="section-label">Your turn</div><h2>Practice: variables and exit codes</h2><div class="practice-card" id="module-1-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>cat $f</code> fail when <code>f=&#x27;my notes.txt&#x27;</code>, while <code>cat &quot;$f&quot;</code> works?</p><details class="hint"><summary>hint</summary><p>How many words does the command get?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Without quotes bash cuts the value at the space.</li><li><code>cat</code> then gets two names, <code>my</code> and <code>notes.txt</code>.</li><li>Quotes keep it as one name.</li></ol><div class="solution-final"><strong>Final answer:</strong> Unquoted <code>$f</code> splits into two words. <code>&quot;$f&quot;</code> stays one.</div></div></details></div><div class="practice-card" id="module-1-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which line stores today&#x27;s year in <code>y</code> and prints <code>Year: ...</code>?</p><details class="hint"><summary>hint</summary><p>Command substitution, then echo.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Write <code>y=$(date +%Y)</code>.</li><li>Write <code>echo &quot;Year: $y&quot;</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>y=$(date +%Y)</code> then <code>echo &quot;Year: $y&quot;</code>.</div></div></details></div><div class="practice-card" id="module-1-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Make a script <code>fail.sh</code> that prints <code>oops</code> and ends with code 4. How do you check the code?</p><details class="hint"><summary>hint</summary><p>Put exit last, then read the code.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Create it with <code>printf &#x27;echo oops\nexit 4\n&#x27; &gt; fail.sh</code>.</li><li>Run <code>bash fail.sh</code>.</li><li>Run <code>echo $?</code> straight after.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>bash fail.sh</code> prints <code>oops</code>, then <code>echo $?</code> prints <code>4</code>.</div></div></details></div><div class="practice-card" id="module-1-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text"><code>count = 5</code> prints <code>count: command not found</code>. What is wrong?</p><details class="hint"><summary>hint</summary><p>Look at the spaces around the equals sign.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Bash reads <code>count</code> as a command and <code>=</code> and <code>5</code> as its arguments.</li><li>An assignment has no spaces around <code>=</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> Write <code>count=5</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-2" data-module="2" role="tabpanel" aria-labelledby="tab-2" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Bash basics · Page 2 of 4</div><h1>Decisions</h1><p class="subtitle">Branch with if, test strings, numbers and files, and match patterns with case.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Put the test inside [[ ]] with spaces around everything, and let the exit code pick the branch.</p><ul class="kitchen-links"><li><strong>Test a file <span class="kl-nowrap">→ [[ -f report.txt ]].</span></strong> Also -d, -e, -s and -x.</li><li><strong>Compare numbers <span class="kl-nowrap">→ [[ $n -gt 5 ]].</span></strong> Or (( n &gt; 5 )) for maths.</li><li><strong>Match a pattern <span class="kl-nowrap">→ [[ $f == *.txt ]].</span></strong> No quotes around the pattern.</li><li><strong>Pick by value <span class="kl-nowrap">→ case $x in a) ... ;; esac.</span></strong> Use | to join choices.</li></ul></div></div><div class="block" id="module-2-problem"><div class="word-problem"><span class="tag">The problem</span><p>Your script tests <code>[ $name = Ada ]</code> and errors when the name is empty or has a space, or <code>[[ $n=5 ]]</code> is always true.</p><div class="result-box"><strong>The fix:</strong> Use <code>[[ ]]</code> with a space on every side of the operator: <code>[[ $n = 5 ]]</code>.</div></div></div><section class="block" id="module-2-d1"><div class="section-label">Type it</div><h2>if, elif, else</h2><p class="section-intro">Type <code>bash</code> first: these snippets are bash, and zsh splits words differently. Type <code>exit</code> to return to zsh.</p><figure class="tw-codebox tw-cmd" id="module-2-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create the sample files for this page</span><button class="tw-copy" type="button" aria-label="Copy: Create the sample files for this page">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/tests/data &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw/tests
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;alpha\nbeta\n&#x27;</span> &gt; report.txt
+<span class="hl-cmd">:</span> &gt; empty.txt
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;#!/bin/bash\necho run\n&#x27;</span> &gt; run.sh &amp;&amp; <span class="hl-cmd">chmod</span> +x run.sh
+<span class="hl-cmd">ls</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> lists <code>data</code>, <code>empty.txt</code>, <code>report.txt</code> and <code>run.sh</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Run one of three branches with if, elif and else</span><button class="tw-copy" type="button" aria-label="Copy: Run one of three branches with if, elif and else">Copy</button></figcaption><pre class="sq-code"><code>n=7
+<span class="hl-k">if</span> <span class="hl-cmd">[[</span> <span class="hl-v">$n</span> <span class="hl-f">-gt</span> <span class="hl-n">10</span> ]]; <span class="hl-k">then</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;big&quot;</span>
+<span class="hl-k">elif</span> <span class="hl-cmd">[[</span> <span class="hl-v">$n</span> <span class="hl-f">-gt</span> <span class="hl-n">5</span> ]]; <span class="hl-k">then</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;medium&quot;</span>
+<span class="hl-k">else</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;small&quot;</span>
+<span class="hl-k">fi</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>medium</code> prints. The first test fails, the <code>elif</code> passes, and bash skips the <code>else</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Compare strings with = != -z -n</span><button class="tw-copy" type="button" aria-label="Copy: Compare strings with = != -z -n">Copy</button></figcaption><pre class="sq-code"><code>s=hello
+<span class="hl-cmd">[[</span> <span class="hl-v">$s</span> == hello ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;same&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$s</span> != bye ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;different&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-z</span> <span class="hl-s">&quot;&quot;</span> ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;empty&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-n</span> <span class="hl-v">$s</span> ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;not empty&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Four lines: <code>same</code>, <code>different</code>, <code>empty</code>, <code>not empty</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Compare numbers with -eq -lt -gt, and see why &lt; fails</span><button class="tw-copy" type="button" aria-label="Copy: Compare numbers with -eq -lt -gt, and see why &lt; fails">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">[[</span> <span class="hl-n">3</span> <span class="hl-f">-lt</span> <span class="hl-n">10</span> ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;3 is less than 10&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-n">5</span> <span class="hl-f">-eq</span> <span class="hl-n">5</span> ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;equal&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-n">9</span> &lt; <span class="hl-n">10</span> ]] || <span class="hl-cmd">echo</span> <span class="hl-s">&quot;as text, 9 sorts after 10&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>3 is less than 10</code>, <code>equal</code>, <code>as text, 9 sorts after 10</code>. Inside <code>[[ ]]</code>, <code>&lt;</code> compares text, so use <code>-lt</code> for numbers.</p></figure></section><section class="block" id="module-2-d2"><div class="section-label">Type it</div><h2>Test files and combine tests</h2><p class="section-intro">Each file test is one letter. Join tests with <code>&amp;&amp;</code> and <code>||</code> inside the brackets.</p><figure class="tw-codebox tw-cmd" id="module-2-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Test if a file or folder exists with -f -d -e -s -x</span><button class="tw-copy" type="button" aria-label="Copy: Test if a file or folder exists with -f -d -e -s -x">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/tests
+<span class="hl-cmd">[[</span> <span class="hl-f">-f</span> report.txt ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;file&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-d</span> data ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;folder&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-e</span> nope ]] || <span class="hl-cmd">echo</span> <span class="hl-s">&quot;missing&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-s</span> empty.txt ]] || <span class="hl-cmd">echo</span> <span class="hl-s">&quot;empty file&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-x</span> run.sh ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;runnable&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Five lines: <code>file</code>, <code>folder</code>, <code>missing</code>, <code>empty file</code>, <code>runnable</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Combine tests with &amp;&amp; and || inside [[ ]]</span><button class="tw-copy" type="button" aria-label="Copy: Combine tests with &amp;&amp; and || inside [[ ]]">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/tests
+n=12
+<span class="hl-cmd">[[</span> <span class="hl-f">-f</span> report.txt &amp;&amp; <span class="hl-cmd">-s</span> report.txt ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;has content&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$n</span> <span class="hl-f">-lt</span> <span class="hl-n">0</span> || <span class="hl-v">$n</span> <span class="hl-f">-gt</span> <span class="hl-n">10</span> ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;out of range&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Two lines: <code>has content</code> and <code>out of range</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Match a filename pattern like *.txt</span><button class="tw-copy" type="button" aria-label="Copy: Match a filename pattern like *.txt">Copy</button></figcaption><pre class="sq-code"><code>f=notes.txt
+<span class="hl-cmd">[[</span> <span class="hl-v">$f</span> == *.txt ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;text file&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$f</span> == n* ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;starts with n&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$f</span> == <span class="hl-s">&quot;*.txt&quot;</span> ]] || <span class="hl-cmd">echo</span> <span class="hl-s">&quot;quoted, it is just those characters&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>text file</code>, <code>starts with n</code>, <code>quoted, it is just those characters</code>. A quoted pattern matches only itself.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Test numbers with maths using (( ))</span><button class="tw-copy" type="button" aria-label="Copy: Test numbers with maths using (( ))">Copy</button></figcaption><pre class="sq-code"><code>n=7
+(( <span class="hl-cmd">n</span> &gt; <span class="hl-n">5</span> )) &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;over 5&quot;</span>
+(( <span class="hl-cmd">n</span> % <span class="hl-n">2</span> == <span class="hl-n">0</span> )) || <span class="hl-cmd">echo</span> <span class="hl-s">&quot;odd&quot;</span>
+(( <span class="hl-cmd">n</span> * <span class="hl-n">2</span> == <span class="hl-n">14</span> )) &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;double is 14&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>over 5</code>, <code>odd</code>, <code>double is 14</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Spot the missing spaces in [[ ]]</span><button class="tw-copy" type="button" aria-label="Copy: Spot the missing spaces in [[ ]]">Copy</button></figcaption><pre class="sq-code"><code>n=7
+<span class="hl-cmd">[[</span> <span class="hl-v">$n</span>=5 ]] &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;always true&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$n</span> = <span class="hl-n">5</span> ]] || <span class="hl-cmd">echo</span> <span class="hl-s">&quot;really false&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>always true</code> prints because <code>7=5</code> is one non-empty word, so the test never compares. The second test, with spaces, is false, so <code>really false</code> prints.</p></figure></section><section class="block" id="module-2-d3"><div class="section-label">Type it</div><h2>case and short-circuit</h2><p class="section-intro"><code>case</code> picks a branch by pattern. <code>&amp;&amp;</code> and <code>||</code> run the next command on success or failure.</p><figure class="tw-codebox tw-cmd" id="module-2-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Pick a branch by value with case, patterns and |</span><button class="tw-copy" type="button" aria-label="Copy: Pick a branch by value with case, patterns and |">Copy</button></figcaption><pre class="sq-code"><code>ans=yes
+<span class="hl-k">case</span> <span class="hl-v">$ans</span> <span class="hl-k">in</span>
+  <span class="hl-cmd">y</span>|<span class="hl-cmd">yes</span>) echo <span class="hl-s">&quot;going ahead&quot;</span> ;;
+  <span class="hl-cmd">n</span>|<span class="hl-cmd">no</span>)  echo <span class="hl-s">&quot;stopping&quot;</span> ;;
+  <span class="hl-cmd">*</span>)     echo <span class="hl-s">&quot;unknown: $ans&quot;</span> ;;
+<span class="hl-k">esac</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>going ahead</code> prints. <code>y|yes</code> matches <code>yes</code>, and each branch ends with <code>;;</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Run a different command by file extension with case</span><button class="tw-copy" type="button" aria-label="Copy: Run a different command by file extension with case">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-k">for</span> f <span class="hl-k">in</span> a.txt b.sh c.md; <span class="hl-k">do</span>
+  <span class="hl-k">case</span> <span class="hl-v">$f</span> <span class="hl-k">in</span>
+    <span class="hl-cmd">*.txt</span>|<span class="hl-cmd">*.md</span>) echo <span class="hl-s">&quot;$f: text&quot;</span> ;;
+    <span class="hl-cmd">*.sh</span>)       echo <span class="hl-s">&quot;$f: script&quot;</span> ;;
+  <span class="hl-k">esac</span>
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>a.txt: text</code>, <code>b.sh: script</code>, <code>c.md: text</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Run a command only if another worked: cmd &amp;&amp; echo ok || echo fail</span><button class="tw-copy" type="button" aria-label="Copy: Run a command only if another worked: cmd &amp;&amp; echo ok || echo fail">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/tests
+<span class="hl-cmd">[[</span> <span class="hl-f">-f</span> report.txt ]] &amp;&amp; <span class="hl-cmd">echo</span> ok || <span class="hl-cmd">echo</span> fail
+<span class="hl-cmd">[[</span> <span class="hl-f">-f</span> nope ]] &amp;&amp; <span class="hl-cmd">echo</span> ok || <span class="hl-cmd">echo</span> fail</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ok</code> for the file that exists, <code>fail</code> for the one that does not.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Fix the &amp;&amp; || trap: fail prints even when the test passed</span><button class="tw-copy" type="button" aria-label="Copy: Fix the &amp;&amp; || trap: fail prints even when the test passed">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/tests
+<span class="hl-cmd">[[</span> <span class="hl-f">-f</span> report.txt ]] &amp;&amp; <span class="hl-cmd">false</span> || <span class="hl-cmd">echo</span> <span class="hl-s">&quot;fail printed anyway&quot;</span>
+<span class="hl-k">if</span> <span class="hl-cmd">[[</span> <span class="hl-f">-f</span> report.txt ]]; <span class="hl-k">then</span> <span class="hl-cmd">false</span>; <span class="hl-k">else</span> <span class="hl-cmd">echo</span> <span class="hl-s">&quot;fail&quot;</span>; <span class="hl-k">fi</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;if/else done&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>fail printed anyway</code> comes from the <code>&amp;&amp;</code> <code>||</code> line, because <code>false</code> failed. The <code>if</code> line prints no <code>fail</code>, because <code>else</code> runs only when the test fails. Then <code>if/else done</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Tests at a glance</h2><details class="rule-card" id="module-2-r1" name="rules-2" open><summary><span><span class="num">01</span>Check a file or folder</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">One letter after the dash.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Check a file exists</td><td><code>[[ -f x ]]</code> (a regular file)</td></tr><tr><td>Check a folder exists</td><td><code>[[ -d x ]]</code></td></tr><tr><td>Check something exists (a broken symlink counts as missing)</td><td><code>[[ -e x ]]</code></td></tr><tr><td>Check a file is not empty</td><td><code>[[ -s x ]]</code></td></tr><tr><td>Check a file can be run (or a folder entered)</td><td><code>[[ -x x ]]</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r2" name="rules-2"><summary><span><span class="num">02</span>Compare text and numbers</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Quote the right side of <code>=</code> to match it as literal text. Unquoted, it is a pattern.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Check two strings match</td><td><code>[[ $a = &quot;$b&quot; ]]</code> (<code>!=</code> for different)</td></tr><tr><td>Check a string is empty or not</td><td><code>[[ -z $a ]]</code> or <code>[[ -n $a ]]</code></td></tr><tr><td>Compare whole numbers</td><td><code>[[ $a -lt $b ]]</code>. Also <code>-le -gt -ge -eq -ne</code>.</td></tr><tr><td>Compare with maths symbols</td><td><code>(( a &gt; b ))</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r3" name="rules-2"><summary><span><span class="num">03</span>Run a command on pass or fail</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro"><code>a &amp;&amp; b || c</code> is not if/else.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Run b only when a works</td><td><code>a &amp;&amp; b</code></td></tr><tr><td>Run c only when a fails</td><td><code>a || c</code></td></tr><tr><td>Choose between two branches safely</td><td><code>if a; then b; else c; fi</code></td></tr><tr><td>Avoid this shape</td><td><code>a &amp;&amp; b || c</code> also runs c when b fails.</td></tr></tbody></table></div></details></section><section class="block" id="module-2-worked"><div class="section-label">Worked application</div><h2>Check that a file exists and has content</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">A script should only read <code>report.txt</code> when it is there and not empty.</p><figure class="tw-codebox tw-cmd" id="module-2-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/tests</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>f=report.txt</code></span> · <span>Name the file once.</span></li><li><span><em>Keys:</em> <code>if [[ -f $f &amp;&amp; -s $f ]]; then echo &quot;$f has data&quot;; else echo &quot;$f is missing or empty&quot;; fi</code></span> · <span><code>-f</code> and <code>-s</code> must both pass.</span></li><li><span><em>Keys:</em> <code>f=empty.txt</code>, then run the <code>if</code> line again</span> · <span>The file exists but <code>-s</code> fails.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>report.txt has data
+empty.txt is missing or empty</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> One [[ ]] with &amp;&amp; checks both facts before the script touches the file.</div></div></section><section class="block" id="module-2-practice"><div class="section-label">Your turn</div><h2>Practice: decisions</h2><div class="practice-card" id="module-2-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>[[ 9 &lt; 10 ]]</code> come out false?</p><details class="hint"><summary>hint</summary><p>Is <code>&lt;</code> a number test or a text test?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Inside <code>[[ ]]</code>, <code>&lt;</code> compares text in dictionary order.</li><li>As text, <code>9</code> sorts after <code>10</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> Use <code>-lt</code> for numbers: <code>[[ 9 -lt 10 ]]</code>.</div></div></details></div><div class="practice-card" id="module-2-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which test is true when <code>$f</code> ends in <code>.log</code>?</p><details class="hint"><summary>hint</summary><p>A pattern on the right, no quotes.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Use <code>==</code> inside <code>[[ ]]</code>.</li><li>Put <code>*.log</code> on the right, unquoted.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>[[ $f == *.log ]]</code>.</div></div></details></div><div class="practice-card" id="module-2-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Write a case that prints <code>weekend</code> for <code>sat</code> or <code>sun</code> and <code>weekday</code> for anything else.</p><details class="hint"><summary>hint</summary><p>Join two choices with a pipe.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Start with <code>case $d in</code>.</li><li>Add <code>sat|sun) echo weekend ;;</code>.</li><li>Add <code>*) echo weekday ;;</code> and <code>esac</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>case $d in sat|sun) echo weekend ;; *) echo weekday ;; esac</code>.</div></div></details></div><div class="practice-card" id="module-2-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text"><code>[[ -f report.txt ]] &amp;&amp; false || echo fail</code> prints <code>fail</code> though the file exists. Why?</p><details class="hint"><summary>hint</summary><p>What runs after the middle command fails?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>&amp;&amp;</code> runs <code>false</code>, which fails.</li><li><code>||</code> then runs on that failure.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>a &amp;&amp; b || c</code> also runs <code>c</code> when <code>b</code> fails. Use <code>if</code> and <code>else</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-3" data-module="3" role="tabpanel" aria-labelledby="tab-3" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Bash basics · Page 3 of 4</div><h1>Loops</h1><p class="subtitle">Repeat a command over a list, files, a range, a counter or the lines of a file.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>for walks a list, while repeats until a test fails, and while read walks lines.</p><ul class="kitchen-links"><li><strong>Loop over files <span class="kl-nowrap">→ for f in *.txt; do ...; done.</span></strong> Quote &quot;$f&quot; inside.</li><li><strong>Count to five <span class="kl-nowrap">→ for i in {1..5}; do ...; done.</span></strong> Or for ((i=0; i&lt;5; i++)).</li><li><strong>Read lines <span class="kl-nowrap">→ while read -r line; do ...; done &lt; file.</span></strong> Safe with spaces in a line.</li><li><strong>Split columns <span class="kl-nowrap">→ while IFS=, read -r a b.</span></strong> IFS is the separator.</li></ul></div></div><div class="block" id="module-3-problem"><div class="word-problem"><span class="tag">The problem</span><p><code>for x in $(cat file)</code> cuts every line at its spaces, and a loop after a pipe loses the variable it set.</p><div class="result-box"><strong>The fix:</strong> Read lines with <code>while IFS= read -r line; do ...; done &lt; file</code>, and quote <code>&quot;$f&quot;</code> in every loop.</div></div></div><section class="block" id="module-3-d1"><div class="section-label">Type it</div><h2>for loops</h2><p class="section-intro">Type <code>bash</code> first: these snippets are bash, and zsh splits words differently. Type <code>exit</code> to return to zsh.</p><figure class="tw-codebox tw-cmd" id="module-3-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create the sample files for this page</span><button class="tw-copy" type="button" aria-label="Copy: Create the sample files for this page">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/loops &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw/loops
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;one\n&#x27;</span> &gt; a.txt
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;one\ntwo\n&#x27;</span> &gt; b.txt
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;one\ntwo\nthree\n&#x27;</span> &gt; <span class="hl-s">&#x27;c d.txt&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;red apple\ngreen pear\nblue plum\n&#x27;</span> &gt; names.txt
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;Ada,36\nBo,41\nCy,29\n&#x27;</span> &gt; people.csv
+<span class="hl-cmd">ls</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> lists <code>a.txt</code>, <code>b.txt</code>, <code>c d.txt</code>, <code>names.txt</code> and <code>people.csv</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Loop over a list of words</span><button class="tw-copy" type="button" aria-label="Copy: Loop over a list of words">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-k">for</span> fruit <span class="hl-k">in</span> apple pear plum; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;fruit: $fruit&quot;</span>
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>fruit: apple</code>, <code>fruit: pear</code>, <code>fruit: plum</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Loop over every .txt file</span><button class="tw-copy" type="button" aria-label="Copy: Loop over every .txt file">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops
+<span class="hl-k">for</span> f <span class="hl-k">in</span> *.txt; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;$f has $(wc -l &lt; &quot;</span><span class="hl-v">$f</span><span class="hl-s">&quot; | tr -d &#x27; &#x27;) lines&quot;</span>
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Four lines: <code>a.txt has 1 lines</code>, <code>b.txt has 2 lines</code>, <code>c d.txt has 3 lines</code>, <code>names.txt has 3 lines</code>. The name with a space stays whole.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Skip the loop when no file matches *.zip</span><button class="tw-copy" type="button" aria-label="Copy: Skip the loop when no file matches *.zip">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops
+<span class="hl-k">for</span> f <span class="hl-k">in</span> *.zip; <span class="hl-k">do</span> <span class="hl-cmd">echo</span> <span class="hl-s">&quot;got $f&quot;</span>; <span class="hl-k">done</span>
+<span class="hl-k">for</span> f <span class="hl-k">in</span> *.zip; <span class="hl-k">do</span> <span class="hl-cmd">[[</span> <span class="hl-f">-e</span> <span class="hl-v">$f</span> ]] || <span class="hl-cmd">continue</span>; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;got $f&quot;</span>; <span class="hl-k">done</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;done&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first loop prints <code>got *.zip</code>: no file matched, so the pattern itself is the value. The guarded loop prints nothing. Then <code>done</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Count from 1 to 5 with a range {1..5}</span><button class="tw-copy" type="button" aria-label="Copy: Count from 1 to 5 with a range {1..5}">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-k">for</span> i <span class="hl-k">in</span> {1..5}; <span class="hl-k">do</span> <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s &#x27;</span> <span class="hl-s">&quot;$i&quot;</span>; <span class="hl-k">done</span>; <span class="hl-cmd">echo</span>
+<span class="hl-k">for</span> c <span class="hl-k">in</span> {a..e}; <span class="hl-k">do</span> <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s &#x27;</span> <span class="hl-s">&quot;$c&quot;</span>; <span class="hl-k">done</span>; <span class="hl-cmd">echo</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>1 2 3 4 5</code> on one line, then <code>a b c d e</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b6"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Count with a C-style for ((i=0; i&lt;3; i++))</span><button class="tw-copy" type="button" aria-label="Copy: Count with a C-style for ((i=0; i&lt;3; i++))">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-k">for</span> ((i=0; <span class="hl-cmd">i</span>&lt;<span class="hl-n">3</span>; <span class="hl-cmd">i++</span>)); <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;i=$i&quot;</span>
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>i=0</code>, <code>i=1</code>, <code>i=2</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b7"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Count to a variable or by steps with seq</span><button class="tw-copy" type="button" aria-label="Copy: Count to a variable or by steps with seq">Copy</button></figcaption><pre class="sq-code"><code>n=3
+<span class="hl-cmd">echo</span> {1..<span class="hl-v">$n</span>}
+<span class="hl-k">for</span> i <span class="hl-k">in</span> <span class="hl-v">$(</span><span class="hl-cmd">seq</span> <span class="hl-n">1</span> <span class="hl-v">$n</span>); <span class="hl-k">do</span> <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s &#x27;</span> <span class="hl-s">&quot;$i&quot;</span>; <span class="hl-k">done</span>; <span class="hl-cmd">echo</span>
+<span class="hl-cmd">seq</span> <span class="hl-n">1</span> <span class="hl-n">3</span> <span class="hl-n">10</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>{1..3}</code> prints as typed, because braces do not expand a variable. Then <code>1 2 3</code> from <code>seq</code>, then <code>1</code>, <code>4</code>, <code>7</code>, <code>10</code> on separate lines: start 1, step 3, stop at 10.</p></figure><p class="tw-text"><code>{1..$n}</code> does not expand a variable. Use <code>seq</code>. GNU <code>seq</code> works the same on Linux.</p></section><section class="block" id="module-3-d2"><div class="section-label">Type it</div><h2>while and until</h2><p class="section-intro"><code>while</code> repeats as long as its test passes. <code>until</code> repeats as long as it fails.</p><figure class="tw-codebox tw-cmd" id="module-3-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Repeat while a counter is small</span><button class="tw-copy" type="button" aria-label="Copy: Repeat while a counter is small">Copy</button></figcaption><pre class="sq-code"><code>i=1
+<span class="hl-k">while</span> <span class="hl-cmd">[[</span> <span class="hl-v">$i</span> <span class="hl-f">-le</span> <span class="hl-n">3</span> ]]; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;round $i&quot;</span>
+  i=<span class="hl-v">$(</span>(<span class="hl-cmd">i</span> + <span class="hl-n">1</span>))
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>round 1</code>, <code>round 2</code>, <code>round 3</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Repeat until a counter passes 3</span><button class="tw-copy" type="button" aria-label="Copy: Repeat until a counter passes 3">Copy</button></figcaption><pre class="sq-code"><code>i=1
+<span class="hl-cmd">until</span> [[ <span class="hl-v">$i</span> <span class="hl-f">-gt</span> <span class="hl-n">3</span> ]]; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;i=$i&quot;</span>
+  ((<span class="hl-cmd">i++</span>))
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>i=1</code>, <code>i=2</code>, <code>i=3</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Stop early with break, skip one with continue</span><button class="tw-copy" type="button" aria-label="Copy: Stop early with break, skip one with continue">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-k">for</span> i <span class="hl-k">in</span> <span class="hl-n">1</span> <span class="hl-n">2</span> <span class="hl-n">3</span> <span class="hl-n">4</span> <span class="hl-n">5</span>; <span class="hl-k">do</span>
+  <span class="hl-cmd">[[</span> <span class="hl-v">$i</span> <span class="hl-f">-eq</span> <span class="hl-n">2</span> ]] &amp;&amp; <span class="hl-cmd">continue</span>
+  <span class="hl-cmd">[[</span> <span class="hl-v">$i</span> <span class="hl-f">-eq</span> <span class="hl-n">4</span> ]] &amp;&amp; <span class="hl-cmd">break</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;i=$i&quot;</span>
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Two lines: <code>i=1</code> and <code>i=3</code>. Round 2 is skipped, and round 4 ends the loop.</p></figure></section><section class="block" id="module-3-d3"><div class="section-label">Type it</div><h2>Read lines and columns</h2><p class="section-intro">Use <code>while read -r</code> to take one line at a time. Feed it a file with <code>&lt; file</code>.</p><figure class="tw-codebox tw-cmd" id="module-3-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Read a file line by line with while read -r</span><button class="tw-copy" type="button" aria-label="Copy: Read a file line by line with while read -r">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops
+<span class="hl-k">while</span> IFS= <span class="hl-cmd">read</span> <span class="hl-f">-r</span> line || <span class="hl-cmd">[[</span> <span class="hl-f">-n</span> <span class="hl-v">$line</span> ]]; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;&gt; $line&quot;</span>
+<span class="hl-k">done</span> &lt; names.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Each line of <code>names.txt</code> with <code>&gt; </code> in front: <code>&gt; red apple</code>, <code>&gt; green pear</code>, <code>&gt; blue plum</code>.</p></figure><p class="tw-text"><code>|| [[ -n $line ]]</code> keeps a last line that has no newline at the end: <code>read</code> fails on it, but <code>$line</code> is still set.</p><figure class="tw-codebox tw-cmd" id="module-3-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Loop over every line of a command&#x27;s output</span><button class="tw-copy" type="button" aria-label="Copy: Loop over every line of a command&#x27;s output">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops
+<span class="hl-cmd">ls</span> *.txt | <span class="hl-k">while</span> IFS= <span class="hl-cmd">read</span> <span class="hl-f">-r</span> f; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;got: $f&quot;</span>
+<span class="hl-k">done</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line per file: <code>got: a.txt</code>, <code>got: b.txt</code>, <code>got: c d.txt</code>, <code>got: names.txt</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Split simple comma-separated lines (no quoted fields) with while IFS=, read -r</span><button class="tw-copy" type="button" aria-label="Copy: Split simple comma-separated lines (no quoted fields) with while IFS=, read -r">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops
+<span class="hl-k">while</span> IFS=, <span class="hl-cmd">read</span> <span class="hl-f">-r</span> name age; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;$name is $age&quot;</span>
+<span class="hl-k">done</span> &lt; people.csv</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>Ada is 36</code>, <code>Bo is 41</code>, <code>Cy is 29</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d3-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Fix a counter that stays 0 after a pipe into while</span><button class="tw-copy" type="button" aria-label="Copy: Fix a counter that stays 0 after a pipe into while">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops
+count=0
+<span class="hl-cmd">cat</span> names.txt | <span class="hl-k">while</span> <span class="hl-cmd">read</span> <span class="hl-f">-r</span> x; <span class="hl-k">do</span> count=<span class="hl-v">$(</span>(<span class="hl-cmd">count</span> + <span class="hl-n">1</span>)); <span class="hl-k">done</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;after pipe: $count&quot;</span>
+<span class="hl-k">while</span> <span class="hl-cmd">read</span> <span class="hl-f">-r</span> x; <span class="hl-k">do</span> count=<span class="hl-v">$(</span>(<span class="hl-cmd">count</span> + <span class="hl-n">1</span>)); <span class="hl-k">done</span> &lt; names.txt
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;after redirect: $count&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>after pipe: 0</code> and <code>after redirect: 3</code>. The piped loop ran in a subshell and counted a copy.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d3-b6"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Loop over lines safely, not with for x in $(cat file)</span><button class="tw-copy" type="button" aria-label="Copy: Loop over lines safely, not with for x in $(cat file)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops
+<span class="hl-k">for</span> w <span class="hl-k">in</span> <span class="hl-v">$(</span><span class="hl-cmd">cat</span> names.txt); <span class="hl-k">do</span> <span class="hl-cmd">echo</span> <span class="hl-s">&quot;[$w]&quot;</span>; <span class="hl-k">done</span>
+<span class="hl-k">while</span> IFS= <span class="hl-cmd">read</span> <span class="hl-f">-r</span> l || <span class="hl-cmd">[[</span> <span class="hl-f">-n</span> <span class="hl-v">$l</span> ]]; <span class="hl-k">do</span> <span class="hl-cmd">echo</span> <span class="hl-s">&quot;[$l]&quot;</span>; <span class="hl-k">done</span> &lt; names.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Six lines first, one per word: <code>[red]</code>, <code>[apple]</code>, <code>[green]</code>, <code>[pear]</code>, <code>[blue]</code>, <code>[plum]</code>. Then three whole lines: <code>[red apple]</code>, <code>[green pear]</code>, <code>[blue plum]</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Loops at a glance</h2><details class="rule-card" id="module-3-r1" name="rules-3" open><summary><span><span class="num">01</span>Pick a loop</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Pick by what you are walking.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Loop over every file</td><td><code>for f in *.txt; do ...; done</code></td></tr><tr><td>Repeat a fixed count</td><td><code>for i in {1..5}</code> or <code>for ((i=0; i&lt;5; i++))</code></td></tr><tr><td>Repeat a count held in a variable</td><td><code>for i in $(seq 1 $n)</code></td></tr><tr><td>Read every line of a file</td><td><code>while IFS= read -r line || [[ -n $line ]]; do ...; done &lt; file</code></td></tr><tr><td>Split a line into columns</td><td><code>while IFS=, read -r a b; do ...; done &lt; file</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r2" name="rules-3"><summary><span><span class="num">02</span>Stop, skip or repeat</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Four words steer a loop.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Leave the loop now</td><td><code>break</code></td></tr><tr><td>Skip to the next round</td><td><code>continue</code></td></tr><tr><td>Repeat while a test passes</td><td><code>while test; do ...; done</code></td></tr><tr><td>Repeat until a test passes</td><td><code>until test; do ...; done</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r3" name="rules-3"><summary><span><span class="num">03</span>Avoid two traps</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Both lose data without an error.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Loop over lines that contain spaces</td><td><code>while IFS= read -r x; do ...; done &lt; file</code>, not <code>for x in $(cat file)</code></td></tr><tr><td>Keep a variable set inside the loop</td><td><code>while read ...; done &lt; file</code>, not <code>cmd | while read</code></td></tr></tbody></table></div></details></section><section class="block" id="module-3-worked"><div class="section-label">Worked application</div><h2>Add up the ages in a CSV</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame"><code>people.csv</code> has <code>name,age</code> on each line. You want the total of the ages.</p><figure class="tw-codebox tw-cmd" id="module-3-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/loops</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>total=0</code></span> · <span>Start the sum.</span></li><li><span><em>Keys:</em> <code>while IFS=, read -r name age; do total=$((total + age)); done &lt; people.csv</code></span> · <span>Each line splits at the comma. The loop reads from the file, so <code>total</code> survives.</span></li><li><span><em>Keys:</em> <code>echo &quot;total age: $total&quot;</code></span> · <span>Print the sum.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>total age: 106</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> Redirecting the file in keeps the loop in your shell, so the variable is still set afterwards.</div></div></section><section class="block" id="module-3-practice"><div class="section-label">Your turn</div><h2>Practice: loops</h2><div class="practice-card" id="module-3-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why is <code>count</code> still <code>0</code> after <code>cat f | while read -r x; do count=$((count+1)); done</code>?</p><details class="hint"><summary>hint</summary><p>Where does each side of a pipe run?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Each side of a pipe runs in its own subshell.</li><li>The loop changes a copy of <code>count</code>.</li><li>The copy disappears when the pipe ends.</li></ol><div class="solution-final"><strong>Final answer:</strong> Feed the loop with <code>&lt; f</code> instead of a pipe.</div></div></details></div><div class="practice-card" id="module-3-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which loop prints <code>a.txt</code>, <code>b.txt</code> and the rest of the <code>.txt</code> files, even when a name has a space?</p><details class="hint"><summary>hint</summary><p>A glob, with quotes on the variable.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Use <code>for f in *.txt; do</code>.</li><li>Write <code>echo &quot;$f&quot;</code>.</li><li>Close with <code>done</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>for f in *.txt; do echo &quot;$f&quot;; done</code>.</div></div></details></div><div class="practice-card" id="module-3-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Print <code>Ada</code>, <code>Bo</code> and <code>Cy</code> from <code>people.csv</code>, one per line.</p><details class="hint"><summary>hint</summary><p>Split at the comma and ignore the age.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Write <code>while IFS=, read -r name age; do</code>.</li><li>Write <code>echo &quot;$name&quot;</code>.</li><li>End with <code>done &lt; people.csv</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>while IFS=, read -r name age; do echo &quot;$name&quot;; done &lt; people.csv</code>.</div></div></details></div><div class="practice-card" id="module-3-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text"><code>for f in *.zip</code> prints <code>*.zip</code> when there are no zip files. How do you stop that?</p><details class="hint"><summary>hint</summary><p>Test that the file exists inside the loop.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>With no match the pattern stays as text.</li><li>Add <code>[[ -e $f ]] || continue</code> as the first line of the loop.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>for f in *.zip; do [[ -e $f ]] || continue; ...; done</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-4" data-module="4" role="tabpanel" aria-labelledby="tab-4" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Bash basics · Page 4 of 4</div><h1>Script input</h1><p class="subtitle">Read arguments, flags and typed answers, and stop with a usage message on bad input.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>A script reads its arguments from $1, $2 and $@, and its flags from a case loop or getopts.</p><ul class="kitchen-links"><li><strong>Read the first argument <span class="kl-nowrap">→ $1.</span></strong> $2 is the second, $# is the count.</li><li><strong>Give a default <span class="kl-nowrap">→ ${1:-world}.</span></strong> Used when $1 is empty.</li><li><strong>Parse flags <span class="kl-nowrap">→ getopts &quot;vn:&quot; opt.</span></strong> A colon means the flag takes a value.</li><li><strong>Ask the user <span class="kl-nowrap">→ read -p &quot;Name: &quot; name.</span></strong> -s hides it, -t 5 times out.</li></ul></div></div><div class="block" id="module-4-problem"><div class="word-problem"><span class="tag">The problem</span><p>Your script breaks on <code>bash backup.sh &quot;my folder&quot;</code>, or runs with a missing argument and does the wrong thing.</p><div class="result-box"><strong>The fix:</strong> Quote <code>&quot;$@&quot;</code> and <code>&quot;$1&quot;</code>, require what you need with <code>${1:?usage}</code>, and print usage and <code>exit 1</code> on bad input.</div></div></div><section class="block" id="module-4-d1"><div class="section-label">Type it</div><h2>Arguments</h2><p class="section-intro">Each script is created with a here-doc and run with <code>bash name.sh args</code>, so it works from zsh too.</p><figure class="tw-codebox tw-cmd" id="module-4-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Read the arguments: $0 $1 $2 $# and $@</span><button class="tw-copy" type="button" aria-label="Copy: Read the arguments: $0 $1 $2 $# and $@">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/args &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; show.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;script: $0&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;first:  $1&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;second: $2&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;count:  $#&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;all:    $@&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> show.sh apple <span class="hl-s">&quot;red pear&quot;</span> plum</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Five lines: <code>script: show.sh</code>, <code>first:  apple</code>, <code>second: red pear</code>, <code>count:  3</code>, <code>all:    apple red pear plum</code>. The quoted <code>red pear</code> is one argument.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Keep arguments with spaces whole: &quot;$@&quot; versus $* and &quot;$*&quot;</span><button class="tw-copy" type="button" aria-label="Copy: Keep arguments with spaces whole: &quot;$@&quot; versus $* and &quot;$*&quot;">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; each.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-k">for</span> a <span class="hl-k">in</span> <span class="hl-s">&quot;$@&quot;</span>; <span class="hl-k">do</span> <span class="hl-cmd">echo</span> <span class="hl-s">&quot;[$a]&quot;</span>; <span class="hl-k">done</span>
+<span class="hl-cmd">echo</span> ---
+<span class="hl-k">for</span> a <span class="hl-k">in</span> <span class="hl-v">$*</span>; <span class="hl-k">do</span> <span class="hl-cmd">echo</span> <span class="hl-s">&quot;[$a]&quot;</span>; <span class="hl-k">done</span>
+<span class="hl-cmd">echo</span> ---
+<span class="hl-k">for</span> a <span class="hl-k">in</span> <span class="hl-s">&quot;$*&quot;</span>; <span class="hl-k">do</span> <span class="hl-cmd">echo</span> <span class="hl-s">&quot;[$a]&quot;</span>; <span class="hl-k">done</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> each.sh one <span class="hl-s">&quot;two words&quot;</span> three</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three groups. <code>&quot;$@&quot;</code> prints <code>[one]</code>, <code>[two words]</code>, <code>[three]</code>. <code>$*</code> prints <code>[one]</code>, <code>[two]</code>, <code>[words]</code>, <code>[three]</code>. <code>&quot;$*&quot;</code> prints <code>[one two words three]</code>. Each group is separated by <code>---</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Walk through every argument with shift</span><button class="tw-copy" type="button" aria-label="Copy: Walk through every argument with shift">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; shiftall.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-k">while</span> <span class="hl-cmd">[[</span> <span class="hl-v">$#</span> <span class="hl-f">-gt</span> <span class="hl-n">0</span> ]]; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;arg: $1 (left: $#)&quot;</span>
+  <span class="hl-cmd">shift</span>
+<span class="hl-k">done</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> shiftall.sh a b c</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>arg: a (left: 3)</code>, <code>arg: b (left: 2)</code>, <code>arg: c (left: 1)</code>. Each <code>shift</code> drops <code>$1</code> and the rest move up.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Take arguments two at a time with shift 2</span><button class="tw-copy" type="button" aria-label="Copy: Take arguments two at a time with shift 2">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; pairs.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$(</span>( <span class="hl-v">$#</span> % <span class="hl-n">2</span> )) <span class="hl-f">-eq</span> <span class="hl-n">0</span> ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&quot;usage: pairs.sh KEY VALUE ...&quot;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span>; }
+<span class="hl-k">while</span> <span class="hl-cmd">[[</span> <span class="hl-v">$#</span> <span class="hl-f">-gt</span> <span class="hl-n">0</span> ]]; <span class="hl-k">do</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&quot;$1 = $2&quot;</span>
+  <span class="hl-cmd">shift</span> <span class="hl-n">2</span>
+<span class="hl-k">done</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> pairs.sh host web port <span class="hl-n">80</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Two lines: <code>host = web</code> and <code>port = 80</code>. With an odd count, such as <code>bash pairs.sh host web port</code>, it prints <code>usage: pairs.sh KEY VALUE ...</code> and stops.</p></figure></section><section class="block" id="module-4-d2"><div class="section-label">Type it</div><h2>Defaults, required values and usage</h2><p class="section-intro"><code>${1:-x}</code> falls back to <code>x</code>. <code>${1:?message}</code> stops the script with the message when <code>$1</code> is missing.</p><figure class="tw-codebox tw-cmd" id="module-4-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Give an argument a default value with ${1:-default}</span><button class="tw-copy" type="button" aria-label="Copy: Give an argument a default value with ${1:-default}">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; greet.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+name=<span class="hl-v">${1:-world}</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;Hello, $name&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> greet.sh
+<span class="hl-cmd">bash</span> greet.sh Ada</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Hello, world</code> with no argument, then <code>Hello, Ada</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Require an argument with ${1:?usage}</span><button class="tw-copy" type="button" aria-label="Copy: Require an argument with ${1:?usage}">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; need.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+file=<span class="hl-v">${1:?usage: need.sh FILE}</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;using $file&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> need.sh
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;exit: $?&quot;</span>
+<span class="hl-cmd">bash</span> need.sh data.csv</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>need.sh: line 1: 1: usage: need.sh FILE</code> and <code>exit: 1</code>: the script stopped. Then <code>using data.csv</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Print a usage message and exit 1 on bad input</span><button class="tw-copy" type="button" aria-label="Copy: Print a usage message and exit 1 on bad input">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; copy2.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">usage</span>() { echo <span class="hl-s">&quot;usage: copy2.sh SRC DEST&quot;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span>; }
+<span class="hl-cmd">[[</span> <span class="hl-v">$#</span> <span class="hl-f">-eq</span> <span class="hl-n">2</span> ]] || <span class="hl-cmd">usage</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;copying $1 to $2&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> copy2.sh a
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;exit: $?&quot;</span>
+<span class="hl-cmd">bash</span> copy2.sh a b</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>usage: copy2.sh SRC DEST</code> and <code>exit: 1</code> for one argument. Then <code>copying a to b</code>.</p></figure><p class="tw-text"><code>usage() { ...; }</code> is a function. Module 11 covers them.</p></section><section class="block" id="module-4-d3"><div class="section-label">Type it</div><h2>Flags</h2><p class="section-intro">Two ways to read flags: a <code>case</code> loop with <code>shift</code>, or the built-in <code>getopts</code>.</p><figure class="tw-codebox tw-cmd" id="module-4-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Read -n NAME and --name NAME flags with a case loop</span><button class="tw-copy" type="button" aria-label="Copy: Read -n NAME and --name NAME flags with a case loop">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; parse.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+name=world
+loud=0
+<span class="hl-k">while</span> <span class="hl-cmd">[[</span> <span class="hl-v">$#</span> <span class="hl-f">-gt</span> <span class="hl-n">0</span> ]]; <span class="hl-k">do</span>
+  <span class="hl-k">case</span> <span class="hl-v">$1</span> <span class="hl-k">in</span>
+    <span class="hl-cmd">-n</span>|<span class="hl-cmd">--name</span>) [[ <span class="hl-v">$#</span> <span class="hl-f">-ge</span> <span class="hl-n">2</span> &amp;&amp; <span class="hl-cmd">-n</span> <span class="hl-v">$2</span> ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&quot;missing NAME&quot;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span>; }; name=<span class="hl-v">$2</span>; <span class="hl-cmd">shift</span> <span class="hl-n">2</span> ;;
+    <span class="hl-cmd">-l</span>|<span class="hl-cmd">--loud</span>) loud=1; <span class="hl-cmd">shift</span> ;;
+    <span class="hl-cmd">*</span>) echo <span class="hl-s">&quot;unknown option: $1&quot;</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span> ;;
+  <span class="hl-k">esac</span>
+<span class="hl-k">done</span>
+msg=<span class="hl-s">&quot;Hello, $name&quot;</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$loud</span> <span class="hl-f">-eq</span> <span class="hl-n">1</span> ]] &amp;&amp; msg=<span class="hl-v">$(</span><span class="hl-cmd">echo</span> <span class="hl-s">&quot;$msg&quot;</span> | <span class="hl-cmd">tr</span> a-z A-Z)
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;$msg&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> parse.sh <span class="hl-f">--name</span> Ada
+<span class="hl-cmd">bash</span> parse.sh <span class="hl-f">-l</span> <span class="hl-f">-n</span> Bo
+<span class="hl-cmd">bash</span> parse.sh <span class="hl-f">--bogus</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;exit: $?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Four lines: <code>Hello, Ada</code>, <code>HELLO, BO</code>, <code>unknown option: --bogus</code>, <code>exit: 1</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Read a script&#x27;s flags with getopts</span><button class="tw-copy" type="button" aria-label="Copy: Read a script&#x27;s flags with getopts">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; opts.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+verbose=0
+name=world
+<span class="hl-k">while</span> <span class="hl-cmd">getopts</span> <span class="hl-s">&quot;vn:&quot;</span> opt; <span class="hl-k">do</span>
+  <span class="hl-k">case</span> <span class="hl-v">$opt</span> <span class="hl-k">in</span>
+    <span class="hl-cmd">v</span>) verbose=1 ;;
+    <span class="hl-cmd">n</span>) name=<span class="hl-v">$OPTARG</span> ;;
+    <span class="hl-cmd">*</span>) echo <span class="hl-s">&quot;usage: opts.sh [-v] [-n NAME] [file...]&quot;</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span> ;;
+  <span class="hl-k">esac</span>
+<span class="hl-k">done</span>
+<span class="hl-cmd">shift</span> <span class="hl-v">$(</span>(<span class="hl-cmd">OPTIND</span> - <span class="hl-n">1</span>))
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;verbose=$verbose name=$name rest=$*&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> opts.sh <span class="hl-f">-v</span> <span class="hl-f">-n</span> Ada one two
+<span class="hl-cmd">bash</span> opts.sh <span class="hl-f">-x</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>verbose=1 name=Ada rest=one two</code>. Then for <code>-x</code>, getopts prints <code>opts.sh: illegal option -- x</code> and the script prints its usage line.</p></figure><p class="tw-text">In <code>getopts &quot;vn:&quot;</code>, <code>v</code> is a switch and <code>n:</code> takes a value, held in <code>$OPTARG</code>. <code>OPTIND</code> is the index of the next argument, so <code>shift $((OPTIND - 1))</code> leaves only the files.</p></section><section class="block" id="module-4-d4"><div class="section-label">Type it</div><h2>Ask the user</h2><p class="section-intro"><code>read</code> waits for a typed line. These scripts wait for you, so type the answer and press Enter.</p><figure class="tw-codebox tw-cmd" id="module-4-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Ask a question and store the answer with read -p</span><button class="tw-copy" type="button" aria-label="Copy: Ask a question and store the answer with read -p">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; ask.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">read</span> <span class="hl-f">-p</span> <span class="hl-s">&quot;Your name: &quot;</span> name
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;Hi $name&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> ask.sh</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Your name: </code> waits. Type <code>Ada</code> and press Enter: <code>Hi Ada</code> prints.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Type a password without showing it using read -s</span><button class="tw-copy" type="button" aria-label="Copy: Type a password without showing it using read -s">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; secret.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">read</span> <span class="hl-f">-s</span> <span class="hl-f">-p</span> <span class="hl-s">&quot;Password: &quot;</span> pw
+<span class="hl-cmd">echo</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&quot;got ${#pw} characters&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> secret.sh</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Password: </code> waits and shows nothing as you type. After Enter, the cursor moves to a new line and <code>got 7 characters</code> prints for a 7-letter password such as <code>hunter2</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d4-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Give up waiting for input after 3 seconds with read -t</span><button class="tw-copy" type="button" aria-label="Copy: Give up waiting for input after 3 seconds with read -t">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args
+<span class="hl-cmd">cat</span> &gt; quick.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">read</span> <span class="hl-f">-t</span> <span class="hl-n">3</span> <span class="hl-f">-p</span> <span class="hl-s">&quot;Answer in 3 seconds: &quot;</span> a || <span class="hl-cmd">echo</span> <span class="hl-s">&quot; too slow&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> quick.sh</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Answer in 3 seconds: </code> waits. With no input, after 3 seconds <code> too slow</code> appears on the same line.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d4-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Keep backslashes in typed text with read -r</span><button class="tw-copy" type="button" aria-label="Copy: Keep backslashes in typed text with read -r">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">printf</span> <span class="hl-s">&#x27;C:\\temp\n&#x27;</span> | { <span class="hl-cmd">read</span> line; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;plain: $line&quot;</span>; }
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;C:\\temp\n&#x27;</span> | { <span class="hl-cmd">read</span> <span class="hl-f">-r</span> line; <span class="hl-cmd">echo</span> <span class="hl-s">&quot;raw:   $line&quot;</span>; }</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>plain: C:temp</code>, because plain <code>read</code> eats the backslash. Then <code>raw:   C:\temp</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Script input at a glance</h2><details class="rule-card" id="module-4-r1" name="rules-4" open><summary><span><span class="num">01</span>Read the arguments</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Set by bash when the script starts.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Read the first argument</td><td><code>$1</code> (<code>$2</code> is the second)</td></tr><tr><td>Count the arguments</td><td><code>$#</code></td></tr><tr><td>Pass every argument on, each kept whole</td><td><code>&quot;$@&quot;</code></td></tr><tr><td>Print the script name</td><td><code>$0</code></td></tr><tr><td>Avoid this one</td><td><code>$*</code> cuts arguments at spaces</td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r2" name="rules-4"><summary><span><span class="num">02</span>Default, required or checked</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Decide what a missing argument means.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Use a default when $1 is empty</td><td><code>${1:-world}</code></td></tr><tr><td>Stop with a message when $1 is empty</td><td><code>${1:?usage: x FILE}</code></td></tr><tr><td>Run your own usage check</td><td><code>[[ $# -eq 2 ]] || usage</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r3" name="rules-4"><summary><span><span class="num">03</span>Ask the user</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Flags that change how read waits.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Show a prompt</td><td><code>read -p &quot;Name: &quot; name</code></td></tr><tr><td>Hide what is typed</td><td><code>read -s pw</code></td></tr><tr><td>Give up after 5 seconds</td><td><code>read -t 5 a</code></td></tr><tr><td>Keep backslashes as typed</td><td><code>read -r line</code></td></tr></tbody></table></div></details></section><section class="block" id="module-4-worked"><div class="section-label">Worked application</div><h2>Greet by name with a default and a loud switch</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame"><code>parse.sh</code> greets <code>world</code> by default, takes <code>-n NAME</code>, and shouts with <code>-l</code>.</p><figure class="tw-codebox tw-cmd" id="module-4-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/args</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>bash parse.sh</code></span> · <span>No flags: the default name stays.</span></li><li><span><em>Keys:</em> <code>bash parse.sh -l -n Bo</code></span> · <span>The loop reads <code>-l</code>, then <code>-n</code> and its value with <code>shift 2</code>.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>Hello, world
+HELLO, BO</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> A case loop with shift handles flags in any order, and the <code>*)</code> branch rejects anything else.</div></div></section><section class="block" id="module-4-practice"><div class="section-label">Your turn</div><h2>Practice: script input</h2><div class="practice-card" id="module-4-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">What do <code>&quot;$@&quot;</code> and <code>$*</code> do differently with <code>one &quot;two words&quot; three</code>?</p><details class="hint"><summary>hint</summary><p>Count the words each one produces.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>&quot;$@&quot;</code> gives three words, keeping <code>two words</code> together.</li><li>Unquoted <code>$*</code> gives four words.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>&quot;$@&quot;</code> keeps each argument whole. <code>$*</code> cuts at spaces.</div></div></details></div><div class="practice-card" id="module-4-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Which line sets <code>dir</code> to the first argument, or <code>.</code> when none is given?</p><details class="hint"><summary>hint</summary><p>A default with a colon and a dash.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Use <code>${1:-.}</code>.</li><li>Assign it with <code>dir=</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>dir=${1:-.}</code>.</div></div></details></div><div class="practice-card" id="module-4-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Write the line that makes a script stop with <code>usage: run.sh FILE</code> when no file is given.</p><details class="hint"><summary>hint</summary><p>A required value with a question mark.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Use <code>${1:?...}</code>.</li><li>Put the usage text after the question mark.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>file=${1:?usage: run.sh FILE}</code>.</div></div></details></div><div class="practice-card" id="module-4-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Your <code>getopts &quot;vn:&quot;</code> script sees <code>-n</code> but <code>$name</code> is empty. What did you forget?</p><details class="hint"><summary>hint</summary><p>Where does getopts put a flag&#x27;s value?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>A flag that ends in <code>:</code> takes a value.</li><li>The value is in <code>$OPTARG</code>, not in <code>$1</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> Write <code>n) name=$OPTARG ;;</code>.</div></div></details></div></section></section>
+    </main>
+    <nav class="tabbar" aria-label="Page navigation">
+      <div class="tabbar-inner">
+        <button id="prevBtn" class="nav-arrow" type="button" aria-label="Previous page">‹</button>
+        <div id="tabs" class="tabs sq-tabs" role="tablist" aria-label="Pages"></div>
+        <button id="nextBtn" class="nav-arrow" type="button" aria-label="Next page">›</button>
+        <span id="progressMini" class="progress-mini" aria-live="polite">1/4</span>
+      </div>
+    </nav>
+    <nav class="group-nav" aria-label="Course modules">
+      <a rel="prev" href="../m9-find-text/">← Find and text tools</a>
+      <a rel="next" href="../m11-bash-expert/">Bash expert →</a>
+    </nav>
+    <footer>
+      <strong>Module 10 · Bash basics</strong><br />Bash basics by task: variables, quoting, exit codes, if and case, for and while loops, script arguments and input
+    </footer>
+    </div>
+    <script>window.TW_GLOSSARY = [{"id": "tw-exit-code", "label": "Exit code", "forms": ["exit code", "exit codes"], "definition": "A number every command leaves behind. 0 means it worked, anything else means it failed. Read it with $?."}, {"id": "tw-shebang", "label": "Shebang", "forms": ["shebang"], "definition": "The first line of a script, such as #!/bin/bash. It names the program that runs the file."}, {"id": "tw-word-splitting", "label": "Word splitting", "forms": ["word splitting"], "definition": "Bash cuts an unquoted $variable into words at every space, tab and newline (the IFS characters), then expands any * patterns. Quote it to keep it whole."}, {"id": "tw-prefix", "label": "Prefix key", "forms": ["prefix key", "prefix"], "definition": "The key you press first to tell tmux that the next key is a tmux command. Here: Ctrl-a."}, {"id": "tw-session", "label": "Session", "forms": ["session", "sessions"], "definition": "A tmux workspace that keeps running when you close the terminal window. You re-attach to it later."}, {"id": "tw-pane", "label": "Pane", "forms": ["pane", "panes"], "definition": "One rectangle inside a tmux window. Each pane runs its own shell."}, {"id": "tw-buffer", "label": "Buffer", "forms": ["buffer", "buffers"], "definition": "A file loaded into Neovim's memory. You edit the buffer, and saving writes it to disk."}, {"id": "tw-register", "label": "Register", "forms": ["register", "registers"], "definition": "A named slot in Neovim that holds text: yanked, deleted or typed."}, {"id": "tw-worktree", "label": "Worktree", "forms": ["worktree", "worktrees"], "definition": "A second folder checked out from the same git repository, on its own branch."}, {"id": "tw-leader", "label": "Leader key", "forms": ["leader key", "leader"], "definition": "A key you press first to start your own Neovim shortcuts. Here: Space."}, {"id": "tw-picker", "label": "Picker", "forms": ["picker", "pickers"], "definition": "A pop-up list you filter by typing, such as the file finder."}, {"id": "tw-hunk", "label": "Hunk", "forms": ["hunk", "hunks"], "definition": "One block of changed lines in a git diff."}, {"id": "tw-quickfix", "label": "Quickfix list", "forms": ["quickfix list", "quickfix"], "definition": "A list of locations, such as search hits or errors, that you step through one by one."}, {"id": "tw-lsp", "label": "LSP", "forms": ["LSP"], "definition": "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."}];</script>
+    <script src="../_shared/search-index.js?v=69a5501798"></script>
+    <script src="../_shared/cheatsheet.js?v=384368195e"></script>
+    <script>
+/* Course page behaviour: tabs, hash links, rule cards, glossary. Base from the SQL course. */
+
+"use strict";
+document.documentElement.classList.add("js-ready");
+const lessons = Array.from(document.querySelectorAll(".lesson"));
+const tabsHost = document.getElementById("tabs");
+const previousButton = document.getElementById("prevBtn");
+const nextButton = document.getElementById("nextBtn");
+const progress = document.getElementById("progressMini");
+let activeLesson = 0;
+const tabs = lessons.map((lesson, index) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "tab";
+  button.id = `tab-${index + 1}`;
+  button.setAttribute("role", "tab");
+  button.setAttribute("aria-controls", lesson.id);
+  button.setAttribute("aria-label", `Open page ${index + 1}`);
+  button.textContent = String(index + 1);
+  button.addEventListener("click", () => goTo(index));
+  tabsHost.append(button);
+  return button;
+});
+function showLesson(index, options = {}) {
+  activeLesson = Math.max(0, Math.min(index, lessons.length - 1));
+  lessons.forEach((lesson, position) => {
+    const selected = position === activeLesson;
+    lesson.classList.toggle("active", selected);
+    lesson.setAttribute("aria-hidden", String(!selected));
+    tabs[position].classList.toggle("active", selected);
+    tabs[position].setAttribute("aria-selected", String(selected));
+    tabs[position].tabIndex = selected ? 0 : -1;
+  });
+  previousButton.disabled = activeLesson === 0;
+  nextButton.disabled = activeLesson === lessons.length - 1;
+  progress.textContent = `${activeLesson + 1}/${lessons.length}`;
+  if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
+}
+// Tab moves rewrite the hash without a new history entry, so reload and shared links keep the page.
+function goTo(index) {
+  showLesson(index);
+  history.replaceState(null, "", `#${lessons[activeLesson].id}`);
+}
+previousButton.addEventListener("click", () => goTo(activeLesson - 1));
+nextButton.addEventListener("click", () => goTo(activeLesson + 1));
+tabsHost.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight") { event.preventDefault(); goTo(activeLesson + 1); tabs[activeLesson].focus(); }
+  if (event.key === "ArrowLeft") { event.preventDefault(); goTo(activeLesson - 1); tabs[activeLesson].focus(); }
+});
+
+const HIT_FLASH_MS = 1600;
+// Any id inside a page works as a deep link: open its tab, open its details, then scroll to it.
+function routeToHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const target = id && document.getElementById(id);
+  const lesson = target && target.closest(".lesson");
+  if (!lesson) return false;
+  showLesson(lessons.indexOf(lesson), { scroll: false });
+  for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: "start" });
+    if (target === lesson) return;
+    target.classList.add("tw-hit");
+    setTimeout(() => target.classList.remove("tw-hit"), HIT_FLASH_MS);
+  });
+  return true;
+}
+addEventListener("hashchange", routeToHash);
+if (!routeToHash()) showLesson(0);
+
+if (!("name" in HTMLDetailsElement.prototype)) {
+  document.querySelectorAll(".rule-card").forEach((card) => {
+    card.addEventListener("toggle", () => {
+      if (!card.open || !card.getAttribute("name")) return;
+      const name = card.getAttribute("name");
+      document.querySelectorAll(`.rule-card[name="${name}"]`).forEach((other) => {
+        if (other !== card && other.open) other.open = false;
+      });
+    });
+  });
+}
+
+(function () {
+  const glossaryEntries = window.TW_GLOSSARY || [];
+      const glossaryFormMap = new Map();
+      glossaryEntries.forEach(function (entry) {
+        entry.forms.forEach(function (form) {
+          glossaryFormMap.set(form.toLowerCase(), entry);
+        });
+      });
+      const glossaryForms = [...glossaryFormMap.keys()].sort(function (a, b) {
+        return b.length - a.length;
+      });
+      const glossaryPattern = new RegExp(
+        "\\b(" +
+          glossaryForms
+            .map(function (term) {
+              return term.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+            })
+            .join("|") +
+          ")\\b",
+        "gi",
+      );
+      const glossarySkip =
+        "button,a,summary,label,input,select,option,textarea,code,pre,script,style,noscript,svg,.tw-codebox,.tw-search,.tw-search-btn,kbd,.glossary-popover,.glossary-term,.eyebrow,.kitchen-strip";
+      const glossarySection = 'section[id^="module-"]';
+
+      function applyGlossary(scope) {
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode: function (node) {
+            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest(glossarySkip))
+              return NodeFilter.FILTER_REJECT;
+            glossaryPattern.lastIndex = 0;
+            return glossaryPattern.test(node.nodeValue)
+              ? NodeFilter.FILTER_ACCEPT
+              : NodeFilter.FILTER_REJECT;
+          },
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function (node) {
+          const text = node.nodeValue;
+          // One link per term per page. The DOM is the record: the observer below re-runs this on every caption change.
+          const section = node.parentElement.closest(glossarySection);
+          const linkedHere = new Set();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          glossaryPattern.lastIndex = 0;
+          let match;
+          while ((match = glossaryPattern.exec(text))) {
+            const entry = glossaryFormMap.get(match[0].toLowerCase());
+            if (
+              section &&
+              (linkedHere.has(entry.id) ||
+                section.querySelector(
+                  '.glossary-term[data-glossary="' + entry.id + '"]',
+                ))
+            )
+              continue;
+            if (match.index > cursor)
+              fragment.append(
+                document.createTextNode(text.slice(cursor, match.index)),
+              );
+            const term = document.createElement("button");
+            term.type = "button";
+            term.className = "glossary-term";
+            term.dataset.glossary = entry.id;
+            term.setAttribute("aria-haspopup", "dialog");
+            term.setAttribute("aria-expanded", "false");
+            term.setAttribute("aria-label", match[0] + ": open definition");
+            term.textContent = match[0];
+            fragment.append(term);
+            linkedHere.add(entry.id);
+            cursor = match.index + match[0].length;
+          }
+          // Nothing linked: leave the node alone, or the observer would loop forever.
+          if (!linkedHere.size) return;
+          if (cursor < text.length)
+            fragment.append(document.createTextNode(text.slice(cursor)));
+          node.replaceWith(fragment);
+        });
+      }
+
+      const glossaryPopover = document.createElement("aside");
+      glossaryPopover.className = "glossary-popover";
+      glossaryPopover.id = "glossary-popover";
+      glossaryPopover.hidden = true;
+      glossaryPopover.setAttribute("role", "dialog");
+      glossaryPopover.setAttribute("aria-label", "Term definition");
+      glossaryPopover.innerHTML =
+        '<button class="glossary-close" type="button" aria-label="Close definition">×</button><strong class="glossary-title"></strong><p class="glossary-definition"></p><span class="glossary-meta">Definition · Press Esc or click elsewhere to close</span>';
+      document.body.append(glossaryPopover);
+
+      let activeGlossaryTerm = null;
+      function closeGlossary() {
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = null;
+        glossaryPopover.hidden = true;
+      }
+      function positionGlossary(term) {
+        const gap = 13,
+          margin = 12,
+          termRect = term.getBoundingClientRect();
+        glossaryPopover.classList.remove("below");
+        glossaryPopover.hidden = false;
+        const popRect = glossaryPopover.getBoundingClientRect();
+        const left = Math.max(
+          margin,
+          Math.min(
+            innerWidth - popRect.width - margin,
+            termRect.left + termRect.width / 2 - popRect.width / 2,
+          ),
+        );
+        let top = termRect.top - popRect.height - gap;
+        if (top < margin) {
+          top = termRect.bottom + gap;
+          glossaryPopover.classList.add("below");
+        }
+        const pointer = Math.max(
+          16,
+          Math.min(
+            popRect.width - 16,
+            termRect.left + termRect.width / 2 - left,
+          ),
+        );
+        glossaryPopover.style.left = left + "px";
+        glossaryPopover.style.top =
+          Math.min(top, innerHeight - popRect.height - margin) + "px";
+        glossaryPopover.style.setProperty("--pointer-x", pointer + "px");
+      }
+      function openGlossary(term) {
+        const entry = glossaryEntries.find(function (item) {
+          return item.id === term.dataset.glossary;
+        });
+        if (!entry) return;
+        if (activeGlossaryTerm === term && !glossaryPopover.hidden) {
+          closeGlossary();
+          return;
+        }
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = term;
+        term.setAttribute("aria-expanded", "true");
+        glossaryPopover.querySelector(".glossary-title").textContent =
+          entry.label;
+        glossaryPopover.querySelector(".glossary-definition").textContent =
+          entry.definition;
+        positionGlossary(term);
+      }
+      document.addEventListener("click", function (event) {
+        const term = event.target.closest(".glossary-term");
+        if (term) {
+          event.preventDefault();
+          event.stopPropagation();
+          openGlossary(term);
+          return;
+        }
+        if (event.target.closest(".glossary-close")) {
+          closeGlossary();
+          return;
+        }
+        if (!event.target.closest(".glossary-popover")) closeGlossary();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !glossaryPopover.hidden) {
+          const term = activeGlossaryTerm;
+          closeGlossary();
+          if (term) term.focus();
+        }
+      });
+      addEventListener("resize", closeGlossary);
+      addEventListener("scroll", closeGlossary, true);
+
+      const glossaryRoot = document.querySelector("main");
+      applyGlossary(glossaryRoot);
+      let glossaryQueued = false;
+      new MutationObserver(function () {
+        if (glossaryQueued) return;
+        glossaryQueued = true;
+        requestAnimationFrame(function () {
+          glossaryQueued = false;
+          applyGlossary(glossaryRoot);
+        });
+      }).observe(glossaryRoot, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+    })();
+
+    </script>
+    <script>
+/* Site behaviour shared by every page: copy buttons, the cheat sheet drawer and site-wide search. */
+"use strict";
+(function () {
+  const MAX_RESULTS = 40;
+  const COPY_RESET_MS = 1500;
+  const KIND_LABEL = { p: "Page", h: "Section", c: "Command", k: "Key", t: "Text" };
+  const KIND_WEIGHT = { c: 30, k: 30, h: 20, p: 15, t: 0 };
+  const PHRASE_BONUS = 100, START_BONUS = 50, SAME_FILE_BONUS = 5;
+  const SYNONYM_START_BONUS = START_BONUS / 2;
+  const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
+  const ACTION_BONUS = PHRASE_BONUS + START_BONUS;
+  const WORD_BONUS = 40;
+  // A module lives at <folder>/index.html but is linked as <folder>/.
+  const MODULE_FILE_RE = /(^|\/)index\.html$/;
+  const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
+
+  // Vim and tmux spellings of the same key must meet: "<C-w>v" and "Ctrl-w v" both become "ctrl-w v".
+  function norm(s) {
+    return String(s).toLowerCase()
+      .replace(/<c-([^>]+)>/g, " ctrl-$1 ")
+      .replace(/<leader>/g, "<space>")
+      .replace(/\bctrl\+/g, "ctrl-")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  function stem(token) {
+    if (!/^[a-z]+$/.test(token)) return token;
+    const base = token.replace(/(?:ing|ed|es|s)$/, "");
+    return base.length >= 3 ? base : token;
+  }
+
+  function whole(hay, word) {
+    for (let at = hay.indexOf(word); at !== -1; at = hay.indexOf(word, at + word.length)) {
+      const tail = hay.slice(at + word.length).match(/^[a-z0-9]*/)[0];
+      if (!/[a-z0-9]/.test(hay[at - 1] || "") && /^(?:s|es|ed|ing)?$/.test(tail)) return true;
+    }
+    return false;
+  }
+
+  function createMatcher(groups) {
+    const aliases = new Map();
+    // Multiword everyday phrases become one query token, just like their synonym.
+    const phrases = groups.flatMap((group) => group.filter((word) => norm(word).includes(" "))
+      .map((phrase) => [new RegExp("\\b" + norm(phrase).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), norm(group[0])]));
+    groups.forEach((group) => {
+      const words = [...new Set(group.flatMap((word) => [norm(word), stem(norm(word))]))];
+      words.forEach((word) => {
+        if (!aliases.has(word)) aliases.set(word, new Set());
+        words.forEach((variant) => aliases.get(word).add(variant));
+      });
+    });
+    function query(q) {
+      const normalized = phrases.reduce((text, [pattern, word]) => text.replace(pattern, word), norm(q));
+      return normalized ? normalized.split(" ").map((original) => {
+        const base = stem(original);
+        // saved -> sav must discover save's groups as well as literal sav matches.
+        const inflected = base === original ? [] : [...aliases.keys()]
+          .filter((word) => word.startsWith(base)).flatMap((word) => [...aliases.get(word)]);
+        return { original, variants: [...new Set([original, base,
+          ...(aliases.get(original) || []), ...(aliases.get(base) || []), ...inflected])] };
+      }) : [];
+    }
+    function match(hay, tokens) {
+      let exact = 0;
+      const variants = [];
+      for (const token of tokens) {
+        const variant = token.variants.find((word) => hay.includes(word));
+        if (!variant) return null;
+        if (hay.includes(token.original)) exact++;
+        variants.push(variant);
+      }
+      return { exact, variants };
+    }
+    return { query, match };
+  }
+
+  function createSearch(data) {
+    const matcher = createMatcher(data.syn || []);
+    const both = data.items.map((it) => norm(it[4] + " " + it[5]));
+    const text = data.items.map((it) => norm(it[5]));
+    const description = data.items.map((it) => it[0] === "k"
+      ? norm(it[5].split(/ {2,}/).slice(1).join("  ")) : "");
+    const title = data.items.map((it) => it[0] === "c" ? norm(it[4]) : "");
+    function search(q, here = "", limit = MAX_RESULTS) {
+      q = norm(q);
+      const tokens = matcher.query(q);
+      if (!tokens.length) return { items: [], total: 0 };
+      const phrase = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])");
+      const hits = [];
+      data.items.forEach((it, i) => {
+        const matched = matcher.match(both[i], tokens);
+        if (!matched) return;
+        let score = KIND_WEIGHT[it[0]] || 0;
+        if (it[0] === "c" || it[0] === "k") score += ACTION_BONUS;
+        if (it[0] === "c" && /^\s*(#|\/\/)/.test(it[5])) score -= ACTION_BONUS * 2;
+        tokens.forEach((token) => {
+          if (token.variants.some((variant) => whole(both[i], variant))) score += WORD_BONUS;
+        });
+        if (phrase.test(both[i])) score += PHRASE_BONUS;
+        // Task titles retain command relevance for multiword queries; single words prefer key actions.
+        const action = description[i] || (tokens.length > 1 ? title[i] : "");
+        const starts = (variant) => action.startsWith(variant) && whole(action.split(" ")[0], variant);
+        if (text[i].startsWith(q) || (action && (action.startsWith(q) || starts(tokens[0].original)))) {
+          score += START_BONUS;
+        } else if (action && tokens[0].variants.some(starts)) {
+          score += SYNONYM_START_BONUS;
+        }
+        if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
+        score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
+        hits.push({ i, score, exact: matched.exact });
+      });
+      hits.sort((a, b) => b.exact - a.exact || b.score - a.score || a.i - b.i);
+      // The same row often appears on several pages; keep only its best-ranked copy.
+      const seen = new Set();
+      const unique = hits.filter((hit) => {
+        const key = text[hit.i];
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return { items: unique.slice(0, limit).map((hit) => data.items[hit.i]), total: unique.length };
+    }
+    return { ...matcher, search };
+  }
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { norm, stem, createMatcher, createSearch, highlight };
+  }
+  if (typeof document === "undefined") return;
+  const root = document.body.dataset.root || "";
+  const here = document.body.dataset.file || "index.html";
+  const engine = createSearch(window.TW_SEARCH || { items: [], files: [] });
+
+  // ---- copy
+  function legacyCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    area.remove();
+    return ok;
+  }
+  async function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+    }
+    return legacyCopy(text);
+  }
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".tw-copy");
+    if (!button) return;
+    const box = button.closest(".tw-codebox");
+    const source = box && (box.querySelector(".tw-copy-src code") || box.querySelector("pre.sq-code code"));
+    if (!source) return;
+    const ok = await copyText(source.textContent);
+    button.textContent = ok ? "Copied" : "Copy failed";
+    clearTimeout(button._twReset);
+    button._twReset = setTimeout(() => { button.textContent = "Copy"; }, COPY_RESET_MS);
+  });
+
+  // ---- cheat sheet
+  const STORE_KEY = "tw-cheat";
+  const drawer = document.getElementById("tw-cheat");
+  const cheatBtn = document.querySelector(".tw-cheat-btn");
+  const cheatQ = document.getElementById("tw-cheat-q");
+  const cheatTabs = document.getElementById("tw-cheat-tabs");
+  const cheatBody = document.getElementById("tw-cheat-body");
+  const searchDialog = document.getElementById("tw-search");
+  const cheatState = { open: false, tab: "" };
+  // Set by the course menu below. Layers, topmost first: search, cheat sheet, menu panel.
+  // Returns true when it closed an open panel.
+  let closeMenu = () => false;
+  let cheatNorm = null;
+
+  function loadCheatState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      cheatState.open = saved.open === true;
+      cheatState.tab = typeof saved.tab === "string" ? saved.tab : "";
+    } catch (e) { /* storage unavailable or corrupt: use defaults */ }
+  }
+  function saveCheatState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(cheatState)); } catch (e) { /* storage unavailable */ }
+  }
+
+  function cheatTable(rows, taskFirst = false) {
+    const table = document.createElement("table");
+    table.className = "tw-keytable";
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      const keyCell = document.createElement("td");
+      const kbd = document.createElement("kbd");
+      kbd.className = "tw-key";
+      kbd.textContent = row[0];
+      keyCell.append(kbd);
+      const actionCell = document.createElement("td");
+      actionCell.textContent = row[1];
+      if (taskFirst) tr.append(actionCell, keyCell);
+      else tr.append(keyCell, actionCell);
+      table.append(tr);
+    });
+    return table;
+  }
+
+  function renderCheat() {
+    const sheets = window.TW_CHEAT;
+    if (!drawer || !Array.isArray(sheets) || !sheets.length) return;
+    if (!sheets.some((s) => s.id === cheatState.tab)) cheatState.tab = sheets[0].id;
+    if (!cheatNorm) cheatNorm = sheets.map((s) => s.rows.map((r) => norm(r[0] + " " + r[1])));
+    const q = norm(cheatQ.value);
+    cheatTabs.replaceChildren();
+    sheets.forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tw-cheat-tab";
+      b.textContent = s.title;
+      b.setAttribute("aria-pressed", String(!q && s.id === cheatState.tab));
+      b.addEventListener("click", () => {
+        cheatState.tab = s.id;
+        cheatQ.value = "";
+        saveCheatState();
+        renderCheat();
+      });
+      cheatTabs.append(b);
+    });
+    cheatBody.replaceChildren();
+    if (!q) {
+      const sheet = sheets.find((s) => s.id === cheatState.tab);
+      cheatBody.append(cheatTable(sheet.rows, sheet.task_first));
+      return;
+    }
+    const tokens = engine.query(q);
+    let found = 0;
+    sheets.forEach((s, si) => {
+      const rows = s.rows.filter((_, ri) => engine.match(cheatNorm[si][ri], tokens));
+      if (!rows.length) return;
+      found += rows.length;
+      const h = document.createElement("h3");
+      h.className = "tw-cheat-group";
+      h.textContent = s.title;
+      cheatBody.append(h, cheatTable(rows, s.task_first));
+    });
+    if (!found) {
+      const p = document.createElement("p");
+      p.className = "tw-cheat-empty";
+      p.textContent = "No match.";
+      cheatBody.append(p);
+    }
+  }
+
+  function setCheatOpen(open) {
+    if (!drawer) return;
+    // An open panel would trap Tab behind the drawer, so close it first and move focus into the drawer.
+    const fromMenu = open && closeMenu(false);
+    cheatState.open = open;
+    drawer.hidden = !open;
+    document.body.classList.toggle("tw-cheat-open", open);
+    if (cheatBtn) cheatBtn.setAttribute("aria-expanded", String(open));
+    saveCheatState();
+    if (fromMenu && cheatQ) cheatQ.focus();
+  }
+
+  if (drawer && cheatBtn && cheatQ && cheatTabs && cheatBody) {
+    loadCheatState();
+    renderCheat();
+    setCheatOpen(cheatState.open);
+    cheatBtn.addEventListener("click", () => setCheatOpen(!cheatState.open));
+    drawer.querySelector(".tw-cheat-close").addEventListener("click", () => setCheatOpen(false));
+    cheatQ.addEventListener("input", renderCheat);
+    document.addEventListener("keydown", (event) => {
+      if (searchDialog && !searchDialog.hidden) return;
+      if (event.key === "Escape" && cheatState.open) {
+        setCheatOpen(false);
+      } else if (event.key === "?" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+        event.preventDefault();
+        setCheatOpen(!cheatState.open);
+      }
+    });
+  }
+
+  // ---- course menu: a permanent column on module pages from SIDE_MIN_WIDTH up, a slide-in panel otherwise
+  const side = document.getElementById("tw-side");
+  const menuBtn = document.querySelector(".tw-menu-btn");
+  const backdrop = document.getElementById("tw-backdrop");
+  const SIDE_MIN_WIDTH = 1000;
+  const SIDE_MARGIN = 8;
+
+  if (side && menuBtn && backdrop) {
+    const wide = matchMedia(`(min-width: ${SIDE_MIN_WIDTH}px)`);
+    const menuIsOpen = () => document.body.classList.contains("tw-side-open");
+
+    // Keep the current page's link inside the menu's scroll area.
+    function revealCurrent() {
+      const link = side.querySelector('[aria-current="page"]');
+      if (!link) return;
+      const box = side.getBoundingClientRect();
+      const at = link.getBoundingClientRect();
+      if (at.top < box.top + SIDE_MARGIN) side.scrollTop -= box.top + SIDE_MARGIN - at.top;
+      else if (at.bottom > box.bottom - SIDE_MARGIN) side.scrollTop += at.bottom - box.bottom + SIDE_MARGIN;
+    }
+
+    // The page switcher (course.js) owns which page is shown; the menu follows it.
+    function syncCurrent() {
+      const shown = document.querySelector(".lesson.active");
+      if (!shown) return;
+      side.querySelectorAll("a[data-page]").forEach((link) => {
+        if (link.dataset.page === shown.dataset.module) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    function setMenuOpen(open, restoreFocus = true) {
+      if (open === menuIsOpen()) return;
+      document.body.classList.toggle("tw-side-open", open);
+      menuBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        revealCurrent();
+        (side.querySelector('[aria-current="page"]') || side.querySelector("summary, a")).focus();
+      } else if (restoreFocus && side.contains(document.activeElement)) {
+        menuBtn.focus();
+      }
+    }
+
+    closeMenu = (restoreFocus = true) => {
+      const wasOpen = menuIsOpen();
+      setMenuOpen(false, restoreFocus);
+      return wasOpen;
+    };
+
+    syncCurrent();
+    document.querySelectorAll(".lesson").forEach((lesson) => {
+      new MutationObserver(syncCurrent).observe(lesson, { attributes: true, attributeFilter: ["class"] });
+    });
+    if (document.body.classList.contains("has-side") && wide.matches) revealCurrent();
+
+    menuBtn.addEventListener("click", () => setMenuOpen(!menuIsOpen()));
+    backdrop.addEventListener("click", () => setMenuOpen(false));
+    side.addEventListener("click", (event) => { if (event.target.closest("a")) setMenuOpen(false); });
+    // Widening a module page turns the panel into the permanent column, so reset the panel state.
+    wide.addEventListener("change", () => {
+      if (document.body.classList.contains("has-side") && wide.matches) setMenuOpen(false, false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!menuIsOpen() || (searchDialog && !searchDialog.hidden)) return;
+      if (event.key === "Escape") {
+        if (cheatState.open) return; // the cheat sheet sits above the panel and closes first
+        event.preventDefault();
+        event.stopPropagation();
+        setMenuOpen(false);
+      } else if (event.key === "Tab") {
+        if (drawer && drawer.contains(document.activeElement)) return;
+        // Keep Tab inside the open panel.
+        const stops = [...side.querySelectorAll("summary, a")].filter((el) => el.offsetParent !== null);
+        if (!stops.length) return;
+        const first = stops[0], last = stops[stops.length - 1];
+        if (!side.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+        else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    }, true);
+  }
+
+  // ---- search
+  const dialog = document.getElementById("tw-search");
+  const input = document.getElementById("tw-q");
+  const list = document.getElementById("tw-results");
+  const openButtons = document.querySelectorAll("[data-tw-search]");
+  if (!dialog || !input || !list) return;
+
+  let active = -1;
+  let shown = [];
+  let lastFocus = null;
+
+  function isOpen() { return !dialog.hidden; }
+
+  function openSearch() {
+    if (isOpen()) return;
+    lastFocus = document.activeElement;
+    // A panel left open would stay up, with the page scroll locked, once a result is picked.
+    if (closeMenu(false)) lastFocus = menuBtn;
+    dialog.hidden = false;
+    document.body.classList.add("tw-search-open");
+    input.focus();
+    input.select();
+  }
+
+  function closeSearch() {
+    if (!isOpen()) return;
+    dialog.hidden = true;
+    document.body.classList.remove("tw-search-open");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function search(q) {
+    return engine.search(q, here).items;
+  }
+
+  // Preserve source offsets when key spellings or whitespace normalize differently.
+  function highlightSource(text) {
+    let chars = text.split("").flatMap((char, at) => char.toLowerCase().split("")
+      .map((value) => ({ value, start: at, end: at + 1 })));
+    function replace(pattern, replacement) {
+      const source = chars.map((char) => char.value).join("");
+      const next = [];
+      let at = 0;
+      for (const match of source.matchAll(pattern)) {
+        next.push(...chars.slice(at, match.index));
+        const value = typeof replacement === "function" ? replacement(match) : replacement;
+        const start = chars[match.index].start;
+        const end = chars[match.index + match[0].length - 1].end;
+        value.split("").forEach((letter) => next.push({ value: letter, start, end }));
+        at = match.index + match[0].length;
+      }
+      chars = next.concat(chars.slice(at));
+    }
+    replace(/<c-([^>]+)>/g, (match) => " ctrl-" + match[1] + " ");
+    replace(/<leader>/g, "<space>");
+    replace(/\bctrl\+/g, "ctrl-");
+    replace(/\s+/g, " ");
+    replace(/^\s+|\s+$/g, "");
+    return { lower: chars.map((char) => char.value).join(""), chars };
+  }
+
+  // Mark the actual matching variant using text nodes only.
+  function highlight(host, text, tokens) {
+    const { lower, chars } = highlightSource(text);
+    const marked = new Array(text.length).fill(false);
+    tokens.forEach((t) => {
+      if (!t) return;
+      for (let at = lower.indexOf(t); at !== -1; at = lower.indexOf(t, at + t.length)) {
+        for (let k = chars[at].start; k < chars[at + t.length - 1].end; k++) marked[k] = true;
+      }
+    });
+    let start = 0;
+    while (start < text.length) {
+      let end = start;
+      while (end < text.length && marked[end] === marked[start]) end++;
+      const piece = text.slice(start, end);
+      if (marked[start]) {
+        const mark = document.createElement("mark");
+        mark.textContent = piece;
+        host.append(mark);
+      } else {
+        host.append(document.createTextNode(piece));
+      }
+      start = end;
+    }
+  }
+
+  function setActive(next) {
+    const options = list.querySelectorAll('[role="option"]');
+    if (!options.length) return;
+    active = (next + options.length) % options.length;
+    options.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    input.setAttribute("aria-activedescendant", options[active].id);
+    options[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function render(q) {
+    list.replaceChildren();
+    input.removeAttribute("aria-activedescendant");
+    shown = [];
+    active = -1;
+    if (!q) { input.setAttribute("aria-expanded", "false"); return; }
+    input.setAttribute("aria-expanded", "true");
+    shown = search(q);
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "tw-r-text";
+      li.textContent = "No match. Try a key like Ctrl-w or a command like git worktree.";
+      list.append(li);
+      return;
+    }
+    const data = window.TW_SEARCH;
+    const tokens = engine.query(q);
+    shown.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.id = `tw-r-${i}`;
+      li.setAttribute("role", "option");
+      const mod = data.mods[it[1]];
+      const meta = document.createElement("div");
+      meta.className = "tw-r-meta";
+      const kind = document.createElement("span");
+      kind.className = "tw-r-kind";
+      kind.textContent = KIND_LABEL[it[0]] || it[0];
+      meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
+      const title = document.createElement("div");
+      title.className = "tw-r-title";
+      const variants = engine.match(norm(it[4] + " " + it[5]), tokens).variants;
+      highlight(title, it[4], variants);
+      const snippet = document.createElement("div");
+      snippet.className = "tw-r-text";
+      highlight(snippet, it[5], variants);
+      li.append(meta, title, snippet);
+      li.addEventListener("click", () => go(it));
+      list.append(li);
+    });
+    setActive(0);
+  }
+
+  function go(it) {
+    const file = window.TW_SEARCH.files[it[1]];
+    const target = it[3];
+    closeSearch();
+    if (file === here) {
+      if (location.hash === "#" + target) dispatchEvent(new HashChangeEvent("hashchange"));
+      else location.hash = target;
+    } else {
+      location.href = root + file.replace(MODULE_FILE_RE, "$1") + "#" + target;
+    }
+  }
+
+  input.addEventListener("input", () => render(norm(input.value)));
+  openButtons.forEach((button) => button.addEventListener("click", openSearch));
+  dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
+
+  document.addEventListener("keydown", (event) => {
+    if (isOpen()) {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSearch(); }
+      else if (event.key === "ArrowDown") { event.preventDefault(); setActive(active + 1); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); setActive(active - 1); }
+      else if (event.key === "Enter" && shown[active]) { event.preventDefault(); go(shown[active]); }
+      return;
+    }
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+    event.preventDefault();
+    openSearch();
+  }, true);
+})();
+
+    </script>
+  </body>
+</html>

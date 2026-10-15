@@ -2,22 +2,28 @@
 import os
 
 import kit
-from content.common import module_href
+from content.common import MODULE_META, module_href
 
 TIERS = {
     1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Intermediate", 5: "Advanced", 6: "Advanced", 7: "Expert", 8: "Reference",
+    9: "Beginner → Advanced", 10: "Beginner", 11: "Expert",
 }
 
-HERO_SUBTITLE = "tmux for sessions, Neovim for editing, git worktrees for parallel branches, and an AI coding agent working beside you."
+HERO_SUBTITLE = "Find files, shape text, automate Bash, and work faster in tmux & Neovim."
 
-# (when, module numbers, what you get) — the guide's learning path, mapped to this course's modules.
+# (stage, module numbers, outcome) — one route through both parts of the toolkit.
 LEARNING_PATH = [
-    ("Week 1", "Modules 1–2", "tmux windows, Neovim basics and the file finder. Enough to be productive."),
-    ("Week 2", "Module 3", "Text objects, macros and registers. This is where Neovim gets fast."),
-    ("Week 3", "Module 4", "Git worktrees and an AI coding agent. The three-window pattern becomes your default."),
-    ("Week 4+", "Modules 5–7", "Code navigation, LazyGit, project search and expert motions. Speed, not essentials."),
-    ("Any time", "Module 8", "Coming from VS Code? Look up each shortcut you know and press the Neovim key for it."),
+    ("Shell basics", (10,), "Variables, decisions, loops and script input."),
+    ("Everyday tasks", (9,), "Find files, search logs and turn text into answers."),
+    ("Your workspace", (1, 2, 3), "Keep sessions running and edit without reaching for the mouse."),
+    ("Automation", (11, 4), "Build reliable scripts and work across parallel branches."),
+    ("Expert workflow", (5, 6, 7), "Navigate code, tune your tools and make every edit count."),
 ]
+
+GROUP_INTROS = {
+    "Linux & Bash": "Find it. Transform it. Automate it.",
+    "tmux & Neovim": "A lasting workspace. An editor that keeps up.",
+}
 
 START = {
     "where": "shell",
@@ -26,89 +32,75 @@ START = {
     "expect": "The tmux status bar appears at the bottom with `[main]` on the left.",
 }
 
-STYLE = """
-.cm-hero{padding:56px 0 18px;text-align:center}
-.cm-hero h1{margin:10px 0 8px}
-.cm-how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:28px}
-.cm-how div{padding:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--alt)}
-.cm-how strong{display:block;color:var(--gold);font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase}
-.cm-how p{margin:6px 0 0;color:var(--dim);font-size:14px}
-.cm-path{margin:0;padding:0;list-style:none}
-.cm-path li{display:grid;grid-template-columns:150px 1fr;gap:4px 14px;padding:10px 0;border-top:1px solid var(--soft)}
-.cm-path li:first-child{border-top:0}
-.cm-path strong{color:var(--gold);font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase}
-.cm-path span{color:var(--dim)}
-.cm-grid{display:grid;gap:14px;margin-top:18px}
-.cm-card{padding:18px 20px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);color:var(--chalk);transition:border-color .18s,transform .18s}
-.cm-card:hover,.cm-card:focus-within{border-color:var(--gold);transform:translateY(-2px)}
-.cm-card h3{margin:4px 0 2px;font-size:24px}
-.cm-card h3 a{color:var(--chalk);text-decoration:none}
-.cm-card p{margin:0 0 8px;color:var(--dim)}
-.cm-card ol{margin:0;padding-left:20px;font-size:14px}
-.cm-card ol a{color:var(--chalk);text-decoration-color:var(--line)}
-.cm-card ol a:hover{color:var(--gold)}
-.cm-num{color:var(--blue);font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase}
-.cm-open{display:inline-block;margin-top:10px;color:var(--gold);font:600 12px var(--mono);text-decoration:none}
-@media (max-width:650px){.cm-how{grid-template-columns:1fr}.cm-path li{grid-template-columns:1fr}}
-"""
-
-
 def write(course, mods, version, cheat):
     css = open(os.path.join(course, "_shared", "course.css"), encoding="utf-8").read().replace("../_shared/fonts/", "_shared/fonts/")
     site_js = open(os.path.join(course, "_shared", "site.js"), encoding="utf-8").read()
-    cards = []
+    metadata = {m["n"]: m for m in MODULE_META}
+    by_number = {m["n"]: m for m in mods}
+    groups = {}
     for m in mods:
         href = module_href(m["folder"])
         pages = "".join(f'<li><a href="{href}#module-{i}">{kit.esc(p["h1"])}</a></li>' for i, p in enumerate(m["pages"], 1))
-        cards.append(
+        group = metadata[m["n"]]["group"]
+        groups.setdefault(group, []).append(
             f'<article class="cm-card"><span class="cm-num">Module {m["n"]} · {TIERS[m["n"]]}</span>'
             f'<h3><a href="{href}">{kit.esc(m["title"])}</a></h3><p>{kit.esc(m["tagline"])}</p><ol>{pages}</ol>'
             f'<a class="cm-open" href="{href}">{len(m["pages"])} pages · open →</a></article>')
-    path = "".join(f"<li><strong>{kit.esc(w)} · {kit.esc(mn)}</strong><span>{kit.esc(t)}</span></li>" for w, mn, t in LEARNING_PATH)
+    sections = []
+    jumps = []
+    for group, cards in sorted(groups.items()):
+        group_id = "group-" + group.lower().replace(" & ", "-").replace(" ", "-")
+        jumps.append(f'<a href="#{group_id}">{kit.esc(group)}</a>')
+        sections.append(
+            f'<section class="cm-group" id="{group_id}" aria-labelledby="{group_id}-title">'
+            f'<div class="cm-group-head"><div><h2 id="{group_id}-title">{kit.esc(group)}</h2>'
+            f'<p>{kit.esc(GROUP_INTROS.get(group, ""))}</p></div><span>{len(cards)} modules</span></div>'
+            f'<div class="cm-grid">{"".join(cards)}</div></section>')
+    path = []
+    for stage, numbers, outcome in LEARNING_PATH:
+        links = " · ".join(
+            f'<a href="{module_href(by_number[n]["folder"])}">Module {n}</a>'
+            for n in numbers if n in by_number)
+        if links:
+            path.append(f'<li><strong>{kit.esc(stage)}</strong><div>{links}<p>{kit.esc(outcome)}</p></div></li>')
     total = sum(len(m["pages"]) for m in mods)
     html = f"""<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="A hands-on course that turns the terminal into a full IDE: tmux, Neovim and git worktrees" />
+    <meta name="description" content="Become a Linux power user. Find files, transform text, automate Bash, and work faster with tmux and Neovim. Search any task for commands and examples." />
     <title>Terminal Workflow — Course Map</title>
+    <script>document.documentElement.classList.add("js");</script>
     <style>
 {css}
-{STYLE}
     </style>
   </head>
-  <body data-root="" data-file="index.html">
-    {kit.search_ui()}
-    {kit.cheat_ui()}
+  <body class="course-map" data-root="" data-file="index.html">
+    {kit.topbar("", home=True)}
+    {kit.sidebar(mods)}
+    {kit.search_dialog()}
+    {kit.cheat_drawer()}
     <main>
       <header class="cm-hero">
-        <div class="eyebrow">Course map · {len(mods)} modules · {total} pages</div>
-        <h1>The terminal as your whole IDE</h1>
+        <div class="eyebrow">{len(mods)} modules · {total} pages</div>
+        <h1>Become a Linux power user.</h1>
         <p class="subtitle">{kit.esc(HERO_SUBTITLE)}</p>
-        <div class="rule"></div>
+        <button class="cm-search" type="button" data-tw-search aria-haspopup="dialog" aria-controls="tw-search">Search a task or command <kbd>/</kbd></button>
+        <p class="cm-search-hint">Try “find big files”, “loop over files”, or “script flags”.</p>
+        <nav class="cm-jumps" aria-label="Browse the toolkit">{"".join(jumps)}<a href="#learning-path">Learning path</a></nav>
       </header>
-      <section class="cm-how">
-        <div><strong>Problem first</strong><p>Each page opens with what goes wrong, then the fix.</p></div>
-        <div><strong>Type it</strong><p>Every command has a copy button and the result you should see.</p></div>
-        <div><strong>Find any key</strong><p>Press / to search every module.</p></div>
+      {"".join(sections)}
+      <section class="cm-learning" id="learning-path" aria-labelledby="path-title">
+        <div><h2 id="path-title">From basics to expert</h2><p class="section-intro">Follow the path once. Come back for any command.</p></div>
+        <div><ol class="cm-path">{"".join(path)}</ol>
+        <p class="cm-reference">Coming from VS Code? <a href="{module_href(by_number[8]['folder'])}">Keep module 8 beside you.</a></p></div>
       </section>
-      <section class="block">
-        <div class="section-label">Start here</div>
-        <h2>One command to begin</h2>
-        <p class="section-intro">You need iTerm2, Neovim 0.12+ and an AI coding agent CLI. Open a terminal and type this.</p>
+      <section class="cm-start" aria-labelledby="start-title">
+        <h2 id="start-title">Make it hands-on</h2>
+        <p class="section-intro">Start Bash lessons with <code>bash</code>. For tmux lessons, start a session below.</p>
         {kit.cmd("start", START)}
         {kit.practice_setup("setup")}
-      </section>
-      <section class="block">
-        <div class="section-label">Learning path</div>
-        <h2>Four weeks, in order</h2>
-        <ul class="cm-path">{path}</ul>
-      </section>
-      <section class="block">
-        <div class="section-label">Modules</div>
-        <h2>{len(mods)} modules</h2>
-        <div class="cm-grid">{"".join(cards)}</div>
       </section>
     </main>
     <footer><strong>Terminal Workflow</strong><br />Press / on any page to search every command and key.</footer>

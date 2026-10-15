@@ -40,7 +40,8 @@ QUERIES = [
     ("kill process", "Kill a process by name"),
     ("switch branch", "Switch to another git branch"),
     ("copy file path", "Copy a file's path"),
-    ("command history", "q: Open the command-line window"),
+    ("command line history", "q: Open the command-line window"),
+    ("command history", "Search your command history"),
     ("stage file", "Stage file: stage or unstage the highlighted file"),
     ("commit", {"key": "c", "description": "Commit the staged files"}),
     ("push", {"key": "P", "description": "Push commits to the remote"}),
@@ -72,6 +73,27 @@ QUERIES = [
     ("folder size", "Folder size"),
     ("list files", "List files"),
     ("nested tmux", "Nested tmux"),
+    ("find big files", {"module": 9, "snippet": "Find files bigger than 100 MB"}),
+    ("locate large files", {"module": 9, "snippet": "Find files bigger than 100 MB"}),
+    ("look for hidden files", {"module": 9, "snippet": "Find hidden files"}),
+    ("search ignoring case", {"module": 9, "snippet": "Search ignoring upper and lower case"}),
+    ("count lines", {"module": 9, "snippet": "Count lines"}),
+    ("how many lines", {"module": 9, "snippet": "Count lines"}),
+    ("print a column", {"module": 9, "snippet": "Print one or two columns"}),
+    ("top ips in log", {"module": 9, "snippet": "Show the top 5 IPs in a log"}),
+    ("replace text in file", {"module": 9, "snippet": "Replace"}),
+    ("read json field", {"module": 9, "snippet": "Read one field from JSON"}),
+    ("run on every file", {"module": 9, "snippet": "Run a command on every file"}),
+    ("loop over files", {"module": 10, "snippet": "Loop over every .txt file"}),
+    ("read script arguments", {"module": 10, "snippet": "Read the arguments"}),
+    ("script flags", {"module": 10, "snippet": "Read a script's flags with getopts"}),
+    ("argument default", {"module": 10, "snippet": "Give an argument a default value"}),
+    ("read file line by line", {"module": 10, "snippet": "Read a file line by line"}),
+    ("test file exists", {"module": 10, "snippet": "Test if a file or folder exists"}),
+    ("count array values", {"module": 11, "snippet": "Create an array, add an element and count or slice its values"}),
+    ("replace every match in string", {"module": 11, "snippet": "Count characters, slice text and replace one or every match"}),
+    ("save error output", {"module": 11, "snippet": "Save stderr"}),
+    ("trace script", {"module": 11, "snippet": "Trace a whole script with bash -x"}),
 ]
 
 MISSING_CONTENT = []
@@ -101,6 +123,11 @@ check(matches("save", "commit"), "save overlaps commit");
 check(!matches("write", "commit"), "overlap is not transitive");
 check(matches("stage", "add"), "overlap includes stage/add");
 check(!matches("stage", "open"), "stage does not expand through add/open");
+check(matches("look for large files", "Find files bigger than 100 MB"), "multiword find phrase and size synonyms");
+check(matches("how many lines", "Count lines"), "multiword count phrase");
+check(!matches("look forest", "find trees"), "phrase matching keeps word boundaries");
+check(matches("iterate over files", "Loop over every file"), "everyday loop words");
+check(matches("script parameters", "Read script flags"), "argument synonyms");
 check(!matches("left", "right"), "directions remain distinct");
 check(!matches("right", "left"), "reverse directions remain distinct");
 check(core.stem("sing") === "sing" && core.stem("up") === "up", "minimum stem length");
@@ -182,6 +209,8 @@ const results = [...queries.map(([query, expected]) => {
   const result = engine.search(query, "", top);
   return { query, expected, total: result.total, ok: result.items.some((it) => {
     if (typeof expected === "string") return core.norm(it[4] + " " + it[5]).includes(core.norm(expected));
+    if (expected.module) return data.files[it[1]].startsWith(`m${expected.module}-`) &&
+      core.norm(it[4] + " " + it[5]).includes(core.norm(expected.snippet));
     const [key, description] = it[5].split(/ {2,}/, 2);
     return it[0] === "k" && key === expected.key && description && description.startsWith(expected.description);
   }),

@@ -1,14 +1,17 @@
 """Shared data for every module: the module list and the site-wide glossary."""
 
 MODULE_META = [
-    {"n": 1, "folder": "m1-tmux", "title": "tmux and the shell"},
-    {"n": 2, "folder": "m2-nvim-essentials", "title": "Neovim essentials"},
-    {"n": 3, "folder": "m3-power-editing", "title": "Power editing"},
-    {"n": 4, "folder": "m4-worktrees", "title": "Worktrees and the agent loop"},
-    {"n": 5, "folder": "m5-lsp-git", "title": "Code intelligence and git"},
-    {"n": 6, "folder": "m6-plugins-keymaps", "title": "Plugins and the key map"},
-    {"n": 7, "folder": "m7-expert", "title": "Expert Neovim"},
-    {"n": 8, "folder": "m8-from-vscode", "title": "Coming from VS Code"},
+    {"n": 1, "folder": "m1-tmux", "title": "tmux and the shell", "group": "tmux & Neovim"},
+    {"n": 2, "folder": "m2-nvim-essentials", "title": "Neovim essentials", "group": "tmux & Neovim"},
+    {"n": 3, "folder": "m3-power-editing", "title": "Power editing", "group": "tmux & Neovim"},
+    {"n": 4, "folder": "m4-worktrees", "title": "Worktrees and the agent loop", "group": "tmux & Neovim"},
+    {"n": 5, "folder": "m5-lsp-git", "title": "Code intelligence and git", "group": "tmux & Neovim"},
+    {"n": 6, "folder": "m6-plugins-keymaps", "title": "Plugins and the key map", "group": "tmux & Neovim"},
+    {"n": 7, "folder": "m7-expert", "title": "Expert Neovim", "group": "tmux & Neovim"},
+    {"n": 8, "folder": "m8-from-vscode", "title": "Coming from VS Code", "group": "tmux & Neovim"},
+    {"n": 9, "folder": "m9-find-text", "title": "Find and text tools", "group": "Linux & Bash"},
+    {"n": 10, "folder": "m10-bash-basics", "title": "Bash basics", "group": "Linux & Bash"},
+    {"n": 11, "folder": "m11-bash-expert", "title": "Bash expert", "group": "Linux & Bash"},
 ]
 
 # (id, label, forms, definition) — shared by every module; a module's own glossary wins on a clash.

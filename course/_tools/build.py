@@ -43,7 +43,8 @@ def cheat_version():
 
 
 def write_cheat():
-    sheets = [{"id": s["id"], "title": s["title"], "rows": [list(r) for r in s["rows"]]} for s in CHEATSHEET]
+    sheets = [{"id": s["id"], "title": s["title"], "task_first": s.get("task_first", False),
+               "rows": [list(r) for r in s["rows"]]} for s in CHEATSHEET]
     body = "window.TW_CHEAT = " + json.dumps(sheets, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + ";\n"
     path = os.path.join(COURSE, CHEAT_REL)
     with open(path, "w", encoding="utf-8") as f:
@@ -197,7 +198,7 @@ def glossary(mod):
     return own + [g for g in SITE_GLOSSARY if g[0] not in ids and not any(f.lower() in forms for f in g[2])]
 
 
-def module_html(mod, prev, nxt, version, cheat):
+def module_html(mod, prev, nxt, version, cheat, mods):
     css = read("_shared/course.css")
     js = read("_shared/course.js")
     site_js = read("_shared/site.js")
@@ -216,9 +217,12 @@ def module_html(mod, prev, nxt, version, cheat):
 {css}
     </style>
   </head>
-  <body data-root="../" data-file="{module_path(mod["folder"])}">
-    {kit.search_ui()}
-    {kit.cheat_ui()}
+  <body class="has-side" data-root="../" data-file="{module_path(mod["folder"])}">
+    {kit.topbar("../")}
+    {kit.sidebar(mods, mod["n"], "../")}
+    {kit.search_dialog()}
+    {kit.cheat_drawer()}
+    <div class="tw-page">
     <main id="lessonRoot">
 {pages}
     </main>
@@ -237,6 +241,7 @@ def module_html(mod, prev, nxt, version, cheat):
     <footer>
       <strong>Module {mod["n"]} · {kit.esc(mod["title"])}</strong><br />{kit.esc(mod["footer"])}
     </footer>
+    </div>
     <script>window.TW_GLOSSARY = {gloss};</script>
     <script src="../_shared/search-index.js?v={version}"></script>
     <script src="../_shared/cheatsheet.js?v={cheat}"></script>
@@ -253,12 +258,12 @@ def module_html(mod, prev, nxt, version, cheat):
     return html
 
 
-def write_module(mod, prev, nxt, version, cheat):
+def write_module(mod, prev, nxt, version, cheat, mods):
     folder = os.path.join(COURSE, mod["folder"])
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, MODULE_FILE)
     with open(path, "w", encoding="utf-8") as f:
-        f.write(module_html(mod, prev, nxt, version, cheat))
+        f.write(module_html(mod, prev, nxt, version, cheat, mods))
     print(f"wrote {os.path.relpath(path, COURSE)} ({len(mod['pages'])} pages)")
 
 
@@ -275,7 +280,7 @@ def main():
     for k, mod in enumerate(mods):
         if mod not in chosen:
             continue
-        write_module(mod, mods[k - 1] if k > 0 else None, mods[k + 1] if k + 1 < len(mods) else None, version, cheat)
+        write_module(mod, mods[k - 1] if k > 0 else None, mods[k + 1] if k + 1 < len(mods) else None, version, cheat, mods)
     if only:
         print("partial build: index and search index not rebuilt")
         return
