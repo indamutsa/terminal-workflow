@@ -1,0 +1,2073 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bash expert — Terminal Workflow</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <style>
+/* Terminal Workflow course styles. Base from the SQL course.
+   Fonts are local files so the course runs offline. */
+@font-face{font-family:"Kalam";font-weight:400;font-display:swap;src:url("../_shared/fonts/kalam-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Kalam";font-weight:700;font-display:swap;src:url("../_shared/fonts/kalam-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;font-display:swap;src:url("../_shared/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("../_shared/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("../_shared/fonts/inter-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:700;font-display:swap;src:url("../_shared/fonts/inter-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:600;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2")}
+:root {
+  --board: #1c2b24;
+  --alt: #17231d;
+  --raised: #213328;
+  --chalk: #ede6d6;
+  --dim: #9faea3;
+  --gold: #e8c468;
+  --gold-dim: #b99a54;
+  --blue: #7fa8c9;
+  --coral: #e2897d;
+  --mint: #8fc9a8;
+  --line: rgba(237, 230, 214, 0.14);
+  --soft: rgba(237, 230, 214, 0.07);
+  --r: 10px;
+  --display: "Kalam", cursive;
+  --body: "Inter", -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: var(--chalk);
+  background:
+    radial-gradient(
+      ellipse at 10% 0,
+      rgba(127, 168, 201, 0.07),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 100%,
+      rgba(232, 196, 104, 0.06),
+      transparent 48%
+    ),
+    var(--board);
+  font: 15px/1.62 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+a {
+  color: var(--blue);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+::selection {
+  color: var(--board);
+  background: var(--gold);
+}
+main,
+footer,
+.tabbar-inner,
+.group-nav {
+  width: min(780px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.lesson {
+  display: none;
+}
+.lesson.active {
+  display: block;
+  animation: rise 0.35s ease both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+.lesson-header {
+  padding: 46px 0 26px;
+  text-align: center;
+}
+.eyebrow,
+.section-label,
+.label {
+  color: var(--blue);
+  font: 600 11px/1.3 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  color: var(--gold);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.18;
+}
+h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 6vw, 43px);
+}
+h2 {
+  margin: 4px 0 9px;
+  font-size: 26px;
+}
+h3 {
+  margin: 16px 0 6px;
+  font-size: 20px;
+}
+p {
+  margin: 8px 0;
+}
+.subtitle,
+.section-intro,
+.lede {
+  color: var(--dim);
+}
+.subtitle {
+  max-width: 560px;
+  margin-inline: auto;
+}
+.rule {
+  width: 120px;
+  height: 2px;
+  margin: 24px auto 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--dim) 0 6px,
+    transparent 6px 12px
+  );
+}
+.block {
+  margin-top: 44px;
+}
+.one-idea,
+.word-problem {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--raised);
+}
+.one-idea {
+  text-align: center;
+}
+.one-idea .tag,
+.word-problem .tag {
+  color: var(--gold);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.one-idea > p {
+  margin-top: 12px;
+  font-size: 17px;
+}
+.one-idea em {
+  color: var(--gold);
+  font-style: normal;
+  border-bottom: 2px dashed var(--gold-dim);
+}
+.one-idea .kitchen-links {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.one-idea .kitchen-links li {
+  margin-top: 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+.one-idea .kitchen-links li:first-child {
+  margin-top: 0;
+}
+.one-idea .kitchen-links strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+.one-idea .kitchen-links .kl-nowrap {
+  white-space: nowrap;
+}
+.term-definition {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+  font-size: 13px;
+  text-align: left;
+}
+.term-definition strong,
+.rule-body strong,
+.solution-body strong {
+  color: var(--chalk);
+}
+.explorer {
+  margin-top: 16px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.control label,
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--dim);
+  font: 12px var(--mono);
+}
+output,
+.val {
+  color: var(--gold);
+  font-weight: 600;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.button-row,
+.arch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.btn,
+.toggle-btn {
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.btn:hover,
+.btn[aria-pressed="true"],
+.toggle-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.stage,
+.arch-stage {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.stage svg,
+.arch-stage svg {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+}
+.wire {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 4;
+}
+.node {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.node.hot {
+  fill: rgba(232, 196, 104, 0.16);
+  stroke: var(--gold);
+}
+.node.off {
+  fill: rgba(226, 137, 125, 0.08);
+  stroke: var(--coral);
+}
+.svg-label {
+  fill: var(--chalk);
+  font: 600 12px var(--mono);
+  text-anchor: middle;
+}
+.svg-small {
+  fill: var(--dim);
+  font: 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-node {
+  opacity: 0.14;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  transform: translateY(4px);
+}
+.arch-node.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.arch-node rect {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 1.5;
+}
+.arch-node.is-current rect {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.arch-node text {
+  fill: var(--chalk);
+  font: 600 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-link {
+  opacity: 0.12;
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.arch-link.is-visible {
+  opacity: 0.85;
+}
+.readout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: var(--board);
+}
+.fact {
+  min-width: 0;
+}
+.fact.wide {
+  grid-column: 1/-1;
+}
+.tiny {
+  display: block;
+  color: var(--dim);
+  font: 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fact p {
+  overflow-wrap: anywhere;
+}
+.rule-card,
+.practice-card {
+  margin-bottom: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.rule-card summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.rule-card summary::-webkit-details-marker,
+.hint summary::-webkit-details-marker,
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+.num,
+.q-num {
+  color: var(--gold-dim);
+  font: 600 12px var(--mono);
+}
+.chevron::after {
+  content: "⌄";
+  color: var(--dim);
+}
+.rule-body {
+  padding: 15px 18px 18px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+}
+.rule-body p:first-child {
+  margin-top: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid var(--soft);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  text-transform: uppercase;
+}
+code {
+  color: var(--gold);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+.word-problem {
+  margin-top: 14px;
+}
+.worked-steps {
+  padding-left: 22px;
+}
+.worked-steps li + li,
+.solution-steps li + li {
+  margin-top: 7px;
+}
+.result-box,
+.interview-answer {
+  margin-top: 13px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  background: rgba(232, 196, 104, 0.06);
+}
+.review-mistakes li::marker {
+  color: var(--coral);
+}
+.practice-card {
+  position: relative;
+  padding: 16px 18px;
+}
+.q-num {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+}
+.q-kind {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.q-text {
+  padding-right: 40px;
+}
+.hint,
+.solution {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+}
+.hint summary,
+.solution summary {
+  color: var(--blue);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+  list-style: none;
+}
+.solution summary {
+  color: var(--mint);
+}
+.hint p,
+.solution-body {
+  color: var(--dim);
+  font-size: 13.5px;
+}
+.solution-steps {
+  padding-left: 22px;
+}
+.solution-final {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--mint);
+  background: rgba(143, 201, 168, 0.08);
+}
+.tabbar {
+  margin-top: 52px;
+  padding: 14px 0;
+  border-block: 1px solid var(--line);
+  background: var(--alt);
+}
+.tabbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+}
+.tab,
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.tab.active {
+  color: var(--board);
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.nav-arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.progress-mini {
+  min-width: 94px;
+  color: var(--dim);
+  font: 11px var(--mono);
+  text-align: right;
+}
+.group-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+}
+footer {
+  padding: 35px 0 70px;
+  color: var(--dim);
+  text-align: center;
+}
+.no-js-note {
+  padding: 10px 24px;
+  color: var(--coral);
+  text-align: center;
+}
+@media (max-width: 650px) {
+  main,
+  footer,
+  .tabbar-inner,
+  .group-nav {
+    width: min(100% - 28px, 780px);
+  }
+  .controls,
+  .readout {
+    grid-template-columns: 1fr;
+  }
+  .fact.wide {
+    grid-column: auto;
+  }
+  .stage svg,
+  .arch-stage svg {
+    min-width: 540px;
+  }
+  .explorer {
+    padding: 17px 14px;
+  }
+  .progress-mini {
+    min-width: 73px;
+    font-size: 10px;
+  }
+  .group-nav {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabs.sq-tabs{justify-content:flex-start}
+    /* contextual glossary v1 */
+.glossary-term {
+  position: relative;
+  display: inline;
+  margin: 0;
+  padding: 0 1px;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 196, 104, 0.72);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='%23E8C468' stroke='%231C2B24' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-family='Arial' font-size='16' font-weight='700' fill='%231C2B24'%3E%3F%3C/text%3E%3C/svg%3E")
+      14 14,
+    help;
+  text-decoration: none;
+  transition:
+    color 0.16s,
+    background 0.16s,
+    border-color 0.16s;
+}
+.glossary-term:hover,
+.glossary-term:focus-visible,
+.glossary-term[aria-expanded="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: rgba(232, 196, 104, 0.08);
+  outline: none;
+}
+.glossary-term:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--board),
+    0 0 0 4px var(--gold);
+}
+.glossary-term::after {
+  content: "?";
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--board);
+  font: 700 11px/1 var(--mono);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px) scale(0.72);
+  transition:
+    opacity 0.14s,
+    transform 0.14s;
+}
+.glossary-term:hover::after,
+.glossary-term:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.glossary-popover {
+  --pointer-x: 50%;
+  position: fixed;
+  z-index: 1000;
+  width: min(430px, calc(100vw - 24px));
+  padding: 16px 42px 15px 17px;
+  border: 1px solid rgba(232, 196, 104, 0.48);
+  border-radius: 11px;
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(0, 0, 0, 0.08)
+    ),
+    var(--raised);
+  color: var(--chalk);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(28, 43, 36, 0.85);
+  animation: glossary-arrive 0.16s ease both;
+}
+.glossary-popover[hidden] {
+  display: none;
+}
+.glossary-popover::after {
+  content: "";
+  position: absolute;
+  left: var(--pointer-x);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid rgba(232, 196, 104, 0.48);
+  border-bottom: 1px solid rgba(232, 196, 104, 0.48);
+  background: var(--raised);
+  transform: translateX(-50%) rotate(-45deg);
+}
+.glossary-popover.below::after {
+  top: -6px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(135deg);
+}
+.glossary-popover strong {
+  display: inline;
+  color: var(--gold);
+  font: 600 15px/1.4 var(--body);
+}
+.glossary-popover strong::after {
+  content: " —";
+  color: var(--dim);
+}
+.glossary-popover p {
+  display: inline;
+  margin: 0;
+  color: #c8d0ca;
+  font-size: 14px;
+  line-height: 1.58;
+}
+.glossary-meta {
+  display: block;
+  margin-top: 10px;
+  color: var(--dim);
+  font: 10px/1.4 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.glossary-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font: 18px/1 var(--body);
+}
+.glossary-close:hover,
+.glossary-close:focus-visible {
+  background: rgba(232, 196, 104, 0.1);
+  color: var(--gold);
+}
+@keyframes glossary-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (max-width: 650px) {
+  .glossary-popover {
+    padding: 15px 40px 14px 15px;
+  }
+  .glossary-popover p {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glossary-popover,
+  .glossary-term::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+
+.sq-code{margin:10px 0;padding:12px 14px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#121c17;color:var(--chalk);font:500 13px/1.55 var(--mono);white-space:pre}
+.sq-code code{padding:0;border:0;background:none;color:inherit;font:inherit}
+.sq-code .hl-c{color:var(--dim);font-style:italic}
+.sq-code .hl-s{color:var(--mint)}
+.sq-code .hl-k{color:var(--blue)}
+.sq-code .hl-cmd{color:var(--gold)}
+.sq-code .hl-f{color:var(--gold-dim)}
+.sq-code .hl-n,.sq-code .hl-v{color:var(--coral)}
+.sq-code .hl-fn,.sq-code .hl-ex{color:var(--blue);font-weight:600}
+.rule-body table{display:block;overflow-x:auto;max-width:100%}
+
+/* Terminal Workflow additions */
+.tw-codebox{margin:14px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--alt);overflow:hidden}
+.tw-code-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.tw-where{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.tw-code-title{flex:1;min-width:0;overflow-wrap:anywhere;color:var(--chalk);font-weight:500}
+.tw-copy{min-height:32px;padding:4px 12px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;font:600 12px var(--mono)}
+.tw-copy:hover{background:rgba(232,196,104,.12)}
+.tw-codebox .sq-code{margin:0;border:0;border-radius:0}
+.tw-expect,.tw-try{margin:0;padding:10px 12px;border-top:1px solid var(--line);color:var(--chalk);font-size:14px}
+.tw-expect-label{display:inline-block;margin-right:8px;color:var(--mint);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-try .tw-expect-label{color:var(--gold)}
+.tw-scroll{overflow-x:auto;max-width:100%}
+.tw-keytable{width:100%;border-collapse:collapse}
+.tw-keytable td{padding:7px 12px;border-top:1px solid var(--soft);vertical-align:top}
+.tw-keytable tr:first-child td{border-top:0}
+.tw-keytable td:first-child{white-space:nowrap}
+.tw-key{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--raised);color:var(--chalk);font:500 12.5px var(--mono)}
+.tw-text{margin:12px 0;color:var(--chalk)}
+[id^="module-"]{scroll-margin-top:76px}
+.tw-hit{outline:2px solid var(--gold);outline-offset:4px}
+.tw-search-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-search-btn:hover{border-color:var(--gold)}
+.tw-search-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-search[hidden]{display:none}
+.tw-search{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55)}
+.tw-search-panel{display:flex;flex-direction:column;width:min(680px,calc(100% - 24px));max-height:80vh;margin:8vh auto 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--board)}
+.tw-q{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);font-size:16px}
+.tw-results{flex:1;margin:10px 0 0;padding:0;overflow-y:auto;list-style:none}
+.tw-results [role=option]{padding:8px 10px;border:1px solid transparent;border-radius:8px;cursor:pointer}
+.tw-results [role=option][aria-selected=true]{border-color:var(--gold);background:var(--soft)}
+.tw-results mark{background:rgba(232,196,104,.25);color:inherit}
+.tw-r-meta{overflow:hidden;color:var(--dim);font:11px var(--mono);text-overflow:ellipsis;white-space:nowrap}
+.tw-r-kind{margin-right:8px;color:var(--blue);font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-r-title{font-weight:600}
+.tw-r-text{color:var(--dim);font-size:13px;overflow-wrap:anywhere}
+.tw-search-foot{margin:8px 0 0;color:var(--dim);font:11px var(--mono)}
+@media (max-width:480px){.tw-search-btn kbd{display:none}}
+body.tw-search-open{overflow:hidden}
+
+/* Cheat sheet */
+.tw-cheat-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-cheat-btn:hover{border-color:var(--gold)}
+.tw-cheat-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-cheat-short{display:none}
+.tw-cheat[hidden]{display:none}
+.tw-cheat{position:fixed;inset:0 0 0 auto;z-index:45;display:flex;flex-direction:column;gap:10px;width:min(440px,100%);padding:12px;border-left:1px solid var(--line);background:var(--board);box-shadow:-12px 0 32px rgba(0,0,0,.35)}
+.tw-cheat-head{display:flex;align-items:center;justify-content:space-between}
+.tw-cheat-title{margin:0;font-size:16px}
+.tw-cheat-close{width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font-size:20px;line-height:1}
+.tw-cheat-close:hover{border-color:var(--gold)}
+.tw-cheat-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tw-cheat-tab{padding:3px 9px;border:1px solid var(--line);border-radius:999px;background:var(--alt);color:var(--dim);cursor:pointer;font:500 12px var(--mono)}
+.tw-cheat-tab:hover{border-color:var(--gold);color:var(--chalk)}
+.tw-cheat-tab[aria-pressed=true]{border-color:var(--gold);background:var(--soft);color:var(--gold)}
+.tw-cheat-body{flex:1;min-height:0;overflow-y:auto}
+.tw-cheat-body .tw-keytable td{padding:6px 8px;font-size:13px}
+.tw-cheat-body .tw-keytable td:first-child{white-space:normal;overflow-wrap:anywhere}
+.tw-cheat-body .tw-key{white-space:pre-wrap;overflow-wrap:anywhere}
+.tw-cheat-group{margin:14px 0 4px;color:var(--mint);font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-cheat-empty{color:var(--dim);font-size:13px}
+@media (min-width:1100px){
+  body.tw-cheat-open{padding-right:440px}
+}
+@media (max-width:480px){
+  .tw-cheat-btn kbd,.tw-cheat-long{display:none}
+  .tw-cheat-short{display:inline}
+}
+
+/* Course map: the same palette, with a wider reading and browsing surface. */
+.course-map main,.course-map footer{width:min(1100px,calc(100% - 48px))}
+.course-map h1,.course-map h2{text-wrap:balance}
+.course-map h3{font-family:var(--body);text-wrap:balance}
+.course-map h2{font-size:28px}
+.course-map a{text-underline-offset:4px}
+.cm-hero{padding:64px 0 52px}
+.cm-hero h1{margin:0 0 14px;font-size:clamp(34px,4.2vw,50px);line-height:1.12}
+.cm-hero .subtitle{max-width:none;margin:0;font-size:16px}
+.cm-search{display:flex;cursor:pointer;border:1px solid var(--line);align-items:center;justify-content:space-between;gap:16px;width:min(680px,100%);margin-top:30px;padding:16px 20px;min-height:58px;border-radius:var(--r);background:var(--raised);color:var(--chalk);font:400 16px var(--body);text-align:left}
+.cm-search:hover{border-color:var(--gold)}
+.cm-search kbd{padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:400 14px var(--mono)}
+.cm-search-hint{margin:10px 0 0;color:var(--dim);font-size:12px}
+.cm-jumps{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px;font-size:13px}
+.cm-jumps a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-jumps a:hover{color:var(--gold)}
+.cm-group{padding:32px 0 12px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-group+.cm-group{margin-top:44px}
+.cm-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:24px}
+.cm-group-head h2{margin:0 0 8px}
+.cm-group-head p{margin:0;color:var(--dim);font-size:14px}
+.cm-group-head>span{flex-shrink:0;color:var(--dim);font-size:12px}
+.cm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cm-card{display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);transition:border-color .18s}
+.cm-card:hover,.cm-card:focus-within{border-color:var(--gold)}
+.cm-num{color:var(--mint);font-size:12px;font-weight:500}
+.cm-card h3{margin:12px 0 10px;font-size:22px;letter-spacing:-.025em}
+.cm-card h3 a{color:var(--chalk);text-decoration:none}
+.cm-card p{margin:0 0 18px;color:var(--dim);font-size:13px}
+.cm-card ol{margin:0 0 22px;padding-left:20px;font-size:13px}
+.cm-card li+li{margin-top:8px}
+.cm-card ol a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-card ol a:hover{color:var(--gold)}
+.cm-open{align-self:flex-start;margin-top:auto;color:var(--gold);font-size:12px;font-weight:600;text-decoration:none}
+.cm-learning{display:grid;grid-template-columns:1fr 2fr;gap:48px;margin-top:64px;padding-top:36px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-learning h2{margin-top:0}
+.cm-path{margin:0;padding-left:20px}
+.cm-path li{padding:0 0 22px 8px}
+.cm-path li::marker{color:var(--gold);font:500 13px var(--mono)}
+.cm-path strong{display:block;margin-bottom:4px;font-size:16px}
+.cm-path a{font-size:12px}
+.cm-path p{margin:6px 0 0;color:var(--dim);font-size:13px}
+.cm-reference{font-size:13px;color:var(--dim)}
+.cm-start{max-width:780px;margin-top:48px;padding-top:36px;border-top:1px solid var(--line)}
+@media (min-width:1000px){.cm-group:first-of-type .cm-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:650px){
+  .course-map main,.course-map footer{width:calc(100% - 40px)}
+  .cm-hero{padding:40px 0 36px}
+  .cm-hero .subtitle{font-size:14px}
+  .cm-search{padding:14px;font-size:14px}
+  .cm-search-hint{max-width:32ch}
+  .cm-jumps{gap:12px 20px}
+  .cm-group-head{display:block}
+  .cm-group-head>span{display:block;margin-top:10px}
+  .cm-grid{grid-template-columns:minmax(0,1fr)}
+  .cm-card{padding:22px}
+  .cm-learning{grid-template-columns:minmax(0,1fr);gap:24px}
+}
+.ws-steps em{color:var(--dim);font:600 11px var(--mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+.ws-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.ws-pair.ws-one{grid-template-columns:minmax(0,1fr)}
+.ws-label{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.ws-pane .sq-code{margin:4px 0 0}
+@media (max-width:640px){.ws-pair{grid-template-columns:minmax(0,1fr)}}
+
+/* Top bar and course menu. Below 1000px (and on the course map) the menu is a slide-in panel. */
+:root{--bar:56px;--side:288px}
+.tw-topbar{position:sticky;top:0;z-index:40;height:var(--bar);border-bottom:1px solid var(--line);background:rgba(23,35,29,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.tw-topbar-in{display:flex;align-items:center;gap:8px;height:100%;padding:0 16px}
+.tw-home{display:inline-flex;flex:0 1 auto;align-items:center;gap:9px;min-width:0;min-height:36px;padding:0 10px 0 8px;border-radius:8px;color:var(--chalk);text-decoration:none;font:700 18px/1 var(--display)}
+.tw-home span{overflow:hidden;padding-top:4px;text-overflow:ellipsis;white-space:nowrap}
+.tw-home svg{flex:none;color:var(--gold)}
+.tw-home:hover{background:var(--soft)}
+.tw-menu-btn{display:none;flex:none;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.js .tw-menu-btn{display:inline-flex}
+.tw-menu-btn:hover,.tw-menu-btn[aria-expanded=true]{border-color:var(--gold)}
+.tw-topbar-end{display:flex;flex:none;align-items:center;gap:8px;margin-left:auto}
+.tw-side{position:fixed;z-index:39;top:var(--bar);bottom:0;left:0;width:min(var(--side),calc(100% - 44px));padding:18px 12px 40px;overflow:hidden auto;overscroll-behavior:contain;border-right:1px solid var(--line);background:var(--alt);box-shadow:12px 0 32px rgba(0,0,0,.35);transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility 0s linear .22s}
+.tw-backdrop{position:fixed;z-index:38;inset:var(--bar) 0 0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s}
+body.tw-side-open{overflow:hidden}
+body.tw-side-open .tw-side{transform:none;visibility:visible;transition-delay:0s}
+body.tw-side-open .tw-backdrop{opacity:1;visibility:visible;transition-delay:0s}
+.tw-side h2{margin:0 0 6px;padding:0 10px;color:var(--gold);font:700 17px/1.3 var(--display)}
+.tw-side-group+.tw-side-group{margin-top:22px}
+.tw-side ul,.tw-side ol{margin:0;padding:0;list-style:none}
+.tw-side :focus-visible{outline-offset:-2px}
+.tw-side-mod summary{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;border-radius:8px;color:var(--chalk);cursor:pointer;font-size:14px;font-weight:500;line-height:1.3;list-style:none}
+.tw-side-mod summary::-webkit-details-marker{display:none}
+.tw-side-mod summary::after{content:"";flex:none;width:7px;height:7px;margin:0 3px 0 auto;border-right:1.5px solid var(--dim);border-bottom:1.5px solid var(--dim);transform:rotate(-45deg);transition:transform .15s}
+.tw-side-mod[open]>summary::after{transform:rotate(45deg)}
+.tw-side-mod summary:hover{background:var(--soft)}
+.tw-side-num{display:grid;flex:none;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;color:var(--mint);font:600 11px var(--mono)}
+.tw-side-mod[data-current]>summary .tw-side-num{border-color:var(--gold);background:var(--gold);color:var(--board)}
+.tw-side .tw-side-pages{margin:2px 0 8px 22px;border-left:1px solid var(--line)}
+.tw-side-pages a{display:block;margin-left:-1px;padding:6px 10px 6px 14px;border-left:2px solid transparent;border-radius:0 6px 6px 0;color:var(--dim);font-size:13px;line-height:1.4;text-decoration:none}
+.tw-side-pages a:hover{background:var(--soft);color:var(--chalk)}
+.tw-side-pages a[aria-current=page]{border-left-color:var(--gold);background:var(--soft);color:var(--gold);font-weight:600}
+.cm-hero .eyebrow{margin-bottom:14px}
+html:not(.js) body:not(.has-side) .tw-side{display:none}
+@media (min-width:1000px){
+  body.has-side .tw-side{width:var(--side);box-shadow:none;transform:none;visibility:visible;transition:none}
+  body.has-side .tw-backdrop,body.has-side .tw-menu-btn{display:none}
+  body.has-side .tw-page{padding-left:var(--side)}
+}
+@media (max-width:999.98px){
+  html:not(.js) body.has-side .tw-side{position:static;width:auto;border:0;border-bottom:1px solid var(--line);box-shadow:none;transform:none;visibility:visible}
+}
+@media (max-width:480px){
+  .tw-topbar-in{gap:6px;padding:0 10px}
+  .tw-topbar-end{gap:6px}
+  .tw-home{gap:7px;padding:0 6px 0 4px;font-size:16px}
+  .tw-menu-label{display:none}
+  .tw-menu-btn,.tw-search-btn,.tw-cheat-btn{padding:6px 8px;font-size:12px}
+}
+@media (max-width:359.98px){.tw-home span{display:none}}
+@media print{
+  .tw-topbar,.tw-side,.tw-backdrop{display:none!important}
+  body.has-side .tw-page{padding-left:0}
+  body.tw-side-open,body.tw-cheat-open{overflow:visible;padding-right:0}
+}
+
+    </style>
+  </head>
+  <body class="has-side" data-root="../" data-file="m11-bash-expert/index.html">
+    <header class="tw-topbar"><div class="tw-topbar-in"><a class="tw-home" href="../" aria-label="Terminal Workflow home"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg><span>Terminal Workflow</span></a><button class="tw-menu-btn" type="button" aria-controls="tw-side" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="tw-menu-label">Menu</span></button><div class="tw-topbar-end"><button class="tw-search-btn" type="button" data-tw-search aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false"><span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button></div></div></header>
+    <nav class="tw-side" id="tw-side" aria-label="Course modules"><section class="tw-side-group"><h2>Linux &amp; Bash</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">9</span><span class="tw-side-title">Find and text tools</span></summary><ol class="tw-side-pages"><li><a href="../m9-find-text/#module-1">Find files</a></li><li><a href="../m9-find-text/#module-2">Search inside files</a></li><li><a href="../m9-find-text/#module-3">Slice, sort and count</a></li><li><a href="../m9-find-text/#module-4">Transform</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">10</span><span class="tw-side-title">Bash basics</span></summary><ol class="tw-side-pages"><li><a href="../m10-bash-basics/#module-1">Variables, quoting and exit codes</a></li><li><a href="../m10-bash-basics/#module-2">Decisions</a></li><li><a href="../m10-bash-basics/#module-3">Loops</a></li><li><a href="../m10-bash-basics/#module-4">Script input</a></li></ol></details></li><li><details class="tw-side-mod" open data-current><summary><span class="tw-side-num">11</span><span class="tw-side-title">Bash expert</span></summary><ol class="tw-side-pages"><li><a href="#module-1" data-page="1" aria-current="page">Functions, strings and arrays</a></li><li><a href="#module-2" data-page="2">Safe scripts</a></li><li><a href="#module-3" data-page="3">Redirection, here-docs and process substitution</a></li><li><a href="#module-4" data-page="4">Ready-made scripts</a></li></ol></details></li></ul></section><section class="tw-side-group"><h2>tmux &amp; Neovim</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">1</span><span class="tw-side-title">tmux and the shell</span></summary><ol class="tw-side-pages"><li><a href="../m1-tmux/#module-1">Sessions that outlive the window</a></li><li><a href="../m1-tmux/#module-2">Windows and panes</a></li><li><a href="../m1-tmux/#module-3">Copy mode, the command line and fzf</a></li><li><a href="../m1-tmux/#module-4">Make tmux yours</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">2</span><span class="tw-side-title">Neovim essentials</span></summary><ol class="tw-side-pages"><li><a href="../m2-nvim-essentials/#module-1">Open, move, save, quit</a></li><li><a href="../m2-nvim-essentials/#module-2">Move fast and search</a></li><li><a href="../m2-nvim-essentials/#module-3">Delete, yank, paste, undo</a></li><li><a href="../m2-nvim-essentials/#module-4">Buffers, terminals, splits, tabs, leader</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">3</span><span class="tw-side-title">Power editing</span></summary><ol class="tw-side-pages"><li><a href="../m3-power-editing/#module-1">Operators, motions, text objects</a></li><li><a href="../m3-power-editing/#module-2">Visual mode, macros, search and replace</a></li><li><a href="../m3-power-editing/#module-3">Indent, registers, marks, many files</a></li><li><a href="../m3-power-editing/#module-4">Change every copy of a word</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">4</span><span class="tw-side-title">Worktrees and the agent loop</span></summary><ol class="tw-side-pages"><li><a href="../m4-worktrees/#module-1">Parallel branches without stashing</a></li><li><a href="../m4-worktrees/#module-2">Worktrees in tmux</a></li><li><a href="../m4-worktrees/#module-3">The three-window pattern</a></li><li><a href="../m4-worktrees/#module-4">Test, ship, clean up</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">5</span><span class="tw-side-title">Code intelligence and git</span></summary><ol class="tw-side-pages"><li><a href="../m5-lsp-git/#module-1">Navigate code with LSP</a></li><li><a href="../m5-lsp-git/#module-2">Git inside Neovim</a></li><li><a href="../m5-lsp-git/#module-3">Refactor, files and project search</a></li><li><a href="../m5-lsp-git/#module-4">Tests and the debugger</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">6</span><span class="tw-side-title">Plugins and the key map</span></summary><ol class="tw-side-pages"><li><a href="../m6-plugins-keymaps/#module-1">Jump and select</a></li><li><a href="../m6-plugins-keymaps/#module-2">Sessions, history and UI helpers</a></li><li><a href="../m6-plugins-keymaps/#module-3">The g, [ ], and z maps</a></li><li><a href="../m6-plugins-keymaps/#module-4">Ctrl, Space and colon maps</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">7</span><span class="tw-side-title">Expert Neovim</span></summary><ol class="tw-side-pages"><li><a href="../m7-expert/#module-1">Motions and the dot formula</a></li><li><a href="../m7-expert/#module-2">Expert macros and registers</a></li><li><a href="../m7-expert/#module-3">Quickfix, marks, substitution and :g</a></li><li><a href="../m7-expert/#module-4">Windows, insert, block, ranges and undo</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">8</span><span class="tw-side-title">Coming from VS Code</span></summary><ol class="tw-side-pages"><li><a href="../m8-from-vscode/#module-1">Your VS Code shortcuts in Neovim</a></li><li><a href="../m8-from-vscode/#module-2">View, layout and focus</a></li><li><a href="../m8-from-vscode/#module-3">Editing helpers VS Code gave you free</a></li></ol></details></li></ul></section></nav><div class="tw-backdrop" id="tw-backdrop"></div>
+    <div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
+    <aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet"><header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2><button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header><input id="tw-cheat-q" class="tw-q" type="search" autocomplete="off" spellcheck="false" aria-label="Filter the cheat sheet" placeholder="Filter keys and actions" /><div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div><div id="tw-cheat-body" class="tw-cheat-body"></div></aside>
+    <div class="tw-page">
+    <main id="lessonRoot">
+<section class="lesson sq-page active" id="module-1" data-module="1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false"><header class="lesson-header"><div class="eyebrow">Bash expert · Page 1 of 4</div><h1>Functions, strings and arrays</h1><p class="subtitle">Reuse a command, reshape a filename and keep a list of values whole.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Use functions for repeated work, expansions for text and arrays for lists.</p><ul class="kitchen-links"><li><strong>Call a function <span class="kl-nowrap">→ greet Ada.</span></strong> $1 belongs to this call.</li><li><strong>Capture a function&#x27;s output <span class="kl-nowrap">→ value=$(fn).</span></strong> return sets a status; echo prints text.</li><li><strong>Strip a file suffix <span class="kl-nowrap">→ ${f%.txt}.</span></strong> The shortest matching suffix is removed.</li><li><strong>Pass every array element <span class="kl-nowrap">→ &quot;${a[@]}&quot;.</span></strong> Each value stays one argument.</li></ul></div></div><div class="block"><figure class="tw-codebox tw-cmd" id="module-1-setup"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get the practice files</span><button class="tw-copy" type="button" aria-label="Copy: Get the practice files">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> ~/tw &amp;&amp; <span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">curl</span> <span class="hl-f">-fsSO</span> https://nvim-workflow.vercel.app/practice/orders.py <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/notes.md <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/todo.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> shows orders.py, notes.md, todo.txt.</p></figure></div><div class="block" id="module-1-problem"><div class="word-problem"><span class="tag">The problem</span><p>A helper changes a caller&#x27;s variable, or a list loses filenames that contain spaces.</p><div class="result-box"><strong>The fix:</strong> Keep helper variables local. Store lists in arrays and expand them with <code>&quot;${a[@]}&quot;</code>.</div></div></div><section class="block" id="module-1-d1"><div class="section-label">Type it</div><h2>Reuse a function</h2><p class="section-intro">Type <code>bash</code> first. Run this page&#x27;s blocks in order in that shell. Type <code>exit</code> to return to zsh.</p><figure class="tw-codebox tw-cmd" id="module-1-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create sample filenames for functions, strings and arrays</span><button class="tw-copy" type="button" aria-label="Copy: Create sample filenames for functions, strings and arrays">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/m11-functions/samples &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw/m11-functions
+<span class="hl-cmd">cat</span> &gt; names.txt &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">samples/red</span> apple.txt
+<span class="hl-cmd">samples/blue</span> plum.txt
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;red\n&#x27;</span> &gt; <span class="hl-s">&#x27;samples/red apple.txt&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;blue\n&#x27;</span> &gt; <span class="hl-s">&#x27;samples/blue plum.txt&#x27;</span>
+<span class="hl-cmd">cat</span> names.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>samples/red apple.txt</code>; then <code>samples/blue plum.txt</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Define and call a function with its own arguments</span><button class="tw-copy" type="button" aria-label="Copy: Define and call a function with its own arguments">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">greet</span>() { printf <span class="hl-s">&#x27;Hello, %s (%s arguments)\n&#x27;</span> <span class="hl-s">&quot;$1&quot;</span> <span class="hl-s">&quot;$#&quot;</span>; }
+<span class="hl-cmd">greet</span> Ada
+<span class="hl-cmd">greet</span> <span class="hl-s">&#x27;Bo Lee&#x27;</span> extra</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Hello, Ada (1 arguments)</code>; then <code>Hello, Bo Lee (2 arguments)</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Keep a function variable local to the call</span><button class="tw-copy" type="button" aria-label="Copy: Keep a function variable local to the call">Copy</button></figcaption><pre class="sq-code"><code>name=outside
+<span class="hl-cmd">show_name</span>() { local name=<span class="hl-v">$1</span>; <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;inside: %s\n&#x27;</span> <span class="hl-s">&quot;$name&quot;</span>; }
+<span class="hl-cmd">show_name</span> Ada
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;outside: %s\n&#x27;</span> <span class="hl-s">&quot;$name&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>inside: Ada</code>; then <code>outside: outside</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Capture function output and check its return code separately</span><button class="tw-copy" type="button" aria-label="Copy: Capture function output and check its return code separately">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">label</span>() { echo <span class="hl-s">&quot;report: $1&quot;</span>; <span class="hl-cmd">return</span> <span class="hl-n">0</span>; }
+value=<span class="hl-v">$(</span><span class="hl-cmd">label</span> sales); status=<span class="hl-v">$?</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;output=%s status=%s\n&#x27;</span> <span class="hl-s">&quot;$value&quot;</span> <span class="hl-s">&quot;$status&quot;</span>
+<span class="hl-cmd">reject</span>() { echo <span class="hl-s">&#x27;not ready&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">return</span> <span class="hl-n">7</span>; }
+value=<span class="hl-v">$(</span><span class="hl-cmd">reject</span>); status=<span class="hl-v">$?</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;output=[%s] status=%s\n&#x27;</span> <span class="hl-s">&quot;$value&quot;</span> <span class="hl-s">&quot;$status&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>output=report: sales status=0</code>; then <code>not ready</code>; then <code>output=[] status=7</code>.</p></figure><p class="tw-text"><code>return</code> takes a status from 0 to 255, not a string. <code>echo</code> or <code>printf</code> sends data to stdout. <code>$(fn)</code> captures stdout and strips trailing newlines. It runs in a subshell, so variable changes there do not reach the caller. A function without <code>return</code> uses its last command&#x27;s status.</p></section><section class="block" id="module-1-d2"><div class="section-label">Type it</div><h2>Reshape strings and paths</h2><p class="section-intro">These expansions change the value you print. They do not rename a file.</p><figure class="tw-codebox tw-cmd" id="module-1-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Count characters, slice text and replace one or every match</span><button class="tw-copy" type="button" aria-label="Copy: Count characters, slice text and replace one or every match">Copy</button></figcaption><pre class="sq-code"><code>s=banana
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;length=%s first-three=%s\n&#x27;</span> <span class="hl-s">&quot;${#s}&quot;</span> <span class="hl-s">&quot;${s:0:3}&quot;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;first=%s all=%s\n&#x27;</span> <span class="hl-s">&quot;${s/a/A}&quot;</span> <span class="hl-s">&quot;${s//a/A}&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>length=6 first-three=ban</code>; then <code>first=bAnana all=bAnAnA</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Strip a suffix, get a filename and get its parent folder</span><button class="tw-copy" type="button" aria-label="Copy: Strip a suffix, get a filename and get its parent folder">Copy</button></figcaption><pre class="sq-code"><code>f=report.txt; p=reports/2026/report.txt
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;stem=%s\n&#x27;</span> <span class="hl-s">&quot;${f%.txt}&quot;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;filename=%s parent=%s\n&#x27;</span> <span class="hl-s">&quot;${p##*/}&quot;</span> <span class="hl-s">&quot;${p%/*}&quot;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;short-prefix=%s long-prefix=%s\n&#x27;</span> <span class="hl-s">&quot;${p#*/}&quot;</span> <span class="hl-s">&quot;${p##*/}&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>stem=report</code>; then <code>filename=report.txt parent=reports/2026</code>; then <code>short-prefix=2026/report.txt long-prefix=report.txt</code>.</p></figure><p class="tw-text"><code>#</code> removes a matching prefix and <code>%</code> a matching suffix. Double them to remove the longest match. The pattern is a shell glob. <code>${p%/*}</code> stays unchanged if <code>p</code> has no slash; use <code>dirname</code> when you need that case handled.</p><figure class="tw-codebox tw-cmd" id="module-1-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Change text to uppercase or lowercase on Bash 3.2</span><button class="tw-copy" type="button" aria-label="Copy: Change text to uppercase or lowercase on Bash 3.2">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s\n&#x27;</span> <span class="hl-s">&#x27;Hello Ada&#x27;</span> | LC_ALL=C <span class="hl-cmd">tr</span> <span class="hl-s">&#x27;[:lower:]&#x27;</span> <span class="hl-s">&#x27;[:upper:]&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s\n&#x27;</span> <span class="hl-s">&#x27;Hello Ada&#x27;</span> | LC_ALL=C <span class="hl-cmd">tr</span> <span class="hl-s">&#x27;[:upper:]&#x27;</span> <span class="hl-s">&#x27;[:lower:]&#x27;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>HELLO ADA</code>; then <code>hello ada</code>.</p></figure><p class="tw-text">macOS <code>/bin/bash</code> is 3.2 here. <code>${s^^}</code> for uppercase and <code>${s,,}</code> for lowercase are Bash 4+ only. Many GNU/Linux systems have a newer Bash; <code>tr</code> works on both. These <code>LC_ALL=C</code> examples convert ASCII letters.</p></section><section class="block" id="module-1-d3"><div class="section-label">Type it</div><h2>Keep a list in an array</h2><p class="section-intro">An indexed array starts at 0. Use <code>[@]</code> inside quotes to keep each value whole.</p><figure class="tw-codebox tw-cmd" id="module-1-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create an array, add an element and count or slice its values</span><button class="tw-copy" type="button" aria-label="Copy: Create an array, add an element and count or slice its values">Copy</button></figcaption><pre class="sq-code"><code>a=(<span class="hl-cmd">red</span> <span class="hl-s">&#x27;green pear&#x27;</span> blue)
+<span class="hl-cmd">a+=</span>(gold)
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;count=%s first=%s\n&#x27;</span> <span class="hl-s">&quot;${#a[@]}&quot;</span> <span class="hl-s">&quot;${a[0]}&quot;</span>
+<span class="hl-k">for</span> item <span class="hl-k">in</span> <span class="hl-s">&quot;${a[@]}&quot;</span>; <span class="hl-k">do</span> <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;[%s]\n&#x27;</span> <span class="hl-s">&quot;$item&quot;</span>; <span class="hl-k">done</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;slice=[%s]\n&#x27;</span> <span class="hl-s">&quot;${a[@]:1:2}&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>count=4 first=red</code>; then <code>[red]</code>; then <code>[green pear]</code>; then <code>[blue]</code>; then <code>[gold]</code>; then <code>slice=[green pear]</code>; then <code>slice=[blue]</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Load filenames with spaces into an array from a file</span><button class="tw-copy" type="button" aria-label="Copy: Load filenames with spaces into an array from a file">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-functions
+files=()
+<span class="hl-k">while</span> IFS= <span class="hl-cmd">read</span> <span class="hl-f">-r</span> file || <span class="hl-cmd">[[</span> <span class="hl-f">-n</span> <span class="hl-v">$file</span> ]]; <span class="hl-k">do</span> <span class="hl-cmd">files+=</span>(<span class="hl-s">&quot;$file&quot;</span>); <span class="hl-k">done</span> &lt; names.txt
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;files=%s\n&#x27;</span> <span class="hl-s">&quot;${#files[@]}&quot;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;[%s]\n&#x27;</span> <span class="hl-s">&quot;${files[@]}&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>files=2</code>; then <code>[samples/red apple.txt]</code>; then <code>[samples/blue plum.txt]</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Load arbitrary filenames into an array with NUL separators</span><button class="tw-copy" type="button" aria-label="Copy: Load arbitrary filenames into an array with NUL separators">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-functions
+files=()
+<span class="hl-k">while</span> IFS= <span class="hl-cmd">read</span> <span class="hl-f">-r</span> <span class="hl-f">-d</span> <span class="hl-s">&#x27;&#x27;</span> file; <span class="hl-k">do</span> <span class="hl-cmd">files+=</span>(<span class="hl-s">&quot;$file&quot;</span>); <span class="hl-k">done</span> &lt; &lt;(find samples <span class="hl-f">-type</span> f <span class="hl-f">-name</span> <span class="hl-s">&#x27;*.txt&#x27;</span> <span class="hl-f">-print0</span>)
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;files=%s\n&#x27;</span> <span class="hl-s">&quot;${#files[@]}&quot;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;[%s]\n&#x27;</span> <span class="hl-s">&quot;${files[@]}&quot;</span> | LC_ALL=C <span class="hl-cmd">sort</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>files=2</code>; then <code>[samples/blue plum.txt]</code>; then <code>[samples/red apple.txt]</code>.</p></figure><p class="tw-text">A line list keeps spaces and backslashes but cannot encode a newline inside a filename. <code>find -print0</code> and <code>read -d &#x27;&#x27;</code> use NUL separators, so the array preserves those names too. Sorting printed names here only makes these sample results stable. <code>mapfile</code> is Bash 4+ only. Page 3 explains <code>&lt; &lt;(command)</code>.</p></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Functions, strings and arrays at a glance</h2><details class="rule-card" id="module-1-r1" name="rules-1" open><summary><span><span class="num">01</span>Reuse a command</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Keep data and status separate.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Define and call a helper</td><td><code>greet() { echo &quot;Hi $1&quot;; }; greet Ada</code></td></tr><tr><td>Keep a helper variable local</td><td><code>local name=$1</code> inside the function</td></tr><tr><td>Return failure</td><td><code>return 7</code></td></tr><tr><td>Capture printed data</td><td><code>value=$(fn); status=$?</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r2" name="rules-1"><summary><span><span class="num">02</span>Reshape a string</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Patterns are globs, not regular expressions.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Count characters / take three</td><td><code>${#s}</code> / <code>${s:0:3}</code></td></tr><tr><td>Strip .txt / get the filename</td><td><code>${f%.txt}</code> / <code>${f##*/}</code></td></tr><tr><td>Get a parent path containing a slash</td><td><code>${p%/*}</code></td></tr><tr><td>Replace first / every a with b</td><td><code>${s/a/b}</code> / <code>${s//a/b}</code></td></tr><tr><td>Make ASCII uppercase on Bash 3.2</td><td><code>printf &#x27;%s\n&#x27; &quot;$s&quot; | LC_ALL=C tr &#x27;[:lower:]&#x27; &#x27;[:upper:]&#x27;</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r3" name="rules-1"><summary><span><span class="num">03</span>Keep a list whole</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Quote the @ expansion.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Create / append</td><td><code>a=(one &#x27;two words&#x27;); a+=(three)</code></td></tr><tr><td>Count values / read the first</td><td><code>${#a[@]}</code> / <code>${a[0]}</code></td></tr><tr><td>Loop over values</td><td><code>for x in &quot;${a[@]}&quot;; do ...; done</code></td></tr><tr><td>Take two values starting at index 1</td><td><code>&quot;${a[@]:1:2}&quot;</code></td></tr><tr><td>Load a line list</td><td><code>while IFS= read -r f || [[ -n $f ]]; do a+=(&quot;$f&quot;); done &lt; list</code></td></tr></tbody></table></div></details></section><section class="block" id="module-1-worked"><div class="section-label">Worked application</div><h2>Turn a report path into a short label</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You need the basename without .txt, but must keep the original path.</p><figure class="tw-codebox tw-cmd" id="module-1-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-functions</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>short_label() { local f=${1##*/}; echo &quot;${f%.txt}&quot;; }</code></span> · <span>Strip the longest prefix ending in a slash, then the suffix.</span></li><li><span><em>Keys:</em> <code>result=$(short_label &#x27;reports/monthly sales.txt&#x27;)</code></span> · <span>Capture what the function prints.</span></li><li><span><em>Keys:</em> <code>printf &#x27;%s\n&#x27; &quot;$result&quot;</code></span> · <span>Print the label.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>monthly sales</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> The function takes one path, keeps its helper local and prints one value.</div></div></section><section class="block" id="module-1-practice"><div class="section-label">Your turn</div><h2>Practice: functions and lists</h2><div class="practice-card" id="module-1-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>value=$(reject)</code> capture no text when reject prints to stderr and returns 7?</p><details class="hint"><summary>hint</summary><p>Which stream does command substitution capture?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>It captures stdout only.</li><li>The error text stays on stderr.</li><li>Read the assignment&#x27;s status immediately with <code>$?</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>value</code> is empty and the status is 7.</div></div></details></div><div class="practice-card" id="module-1-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Get report.txt from reports/2026/report.txt, then remove .txt.</p><details class="hint"><summary>hint</summary><p>Strip a prefix, then a suffix.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Write <code>f=${p##*/}</code>.</li><li>Write <code>echo &quot;${f%.txt}&quot;</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>${p##*/}</code> gives report.txt; <code>${f%.txt}</code> gives report.</div></div></details></div><div class="practice-card" id="module-1-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Print two array elements starting at index 1.</p><details class="hint"><summary>hint</summary><p>Use an array slice.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Start at 1 and take 2.</li><li>Keep the expansion quoted.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>printf &#x27;%s\n&#x27; &quot;${a[@]:1:2}&quot;</code>.</div></div></details></div><div class="practice-card" id="module-1-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Why does unquoted ${a[@]} split green pear?</p><details class="hint"><summary>hint</summary><p>The quotes belong around the whole expansion.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Unquoted elements undergo word splitting and glob expansion.</li><li>Quoted <code>&quot;${a[@]}&quot;</code> keeps one argument per element.</li></ol><div class="solution-final"><strong>Final answer:</strong> Use <code>&quot;${a[@]}&quot;</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-2" data-module="2" role="tabpanel" aria-labelledby="tab-2" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Bash expert · Page 2 of 4</div><h1>Safe scripts</h1><p class="subtitle">Catch failed commands, retain temporary work and trace the line that failed.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Enable failure checks inside scripts, then handle expected failures explicitly.</p><ul class="kitchen-links"><li><strong>Catch three kinds of bug <span class="kl-nowrap">→ set -euo pipefail.</span></strong> Failed commands, unset values and broken pipelines.</li><li><strong>Clean up on exit <span class="kl-nowrap">→ trap cleanup EXIT.</span></strong> Preserve the script&#x27;s original status.</li><li><strong>Report a failing line <span class="kl-nowrap">→ trap ... ERR.</span></strong> Use set -E to inherit ERR in functions.</li><li><strong>Trace a script <span class="kl-nowrap">→ bash -x trace.sh.</span></strong> Shows expanded commands on stderr.</li></ul></div></div><div class="block" id="module-2-problem"><div class="word-problem"><span class="tag">The problem</span><p>A failed step goes unnoticed, temporary work is left in the active folder and the script reports success.</p><div class="result-box"><strong>The fix:</strong> Catch unexpected failure, keep an EXIT cleanup and use explicit checks for expected failure.</div></div></div><section class="block" id="module-2-d1"><div class="section-label">Type it</div><h2>Catch bugs early</h2><p class="section-intro">Type <code>bash</code> first. Run this page&#x27;s blocks in order in that shell. Type <code>exit</code> to return to zsh. The options below run in child shells so your interactive shell stays open.</p><figure class="tw-codebox tw-cmd" id="module-2-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create a script to test failure checks and debugging</span><button class="tw-copy" type="button" aria-label="Copy: Create a script to test failure checks and debugging">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/m11-safe/retained &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw/m11-safe
+<span class="hl-cmd">cat</span> &gt; trace.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+name=Ada
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;Hello %s\n&#x27;</span> <span class="hl-s">&quot;$name&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">cat</span> trace.sh</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>#!/bin/bash</code>; then <code>name=Ada</code>; then <code>printf &#x27;Hello %s\n&#x27; &quot;$name&quot;</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Stop after a failed command with set -e</span><button class="tw-copy" type="button" aria-label="Copy: Stop after a failed command with set -e">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;false; echo &quot;bug: continued&quot;&#x27;</span>
+<span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;set -e; false; echo &quot;unreachable&quot;&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;checked exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>bug: continued</code>; then <code>checked exit=1</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Catch an unset variable with set -u</span><button class="tw-copy" type="button" aria-label="Copy: Catch an unset variable with set -u">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;unset report_dir; printf &quot;bug: empty=[%s]\n&quot; &quot;$report_dir&quot;&#x27;</span>
+<span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;set -u; unset report_dir; printf &quot;%s\n&quot; &quot;$report_dir&quot;&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;checked exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>bug: empty=[]</code>; then <code>bash: report_dir: unbound variable</code>; then <code>checked exit=127</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Catch a failed pipeline stage with pipefail</span><button class="tw-copy" type="button" aria-label="Copy: Catch a failed pipeline stage with pipefail">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;false | cat; printf &quot;bug: pipeline exit=%s\n&quot; &quot;$?&quot;&#x27;</span>
+<span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;set -euo pipefail; false | cat; echo &quot;unreachable&quot;&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;checked exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>bug: pipeline exit=0</code>; then <code>checked exit=1</code>.</p></figure><p class="tw-text"><code>-e</code> stops on eligible failures; <code>-u</code> rejects unset values; <code>pipefail</code> makes a pipeline return the rightmost nonzero status. <code>-e</code> and ERR skip failures tested by <code>if</code>, <code>while</code>, <code>!</code> and most <code>&amp;&amp;</code> / <code>||</code> lists. A function called as a condition also runs without errexit protection. Check important steps explicitly there. <code>-u</code> still allows empty values, so validate required input too.</p></section><section class="block" id="module-2-d2"><div class="section-label">Type it</div><h2>Retain work and report errors</h2><p class="section-intro">Put cleanup in EXIT so it runs after success or failure. This exercise moves work to retained/ instead of deleting it.</p><figure class="tw-codebox tw-cmd" id="module-2-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Clean up a mktemp workspace on EXIT without deleting its files</span><button class="tw-copy" type="button" aria-label="Copy: Clean up a mktemp workspace on EXIT without deleting its files">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-safe
+<span class="hl-cmd">cat</span> &gt; cleanup.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-euo</span> pipefail
+work=<span class="hl-v">$(</span><span class="hl-cmd">mktemp</span> <span class="hl-f">-d</span> <span class="hl-s">&quot;$PWD/work.XXXXXX&quot;</span>)
+<span class="hl-cmd">cleanup</span>() {
+  <span class="hl-cmd">local</span> status=<span class="hl-v">$?</span>
+  <span class="hl-k">if</span> <span class="hl-cmd">mv</span> <span class="hl-s">&quot;$work&quot;</span> retained/; <span class="hl-k">then</span>
+    <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;cleanup: work moved into retained/&#x27;</span>
+  <span class="hl-k">else</span>
+    <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;cleanup: move failed; work remains in place&#x27;</span> &gt;&amp;<span class="hl-n">2</span>
+    <span class="hl-cmd">[[</span> <span class="hl-v">$status</span> <span class="hl-f">-ne</span> <span class="hl-n">0</span> ]] || status=1
+  <span class="hl-k">fi</span>
+  <span class="hl-cmd">return</span> <span class="hl-s">&quot;$status&quot;</span>
+}
+<span class="hl-cmd">trap</span> cleanup EXIT
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;draft\n&#x27;</span> &gt; <span class="hl-s">&quot;$work/report.txt&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;work: draft written&#x27;</span>
+<span class="hl-cmd">exit</span> <span class="hl-n">7</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> cleanup.sh
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;script exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>work: draft written</code>; then <code>cleanup: work moved into retained/</code>; then <code>script exit=7</code>.</p></figure><p class="tw-text"><code>mktemp -d</code> creates a unique private directory. An EXIT trap runs on normal shell exit, including exit after <code>-e</code>; it cannot run after SIGKILL or a power loss. Capture <code>$?</code> before cleanup commands overwrite it. The retained files remain available for inspection.</p><figure class="tw-codebox tw-cmd" id="module-2-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Print the failing line and status with an ERR trap</span><button class="tw-copy" type="button" aria-label="Copy: Print the failing line and status with an ERR trap">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-safe
+<span class="hl-cmd">cat</span> &gt; fail.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-Eeuo</span> pipefail
+<span class="hl-cmd">trap</span> <span class="hl-s">&#x27;status=$?; printf &quot;error: line %s status %s\n&quot; &quot;$LINENO&quot; &quot;$status&quot; &gt;&amp;2&#x27;</span> ERR
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;starting&#x27;</span>
+<span class="hl-cmd">false</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;unreachable&#x27;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> fail.sh
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;script exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>starting</code>; then <code>error: line 5 status 1</code>; then <code>script exit=1</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check exit codes and run a fallback for an expected failure</span><button class="tw-copy" type="button" aria-label="Copy: Check exit codes and run a fallback for an expected failure">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-k">if</span> <span class="hl-cmd">grep</span> <span class="hl-f">-q</span> <span class="hl-s">&#x27;Nobody&#x27;</span> trace.sh; <span class="hl-k">then</span> <span class="hl-cmd">echo</span> found; <span class="hl-k">else</span> status=<span class="hl-v">$?</span>; <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;grep exit=%s\n&#x27;</span> <span class="hl-s">&quot;$status&quot;</span>; <span class="hl-k">fi</span>
+<span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;set -euo pipefail; false || echo &quot;fallback: cached result&quot;; echo &quot;continuing&quot;&#x27;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>grep exit=1</code>; then <code>fallback: cached result</code>; then <code>continuing</code>.</p></figure><p class="tw-text">For grep, 0 means found, 1 means no match and 2 means an error. A fallback after <code>||</code> runs for any failure: distinguish statuses if they need different handling. Save <code>$?</code> before printing anything.</p><figure class="tw-codebox tw-cmd" id="module-2-d2-b6"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check that a required tool exists with command -v</span><button class="tw-copy" type="button" aria-label="Copy: Check that a required tool exists with command -v">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-k">if</span> <span class="hl-cmd">command</span> <span class="hl-f">-v</span> tar &gt;/dev/null <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span>; <span class="hl-k">then</span> <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;tar: available&#x27;</span>; <span class="hl-k">else</span> <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;tar: missing&#x27;</span>; <span class="hl-k">fi</span>
+<span class="hl-k">if</span> <span class="hl-cmd">command</span> <span class="hl-f">-v</span> tw_m11_missing_tool &gt;/dev/null <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span>; <span class="hl-k">then</span> <span class="hl-cmd">echo</span> available; <span class="hl-k">else</span> <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;missing tool: use fallback&#x27;</span>; <span class="hl-k">fi</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>tar: available</code>; then <code>missing tool: use fallback</code>.</p></figure></section><section class="block" id="module-2-d3"><div class="section-label">Type it</div><h2>See what ran</h2><p class="section-intro">Trace a whole script or just the part you are investigating.</p><figure class="tw-codebox tw-cmd" id="module-2-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Trace a whole script with bash -x</span><button class="tw-copy" type="button" aria-label="Copy: Trace a whole script with bash -x">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-safe
+PS4=<span class="hl-s">&#x27;+ &#x27;</span> bash <span class="hl-f">-x</span> trace.sh <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>+ name=Ada</code>; then <code>+ printf &#x27;Hello %s\n&#x27; Ada</code>; then <code>Hello Ada</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Trace one section with set -x and turn it off with set +x</span><button class="tw-copy" type="button" aria-label="Copy: Trace one section with set -x and turn it off with set +x">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">bash</span> <span class="hl-f">-c</span> <span class="hl-s">&#x27;PS4=&quot;+ &quot;; set -x; printf &quot;traced\n&quot;; set +x; printf &quot;quiet\n&quot;&#x27;</span> <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>+ printf &#x27;traced\n&#x27;</code>; then <code>traced</code>; then <code>+ set +x</code>; then <code>quiet</code>.</p></figure><p class="tw-text">Tracing prints expanded arguments, so enable it only around values that are safe to display. <code>set +x</code> stops the trace.</p><figure class="tw-codebox tw-cmd" id="module-2-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Check whether ShellCheck is installed before linting a script</span><button class="tw-copy" type="button" aria-label="Copy: Check whether ShellCheck is installed before linting a script">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-safe
+<span class="hl-k">if</span> <span class="hl-cmd">command</span> <span class="hl-f">-v</span> shellcheck &gt;/dev/null <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span>; <span class="hl-k">then</span>
+  <span class="hl-cmd">shellcheck</span> trace.sh &amp;&amp; <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;ShellCheck: passed&#x27;</span>
+<span class="hl-k">else</span>
+  <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;ShellCheck: not installed&#x27;</span>
+<span class="hl-k">fi</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ShellCheck: not installed</code>.</p></figure><p class="tw-text">Install ShellCheck on macOS with <code>brew install shellcheck</code>; on Debian/Ubuntu use <code>sudo apt install shellcheck</code>. Then run <code>shellcheck trace.sh</code>. Installation and lint results are not assumed here. Bash 3.2 supports all options and traps on this page.</p></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Safe scripts at a glance</h2><details class="rule-card" id="module-2-r1" name="rules-2" open><summary><span><span class="num">01</span>Catch unexpected failure</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Use in scripts; handle expected failure explicitly.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Stop after eligible failures</td><td><code>set -e</code></td></tr><tr><td>Catch an unset value</td><td><code>set -u</code></td></tr><tr><td>Catch a failed pipeline stage</td><td><code>set -o pipefail</code></td></tr><tr><td>Enable all three</td><td><code>set -euo pipefail</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r2" name="rules-2"><summary><span><span class="num">02</span>Handle failure and cleanup</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Keep the status before doing other work.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Create private temporary work</td><td><code>work=$(mktemp -d &quot;$PWD/work.XXXXXX&quot;)</code></td></tr><tr><td>Run cleanup when the shell exits</td><td><code>trap cleanup EXIT</code></td></tr><tr><td>Report eligible failures with line numbers</td><td><code>trap &#x27;printf &quot;error: line %s\n&quot; &quot;$LINENO&quot; &gt;&amp;2&#x27; ERR</code></td></tr><tr><td>Inherit ERR in functions and subshells</td><td><code>set -E</code></td></tr><tr><td>Handle a failure with a fallback</td><td><code>command || fallback</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r3" name="rules-2"><summary><span><span class="num">03</span>Find why a script fails</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Start with a small trace.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Check for a required command</td><td><code>command -v tar &gt;/dev/null 2&gt;&amp;1</code></td></tr><tr><td>Trace a script / a section</td><td><code>bash -x file.sh</code> / <code>set -x</code> then <code>set +x</code></td></tr><tr><td>Check ShellCheck is installed</td><td><code>command -v shellcheck</code></td></tr><tr><td>Lint a script when installed</td><td><code>shellcheck file.sh</code></td></tr></tbody></table></div></details></section><section class="block" id="module-2-worked"><div class="section-label">Worked application</div><h2>Find the failed line without losing its status</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">fail.sh exits early. You need the source line and a nonzero result.</p><figure class="tw-codebox tw-cmd" id="module-2-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-safe</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>bash fail.sh</code></span> · <span>The ERR trap reports line 5.</span></li><li><span><em>Keys:</em> <code>printf &#x27;script exit=%s\n&#x27; &quot;$?&quot;</code></span> · <span>Read the status immediately.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>starting
+error: line 5 status 1
+script exit=1</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> The trap prints a diagnostic; errexit ends the script with failure.</div></div></section><section class="block" id="module-2-practice"><div class="section-label">Your turn</div><h2>Practice: safe scripts</h2><div class="practice-card" id="module-2-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why can false | cat return success without pipefail?</p><details class="hint"><summary>hint</summary><p>Which pipeline stage supplies the status by default?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The last command is cat.</li><li>Cat succeeds even though false failed.</li><li>Pipefail returns the rightmost failing stage&#x27;s status.</li></ol><div class="solution-final"><strong>Final answer:</strong> Enable <code>set -o pipefail</code>.</div></div></details></div><div class="practice-card" id="module-2-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Trace trace.sh and combine the trace with stdout.</p><details class="hint"><summary>hint</summary><p>Use bash -x and a redirection.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>bash -x trace.sh</code>.</li><li>Append <code>2&gt;&amp;1</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>bash -x trace.sh 2&gt;&amp;1</code>.</div></div></details></div><div class="practice-card" id="module-2-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Run cleanup whether a script succeeds or fails.</p><details class="hint"><summary>hint</summary><p>Register an exit event.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Define a cleanup function.</li><li>Save <code>$?</code> at its start.</li><li>Register it with <code>trap cleanup EXIT</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> Use an EXIT trap and preserve the status.</div></div></details></div><div class="practice-card" id="module-2-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Does set -e guarantee a function called in an if stops at its first failure?</p><details class="hint"><summary>hint</summary><p>Conditional calls suppress errexit in the function body.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The call&#x27;s status is being tested.</li><li>Commands inside that function need explicit checks.</li></ol><div class="solution-final"><strong>Final answer:</strong> No. Check critical commands inside the function and return failure yourself.</div></div></details></div></section></section><section class="lesson sq-page" id="module-3" data-module="3" role="tabpanel" aria-labelledby="tab-3" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Bash expert · Page 3 of 4</div><h1>Redirection, here-docs and process substitution</h1><p class="subtitle">Send output where you need it and feed commands text or another command&#x27;s result.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Redirections run left to right. Choose a stream, then choose its destination.</p><ul class="kitchen-links"><li><strong>Save stdout and stderr <span class="kl-nowrap">→ cmd &gt; run.log 2&gt;&amp;1.</span></strong> Both streams reach the same file.</li><li><strong>See output and save it <span class="kl-nowrap">→ cmd | tee run.log.</span></strong> Tee copies stdin to the screen and a file.</li><li><strong>Keep here-doc text literal <span class="kl-nowrap">→ &lt;&lt;&#x27;EOF&#x27;.</span></strong> No dollar or command expansion.</li><li><strong>Compare command output <span class="kl-nowrap">→ diff &lt;(cmd1) &lt;(cmd2).</span></strong> Two readable paths replace temporary files.</li></ul></div></div><div class="block" id="module-3-problem"><div class="word-problem"><span class="tag">The problem</span><p>Errors still print on the screen, or a piped loop loses its updated counter.</p><div class="result-box"><strong>The fix:</strong> Redirect stdout before copying stderr. Feed a loop with <code>&lt; &lt;(cmd)</code> to keep its state.</div></div></div><section class="block" id="module-3-d1"><div class="section-label">Type it</div><h2>Choose the stream</h2><p class="section-intro">Type <code>bash</code> first. Run this page&#x27;s blocks in order in that shell. Type <code>exit</code> to return to zsh.</p><figure class="tw-codebox tw-cmd" id="module-3-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create sample output and lists for redirection</span><button class="tw-copy" type="button" aria-label="Copy: Create sample output and lists for redirection">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/m11-redirect &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">cat</span> &gt; left.txt &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">pear</span>
+<span class="hl-cmd">apple</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;apple\npear\n&#x27;</span> &gt; right.txt
+<span class="hl-cmd">both</span>() { printf <span class="hl-s">&#x27;OUT\n&#x27;</span>; <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;ERR\n&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; }
+<span class="hl-cmd">cat</span> left.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>pear</code>; then <code>apple</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Save stdout with &gt; and append another line with &gt;&gt;</span><button class="tw-copy" type="button" aria-label="Copy: Save stdout with &gt; and append another line with &gt;&gt;">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;first\n&#x27;</span> &gt; output.log
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;second\n&#x27;</span> &gt;&gt; output.log
+<span class="hl-cmd">cat</span> output.log</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>first</code>; then <code>second</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Save stderr with 2&gt; and combine streams with 2&gt;&amp;1</span><button class="tw-copy" type="button" aria-label="Copy: Save stderr with 2&gt; and combine streams with 2&gt;&amp;1">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">both</span> &gt; stdout.log <span class="hl-n">2</span>&gt; stderr.log
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;stdout: &#x27;</span>; <span class="hl-cmd">cat</span> stdout.log
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;stderr: &#x27;</span>; <span class="hl-cmd">cat</span> stderr.log
+<span class="hl-cmd">both</span> &gt; combined.log <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span>
+<span class="hl-cmd">cat</span> combined.log</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>stdout: OUT</code>; then <code>stderr: ERR</code>; then <code>OUT</code>; then <code>ERR</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Send both streams to a file with &amp;&gt; or discard them with /dev/null</span><button class="tw-copy" type="button" aria-label="Copy: Send both streams to a file with &amp;&gt; or discard them with /dev/null">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">both</span> &amp;&gt; short.log
+<span class="hl-cmd">cat</span> short.log
+<span class="hl-cmd">both</span> &gt; /dev/null <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span>
+<span class="hl-cmd">both</span> &amp;&gt; /dev/null
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;quiet commands finished&#x27;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>OUT</code>; then <code>ERR</code>; then <code>quiet commands finished</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Fix redirection order when stderr still reaches the screen</span><button class="tw-copy" type="button" aria-label="Copy: Fix redirection order when stderr still reaches the screen">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">both</span> <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span> &gt; order.log
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;file: &#x27;</span>; <span class="hl-cmd">cat</span> order.log
+<span class="hl-cmd">both</span> &gt; order.log <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;file after fix:\n&#x27;</span>; <span class="hl-cmd">cat</span> order.log</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ERR</code>; then <code>file: OUT</code>; then <code>file after fix:</code>; then <code>OUT</code>; then <code>ERR</code>.</p></figure><p class="tw-text">With <code>2&gt;&amp;1 &gt; file</code>, stderr copies the current stdout destination, then only stdout moves to the file. With <code>&gt; file 2&gt;&amp;1</code>, both reach the file. <code>&gt;</code> replaces existing contents; <code>&gt;&gt;</code> appends. <code>&amp;&gt;</code> is Bash syntax. The portable shell form is <code>&gt; file 2&gt;&amp;1</code>.</p><figure class="tw-codebox tw-cmd" id="module-3-d1-b7"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show output and save a copy with tee</span><button class="tw-copy" type="button" aria-label="Copy: Show output and save a copy with tee">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">both</span> <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span> | <span class="hl-cmd">tee</span> live.log
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;again\n&#x27;</span> | <span class="hl-cmd">tee</span> <span class="hl-f">-a</span> live.log
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;saved:\n&#x27;</span>; <span class="hl-cmd">cat</span> live.log</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>OUT</code>; then <code>ERR</code>; then <code>again</code>; then <code>saved:</code>; then <code>OUT</code>; then <code>ERR</code>; then <code>again</code>.</p></figure></section><section class="block" id="module-3-d2"><div class="section-label">Type it</div><h2>Supply text directly</h2><p class="section-intro">A here-doc ends at its delimiter on a line by itself. Quotes on the delimiter control expansion.</p><figure class="tw-codebox tw-cmd" id="module-3-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Keep dollars literal with &lt;&lt;&#x27;EOF&#x27; or expand them with &lt;&lt;EOF</span><button class="tw-copy" type="button" aria-label="Copy: Keep dollars literal with &lt;&lt;&#x27;EOF&#x27; or expand them with &lt;&lt;EOF">Copy</button></figcaption><pre class="sq-code"><code>name=Ada
+<span class="hl-cmd">cat</span> &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">Hello</span> <span class="hl-v">$name</span>
+<span class="hl-v">$(</span><span class="hl-cmd">printf</span> command)
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">cat</span> &lt;&lt;EOF
+<span class="hl-cmd">Hello</span> <span class="hl-v">$name</span>
+<span class="hl-v">$(</span><span class="hl-cmd">printf</span> command)
+<span class="hl-cmd">EOF</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Hello $name</code>; then <code>$(printf command)</code>; then <code>Hello Ada</code>; then <code>command</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Indent a here-doc with tabs using &lt;&lt;-</span><button class="tw-copy" type="button" aria-label="Copy: Indent a here-doc with tabs using &lt;&lt;-">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cat</span> &lt;&lt;-<span class="hl-s">&#x27;EOF&#x27;</span>
+	<span class="hl-cmd">line</span> indented with a tab
+	<span class="hl-cmd">EOF</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>line indented with a tab</code>.</p></figure><p class="tw-text">The two indented lines above start with actual tabs. <code>&lt;&lt;-</code> strips leading tabs from the body and delimiter, but does not strip spaces. The copy button preserves those tabs.</p><figure class="tw-codebox tw-cmd" id="module-3-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Feed one string to a command with a here-string &lt;&lt;&lt;</span><button class="tw-copy" type="button" aria-label="Copy: Feed one string to a command with a here-string &lt;&lt;&lt;">Copy</button></figcaption><pre class="sq-code"><code>LC_ALL=C <span class="hl-cmd">tr</span> <span class="hl-s">&#x27;[:lower:]&#x27;</span> <span class="hl-s">&#x27;[:upper:]&#x27;</span> &lt;&lt;&lt; <span class="hl-s">&#x27;hello ada&#x27;</span>
+<span class="hl-cmd">wc</span> <span class="hl-f">-l</span> &lt;&lt;&lt; <span class="hl-s">&#x27;one line&#x27;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>HELLO ADA</code>; then <code>       1</code>.</p></figure><p class="tw-text">A here-string adds a newline. Here-strings and process substitution work in Bash 3.2 on macOS and in Bash on GNU/Linux; they are not POSIX sh syntax.</p></section><section class="block" id="module-3-d3"><div class="section-label">Type it</div><h2>Feed commands and whole scripts</h2><p class="section-intro"><code>&lt;(cmd)</code> supplies a readable path. The separate <code>&lt;</code> before it redirects that path into a loop.</p><figure class="tw-codebox tw-cmd" id="module-3-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Compare two commands with diff and process substitution</span><button class="tw-copy" type="button" aria-label="Copy: Compare two commands with diff and process substitution">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">diff</span> &lt;(LC_ALL=C sort left.txt) &lt;(LC_ALL=C sort right.txt)
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;diff exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span>
+<span class="hl-cmd">diff</span> &lt;(printf <span class="hl-s">&#x27;apple\n&#x27;</span>) &lt;(printf <span class="hl-s">&#x27;pear\n&#x27;</span>)
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;diff exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>diff exit=0</code>; then <code>1c1</code>; then <code>&lt; apple</code>; then <code>---</code>; then <code>&gt; pear</code>; then <code>diff exit=1</code>.</p></figure><p class="tw-text">Diff returns 0 for equal inputs, 1 for differences and a larger status for trouble. Process substitution&#x27;s producer status is not returned by diff and is not covered by pipefail; use checked intermediate files when producer failure must stop the job.</p><figure class="tw-codebox tw-cmd" id="module-3-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Keep a loop counter with while read ... &lt; &lt;(command)</span><button class="tw-copy" type="button" aria-label="Copy: Keep a loop counter with while read ... &lt; &lt;(command)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+count=0
+<span class="hl-k">while</span> IFS= <span class="hl-cmd">read</span> <span class="hl-f">-r</span> line; <span class="hl-k">do</span> count=<span class="hl-v">$(</span>(<span class="hl-cmd">count</span> + <span class="hl-n">1</span>)); <span class="hl-k">done</span> &lt; &lt;(LC_ALL=C sort left.txt)
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;count=%s\n&#x27;</span> <span class="hl-s">&quot;$count&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>count=2</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Send a whole script to a log with exec &gt; logfile</span><button class="tw-copy" type="button" aria-label="Copy: Send a whole script to a log with exec &gt; logfile">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect
+<span class="hl-cmd">cat</span> &gt; logall.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">exec</span> &gt; whole.log <span class="hl-n">2</span>&gt;&amp;<span class="hl-n">1</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;job started&#x27;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;diagnostic&#x27;</span> &gt;&amp;<span class="hl-n">2</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;job finished&#x27;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> logall.sh
+<span class="hl-cmd">cat</span> whole.log</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>job started</code>; then <code>diagnostic</code>; then <code>job finished</code>.</p></figure><p class="tw-text">Use <code>exec &gt; logfile 2&gt;&amp;1</code> inside a script: it changes that shell&#x27;s streams for all later commands. Running logall.sh as a child keeps your interactive prompt attached to the terminal.</p></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Redirection at a glance</h2><details class="rule-card" id="module-3-r1" name="rules-3" open><summary><span><span class="num">01</span>Save or discard output</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Streams: stdin 0, stdout 1, stderr 2.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Save stdout / append stdout</td><td><code>cmd &gt; file</code> / <code>cmd &gt;&gt; file</code></td></tr><tr><td>Save stderr alone</td><td><code>cmd 2&gt; errors.log</code></td></tr><tr><td>Combine stdout and stderr</td><td><code>cmd &gt; file 2&gt;&amp;1</code> or Bash <code>cmd &amp;&gt; file</code></td></tr><tr><td>Discard both streams</td><td><code>cmd &gt; /dev/null 2&gt;&amp;1</code></td></tr><tr><td>Show output and save it / append it</td><td><code>cmd | tee file</code> / <code>cmd | tee -a file</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r2" name="rules-3"><summary><span><span class="num">02</span>Feed text to a command</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Quote the delimiter for literal text.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Feed literal lines</td><td><code>cmd &lt;&lt;&#x27;EOF&#x27;</code> then body and <code>EOF</code></td></tr><tr><td>Expand dollars and commands in lines</td><td><code>cmd &lt;&lt;EOF</code> then body and <code>EOF</code></td></tr><tr><td>Strip leading tabs</td><td><code>cmd &lt;&lt;-&#x27;EOF&#x27;</code></td></tr><tr><td>Feed one value with a final newline</td><td><code>cmd &lt;&lt;&lt; &quot;$value&quot;</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r3" name="rules-3"><summary><span><span class="num">03</span>Connect command output</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Keep the receiving loop in the current shell.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Compare two command outputs</td><td><code>diff &lt;(cmd1) &lt;(cmd2)</code></td></tr><tr><td>Feed a loop without a pipe subshell</td><td><code>while IFS= read -r x; do ...; done &lt; &lt;(cmd)</code></td></tr><tr><td>Log all later script output</td><td><code>exec &gt; logfile 2&gt;&amp;1</code></td></tr></tbody></table></div></details></section><section class="block" id="module-3-worked"><div class="section-label">Worked application</div><h2>Sort two lists and check whether they match</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">left.txt and right.txt have the same fruit in a different order.</p><figure class="tw-codebox tw-cmd" id="module-3-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-redirect</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>diff &lt;(LC_ALL=C sort left.txt) &lt;(LC_ALL=C sort right.txt)</code></span> · <span>Read each sorted stream through a path.</span></li><li><span><em>Keys:</em> <code>printf &#x27;diff exit=%s\n&#x27; &quot;$?&quot;</code></span> · <span>An equal comparison has no diff text and a zero status.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>diff exit=0</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> No named temporary files are needed for this comparison.</div></div></section><section class="block" id="module-3-practice"><div class="section-label">Your turn</div><h2>Practice: streams and input</h2><div class="practice-card" id="module-3-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does cmd 2&gt;&amp;1 &gt; file leave errors on the screen?</p><details class="hint"><summary>hint</summary><p>Follow destinations left to right.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Stderr first copies stdout&#x27;s terminal destination.</li><li>Then stdout changes to file.</li><li>The earlier stderr copy stays attached to the terminal.</li></ol><div class="solution-final"><strong>Final answer:</strong> Use <code>cmd &gt; file 2&gt;&amp;1</code>.</div></div></details></div><div class="practice-card" id="module-3-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Save both streams and still see them on screen.</p><details class="hint"><summary>hint</summary><p>Combine before the pipe.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Redirect stderr to stdout.</li><li>Pipe the combined stream to tee.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>cmd 2&gt;&amp;1 | tee run.log</code>.</div></div></details></div><div class="practice-card" id="module-3-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Create script text containing literal $HOME with a here-doc.</p><details class="hint"><summary>hint</summary><p>Quote the opening delimiter.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Start with <code>cat &gt; script.sh &lt;&lt;&#x27;EOF&#x27;</code>.</li><li>Type the body.</li><li>End with <code>EOF</code> alone.</li></ol><div class="solution-final"><strong>Final answer:</strong> A quoted delimiter keeps <code>$HOME</code> literal in the file.</div></div></details></div><div class="practice-card" id="module-3-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Your &lt;&lt;- here-doc ends with spaces before EOF. Why does it keep reading?</p><details class="hint"><summary>hint</summary><p>Which indentation does the dash strip?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The dash strips tabs only.</li><li>Spaces remain part of the delimiter line.</li></ol><div class="solution-final"><strong>Final answer:</strong> Use actual tabs or put EOF at column 1.</div></div></details></div></section></section><section class="lesson sq-page" id="module-4" data-module="4" role="tabpanel" aria-labelledby="tab-4" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Bash expert · Page 4 of 4</div><h1>Ready-made scripts</h1><p class="subtitle">Create and run a small backup, rename, batch, parser, retry or confirmation script.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Use one small script per job. Preview changes and check failures before continuing.</p><ul class="kitchen-links"><li><strong>Back up a folder <span class="kl-nowrap">→ bash backup.sh source.</span></strong> A dated tar archive preserves the files.</li><li><strong>Preview a bulk rename <span class="kl-nowrap">→ bash rename.sh.</span></strong> Apply only after reading the dry run.</li><li><strong>Retry a failed command <span class="kl-nowrap">→ bash retry.sh 3 1 cmd.</span></strong> Limit attempts and pause between them.</li><li><strong>Confirm before continuing <span class="kl-nowrap">→ bash confirm.sh.</span></strong> Only yes or y proceeds.</li></ul></div></div><div class="block" id="module-4-problem"><div class="word-problem"><span class="tag">The problem</span><p>An ad hoc command overwrites a file, retries forever or continues after a declined prompt.</p><div class="result-box"><strong>The fix:</strong> Keep a dry-run default, reject collisions, cap retries and treat EOF as a declined confirmation.</div></div></div><section class="block" id="module-4-d1"><div class="section-label">Type it</div><h2>Back up and preview changes</h2><p class="section-intro">Type <code>bash</code> first. Run this page&#x27;s blocks in order in that shell. Type <code>exit</code> to return to zsh. Each example creates its script with a quoted here-doc and runs it with bash.</p><figure class="tw-codebox tw-cmd" id="module-4-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create sample folders for the ready-made scripts</span><button class="tw-copy" type="button" aria-label="Copy: Create sample folders for the ready-made scripts">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw/m11-scripts/source /tmp/tw/m11-scripts/photos /tmp/tw/m11-scripts/text
+<span class="hl-cmd">cd</span> /tmp/tw/m11-scripts
+<span class="hl-cmd">cat</span> &gt; source/note.txt &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-cmd">keep</span> this note
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;image\n&#x27;</span> &gt; <span class="hl-s">&#x27;photos/red apple.jpeg&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;image\n&#x27;</span> &gt; photos/blue.jpeg
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;one\ntwo\n&#x27;</span> &gt; <span class="hl-s">&#x27;text/red apple.txt&#x27;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;three\n&#x27;</span> &gt; text/blue.txt
+<span class="hl-cmd">cat</span> source/note.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>keep this note</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Back up a folder with a dated tar archive</span><button class="tw-copy" type="button" aria-label="Copy: Back up a folder with a dated tar archive">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-scripts
+<span class="hl-cmd">cat</span> &gt; backup.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-euo</span> pipefail
+src=<span class="hl-v">${1:?usage: backup.sh FOLDER}</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-d</span> <span class="hl-v">$src</span> ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;not a folder&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span>; }
+<span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> backups
+archive=<span class="hl-v">$(</span><span class="hl-cmd">mktemp</span> <span class="hl-s">&quot;$PWD/backups/backup-$(date +%Y%m%d).XXXXXX&quot;</span>)
+<span class="hl-cmd">tar</span> <span class="hl-f">-czf</span> <span class="hl-s">&quot;$archive&quot;</span> <span class="hl-f">-C</span> <span class="hl-s">&quot;$src&quot;</span> .
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;saved: %s\n&#x27;</span> <span class="hl-s">&quot;${archive##*/}&quot;</span>
+<span class="hl-cmd">tar</span> <span class="hl-f">-tzf</span> <span class="hl-s">&quot;$archive&quot;</span> | LC_ALL=C <span class="hl-cmd">sort</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> backup.sh <span class="hl-k">source</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>saved: backup-&lt;date&gt;.&lt;random&gt;</code> (for example <code>backup-20261014.yebYbB</code>); then <code>./</code>; then <code>./note.txt</code>.</p></figure><p class="tw-text">The archive name contains today&#x27;s date and a unique suffix, so a second run cannot overwrite an older backup. <code>tar -tzf</code> lists its contents without extracting. The printed name varies per run. BSD tar can preserve macOS metadata; GNU tar on Linux may show different metadata entries for real folders.</p><figure class="tw-codebox tw-cmd" id="module-4-d1-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Bulk rename .jpeg to .jpg with a dry-run first</span><button class="tw-copy" type="button" aria-label="Copy: Bulk rename .jpeg to .jpg with a dry-run first">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-scripts
+<span class="hl-cmd">cat</span> &gt; rename.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-euo</span> pipefail
+mode=<span class="hl-v">${1:---dry-run}</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$mode</span> == <span class="hl-f">--dry-run</span> || <span class="hl-v">$mode</span> == <span class="hl-f">--apply</span> ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;usage: rename.sh [--dry-run|--apply]&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">2</span>; }
+<span class="hl-k">for</span> f <span class="hl-k">in</span> photos/*.jpeg; <span class="hl-k">do</span>
+  <span class="hl-cmd">[[</span> <span class="hl-f">-e</span> <span class="hl-v">$f</span> ]] || <span class="hl-cmd">continue</span>
+  to=<span class="hl-v">${f%.jpeg}</span>.jpg
+  <span class="hl-cmd">[[</span> ! <span class="hl-f">-e</span> <span class="hl-v">$to</span> &amp;&amp; <span class="hl-cmd">!</span> <span class="hl-f">-L</span> <span class="hl-v">$to</span> ]] || { <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;collision: %s\n&#x27;</span> <span class="hl-s">&quot;$to&quot;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span>; }
+  <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s -&gt; %s\n&#x27;</span> <span class="hl-s">&quot;$f&quot;</span> <span class="hl-s">&quot;$to&quot;</span>
+  <span class="hl-cmd">[[</span> <span class="hl-v">$mode</span> != <span class="hl-f">--apply</span> ]] || <span class="hl-cmd">mv</span> <span class="hl-f">-n</span> <span class="hl-s">&quot;$f&quot;</span> <span class="hl-s">&quot;$to&quot;</span>
+<span class="hl-k">done</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> rename.sh
+<span class="hl-cmd">bash</span> rename.sh <span class="hl-f">--apply</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s\n&#x27;</span> photos/*.jpg</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>photos/blue.jpeg -&gt; photos/blue.jpg</code>; then <code>photos/red apple.jpeg -&gt; photos/red apple.jpg</code>; then <code>photos/blue.jpeg -&gt; photos/blue.jpg</code>; then <code>photos/red apple.jpeg -&gt; photos/red apple.jpg</code>; then <code>photos/blue.jpg</code>; then <code>photos/red apple.jpg</code>.</p></figure><p class="tw-text">Read the first two preview lines before running <code>bash rename.sh --apply</code>. The example then prints the applied renames and final names. A collision stops the script; earlier renames are not rolled back. <code>mv -n</code> also avoids overwriting if a destination appears after the check.</p></section><section class="block" id="module-4-d2"><div class="section-label">Type it</div><h2>Batch work and flags</h2><p class="section-intro">The input parsing is the pattern from Bash basics, now packaged as a reusable script.</p><figure class="tw-codebox tw-cmd" id="module-4-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Run a command on every file of a type</span><button class="tw-copy" type="button" aria-label="Copy: Run a command on every file of a type">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-scripts
+<span class="hl-cmd">cat</span> &gt; each.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-euo</span> pipefail
+<span class="hl-cmd">[[</span> <span class="hl-v">$#</span> <span class="hl-f">-ge</span> <span class="hl-n">3</span> ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;usage: each.sh FOLDER EXT COMMAND [ARG...]&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">2</span>; }
+dir=<span class="hl-v">$1</span>; ext=<span class="hl-v">$2</span>; <span class="hl-cmd">shift</span> <span class="hl-n">2</span>
+<span class="hl-cmd">[[</span> <span class="hl-f">-d</span> <span class="hl-v">$dir</span> ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;not a folder&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span>; }
+<span class="hl-k">for</span> f <span class="hl-k">in</span> <span class="hl-s">&quot;$dir&quot;</span>/*.<span class="hl-s">&quot;$ext&quot;</span>; <span class="hl-k">do</span>
+  <span class="hl-cmd">[[</span> <span class="hl-f">-f</span> <span class="hl-v">$f</span> ]] || <span class="hl-cmd">continue</span>
+  <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;%s: &#x27;</span> <span class="hl-s">&quot;${f##*/}&quot;</span>
+  <span class="hl-s">&quot;$@&quot;</span> &lt; <span class="hl-s">&quot;$f&quot;</span>
+<span class="hl-k">done</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> each.sh text txt awk <span class="hl-s">&#x27;END { print NR &quot; lines&quot; }&#x27;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>blue.txt: 1 lines</code>; then <code>red apple.txt: 2 lines</code>.</p></figure><p class="tw-text">This batch helper passes each file on stdin, so use a command that reads stdin. It visits immediate children only. Use the NUL-separated find pattern on page 1 for recursive work.</p><figure class="tw-codebox tw-cmd" id="module-4-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Reuse a flag-parser template with usage and defaults</span><button class="tw-copy" type="button" aria-label="Copy: Reuse a flag-parser template with usage and defaults">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-scripts
+<span class="hl-cmd">cat</span> &gt; flags.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-euo</span> pipefail
+<span class="hl-cmd">usage</span>() { echo <span class="hl-s">&#x27;usage: flags.sh [-v] [-o DIR] [FILE...]&#x27;</span>; }
+verbose=0; out=reports
+<span class="hl-k">while</span> <span class="hl-cmd">getopts</span> <span class="hl-s">&#x27;:hvo:&#x27;</span> opt; <span class="hl-k">do</span>
+  <span class="hl-k">case</span> <span class="hl-v">$opt</span> <span class="hl-k">in</span>
+    <span class="hl-cmd">h</span>) usage; <span class="hl-cmd">exit</span> <span class="hl-n">0</span> ;;
+    <span class="hl-cmd">v</span>) verbose=1 ;;
+    <span class="hl-cmd">o</span>) out=<span class="hl-v">$OPTARG</span> ;;
+    <span class="hl-cmd">:</span>) printf <span class="hl-s">&#x27;missing value: -%s\n&#x27;</span> <span class="hl-s">&quot;$OPTARG&quot;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">usage</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">2</span> ;;
+    \?) printf <span class="hl-s">&#x27;unknown flag: -%s\n&#x27;</span> <span class="hl-s">&quot;$OPTARG&quot;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">usage</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">2</span> ;;
+  <span class="hl-k">esac</span>
+<span class="hl-k">done</span>
+<span class="hl-cmd">shift</span> <span class="hl-v">$(</span>(<span class="hl-cmd">OPTIND</span> - <span class="hl-n">1</span>))
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;verbose=%s out=%s files=%s\n&#x27;</span> <span class="hl-s">&quot;$verbose&quot;</span> <span class="hl-s">&quot;$out&quot;</span> <span class="hl-s">&quot;$#&quot;</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> flags.sh
+<span class="hl-cmd">bash</span> flags.sh <span class="hl-f">-v</span> <span class="hl-f">-o</span> <span class="hl-s">&#x27;my reports&#x27;</span> -- <span class="hl-s">&#x27;red apple.txt&#x27;</span>
+<span class="hl-cmd">bash</span> flags.sh <span class="hl-f">-o</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>verbose=0 out=reports files=0</code>; then <code>verbose=1 out=my reports files=1</code>; then <code>missing value: -o</code>; then <code>usage: flags.sh [-v] [-o DIR] [FILE...]</code>; then <code>exit=2</code>.</p></figure></section><section class="block" id="module-4-d3"><div class="section-label">Type it</div><h2>Retry and ask before proceeding</h2><p class="section-intro">Retries use an attempt limit and a pause. The confirmation is tested with supplied input so this page runs without waiting.</p><figure class="tw-codebox tw-cmd" id="module-4-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Retry a command N times with sleep between attempts</span><button class="tw-copy" type="button" aria-label="Copy: Retry a command N times with sleep between attempts">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-scripts
+<span class="hl-cmd">cat</span> &gt; retry.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-euo</span> pipefail
+<span class="hl-cmd">[[</span> <span class="hl-v">$#</span> <span class="hl-f">-ge</span> <span class="hl-n">3</span> ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;usage: retry.sh N SECONDS COMMAND [ARG...]&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">2</span>; }
+limit=<span class="hl-v">$1</span>; delay=<span class="hl-v">$2</span>; <span class="hl-cmd">shift</span> <span class="hl-n">2</span>
+<span class="hl-cmd">[[</span> <span class="hl-v">$limit</span> =~ ^[1-9][0-9]*$ &amp;&amp; <span class="hl-v">$delay</span> =~ ^[0-9]+$ ]] || { <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;N must be positive; SECONDS must be nonnegative&#x27;</span> &gt;&amp;<span class="hl-n">2</span>; <span class="hl-cmd">exit</span> <span class="hl-n">2</span>; }
+<span class="hl-k">for</span> ((attempt=1; <span class="hl-cmd">attempt</span>&lt;=limit; <span class="hl-cmd">attempt++</span>)); <span class="hl-k">do</span>
+  <span class="hl-k">if</span> <span class="hl-s">&quot;$@&quot;</span>; <span class="hl-k">then</span> <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;success: attempt %s\n&#x27;</span> <span class="hl-s">&quot;$attempt&quot;</span>; <span class="hl-cmd">exit</span> <span class="hl-n">0</span>; <span class="hl-k">else</span> status=<span class="hl-v">$?</span>; <span class="hl-k">fi</span>
+  <span class="hl-cmd">printf</span> <span class="hl-s">&#x27;failed: attempt %s status %s\n&#x27;</span> <span class="hl-s">&quot;$attempt&quot;</span> <span class="hl-s">&quot;$status&quot;</span> &gt;&amp;<span class="hl-n">2</span>
+  <span class="hl-cmd">[[</span> <span class="hl-v">$attempt</span> <span class="hl-f">-lt</span> <span class="hl-v">$limit</span> ]] || <span class="hl-cmd">exit</span> <span class="hl-s">&quot;$status&quot;</span>
+  <span class="hl-cmd">sleep</span> <span class="hl-s">&quot;$delay&quot;</span>
+<span class="hl-k">done</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">bash</span> retry.sh <span class="hl-n">3</span> <span class="hl-n">1</span> false
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span>
+<span class="hl-cmd">bash</span> retry.sh <span class="hl-n">3</span> <span class="hl-n">1</span> true</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>failed: attempt 1 status 1</code>; then <code>failed: attempt 2 status 1</code>; then <code>failed: attempt 3 status 1</code>; then <code>exit=1</code>; then <code>success: attempt 1</code>.</p></figure><p class="tw-text">N counts total attempts, including the first. Only failed attempts with another attempt left sleep. The final failure returns the command&#x27;s status. Use retries for commands that are safe to repeat. A command or function tested in <code>if</code> must handle its own internal failures.</p><figure class="tw-codebox tw-cmd" id="module-4-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Confirm before continuing and decline on no answer</span><button class="tw-copy" type="button" aria-label="Copy: Confirm before continuing and decline on no answer">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-scripts
+<span class="hl-cmd">cat</span> &gt; confirm.sh &lt;&lt;<span class="hl-s">&#x27;EOF&#x27;</span>
+<span class="hl-c">#!/bin/bash</span>
+<span class="hl-cmd">set</span> <span class="hl-f">-euo</span> pipefail
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;Continue? [y/N] &#x27;</span>
+IFS= <span class="hl-cmd">read</span> <span class="hl-f">-r</span> answer || { <span class="hl-cmd">echo</span> <span class="hl-s">&#x27;cancelled (no input)&#x27;</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span>; }
+<span class="hl-k">case</span> <span class="hl-v">$answer</span> <span class="hl-k">in</span>
+  <span class="hl-cmd">y</span>|<span class="hl-cmd">Y</span>|<span class="hl-cmd">yes</span>|<span class="hl-cmd">YES</span>) echo <span class="hl-s">&#x27;continuing&#x27;</span> ;;
+  <span class="hl-cmd">*</span>) echo <span class="hl-s">&#x27;cancelled&#x27;</span>; <span class="hl-cmd">exit</span> <span class="hl-n">1</span> ;;
+<span class="hl-k">esac</span>
+<span class="hl-cmd">EOF</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;yes\n&#x27;</span> | <span class="hl-cmd">bash</span> confirm.sh
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;no\n&#x27;</span> | <span class="hl-cmd">bash</span> confirm.sh
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span>
+<span class="hl-cmd">bash</span> confirm.sh &lt; /dev/null
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;exit=%s\n&#x27;</span> <span class="hl-s">&quot;$?&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Continue? [y/N] continuing</code>; then <code>Continue? [y/N] cancelled</code>; then <code>exit=1</code>; then <code>Continue? [y/N] cancelled (no input)</code>; then <code>exit=1</code>.</p></figure><p class="tw-text">Run <code>bash confirm.sh</code> to answer at the terminal. The prompt uses <code>printf</code>, so it also appears when input is piped. Empty input, EOF and answers outside the listed yes forms cancel.</p></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Ready-made scripts at a glance</h2><details class="rule-card" id="module-4-r1" name="rules-4" open><summary><span><span class="num">01</span>Back up and rename</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Preview first and avoid collisions.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Back up a folder</td><td><code>bash backup.sh source</code></td></tr><tr><td>List an archive</td><td><code>tar -tzf ARCHIVE</code></td></tr><tr><td>Preview .jpeg renames</td><td><code>bash rename.sh</code></td></tr><tr><td>Apply the previewed renames</td><td><code>bash rename.sh --apply</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r2" name="rules-4"><summary><span><span class="num">02</span>Batch work and flags</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Reuse the templates above.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Count lines in every .txt file</td><td><code>bash each.sh text txt awk &#x27;END { print NR }&#x27;</code></td></tr><tr><td>Show parser usage</td><td><code>bash flags.sh -h</code></td></tr><tr><td>Set an output folder and pass a file</td><td><code>bash flags.sh -v -o reports -- file.txt</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r3" name="rules-4"><summary><span><span class="num">03</span>Retry or confirm</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Bound retries and make no the default.</p><table><thead><tr><th>Task</th><th>Write</th></tr></thead><tbody><tr><td>Try at most three times, pausing a second</td><td><code>bash retry.sh 3 1 COMMAND</code></td></tr><tr><td>Ask before continuing</td><td><code>bash confirm.sh</code></td></tr><tr><td>Supply yes for a repeatable test</td><td><code>printf &#x27;yes\n&#x27; | bash confirm.sh</code></td></tr></tbody></table></div></details></section><section class="block" id="module-4-worked"><div class="section-label">Worked application</div><h2>Check defaults before adding flags</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">The parser template starts quiet and writes to reports. Try the default and an override.</p><figure class="tw-codebox tw-cmd" id="module-4-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw/m11-scripts</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>bash flags.sh</code></span> · <span>Read the defaults.</span></li><li><span><em>Keys:</em> <code>bash flags.sh -v -o &#x27;my reports&#x27; -- &#x27;red apple.txt&#x27;</code></span> · <span>Override the folder and keep one filename whole.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>verbose=0 out=reports files=0
+verbose=1 out=my reports files=1</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> The script prints the parsed settings. Replace that final printf with your job when you reuse it.</div></div></section><section class="block" id="module-4-practice"><div class="section-label">Your turn</div><h2>Practice: ready-made scripts</h2><div class="practice-card" id="module-4-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">How many sleeps occur when retry.sh 3 1 false always fails?</p><details class="hint"><summary>hint</summary><p>Sleep only when another attempt remains.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Attempt 1 fails and sleeps.</li><li>Attempt 2 fails and sleeps.</li><li>Attempt 3 fails and exits.</li></ol><div class="solution-final"><strong>Final answer:</strong> Two sleeps and three attempts.</div></div></details></div><div class="practice-card" id="module-4-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">Preview .jpeg renames, then apply them after checking the output.</p><details class="hint"><summary>hint</summary><p>Use the default mode first.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>bash rename.sh</code>.</li><li>Read the proposed names.</li><li>Run <code>bash rename.sh --apply</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> Preview first; apply second.</div></div></details></div><div class="practice-card" id="module-4-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">Run wc -c on every immediate .txt file in text/.</p><details class="hint"><summary>hint</summary><p>The batch helper supplies the file on stdin.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Choose text as the folder and txt as the extension.</li><li>Pass wc and -c as the command.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>bash each.sh text txt wc -c</code>.</div></div></details></div><div class="practice-card" id="module-4-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Why must confirm.sh cancel when stdin closes without an answer?</p><details class="hint"><summary>hint</summary><p>A missing answer cannot mean approval.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Read returns a failure at EOF.</li><li>The fallback prints cancelled and exits 1.</li></ol><div class="solution-final"><strong>Final answer:</strong> Treat EOF as no and stop before the protected work.</div></div></details></div></section></section>
+    </main>
+    <nav class="tabbar" aria-label="Page navigation">
+      <div class="tabbar-inner">
+        <button id="prevBtn" class="nav-arrow" type="button" aria-label="Previous page">‹</button>
+        <div id="tabs" class="tabs sq-tabs" role="tablist" aria-label="Pages"></div>
+        <button id="nextBtn" class="nav-arrow" type="button" aria-label="Next page">›</button>
+        <span id="progressMini" class="progress-mini" aria-live="polite">1/4</span>
+      </div>
+    </nav>
+    <nav class="group-nav" aria-label="Course modules">
+      <a rel="prev" href="../m10-bash-basics/">← Bash basics</a>
+      <a href="../index.html">Course map →</a>
+    </nav>
+    <footer>
+      <strong>Module 11 · Bash expert</strong><br />Bash by task: functions, strings, arrays, safe scripts, traps, redirection, here-docs and ready-made scripts
+    </footer>
+    </div>
+    <script>window.TW_GLOSSARY = [{"id": "tw-function", "label": "Function", "forms": ["function", "functions"], "definition": "A named group of shell commands. Call it like a command; its arguments become $1, $2 and $@ inside the function."}, {"id": "tw-array", "label": "Indexed array", "forms": ["array", "arrays", "indexed array"], "definition": "A list of values addressed by number, starting at 0. Quoted \"${a[@]}\" passes each element as its own argument."}, {"id": "tw-trap", "label": "Trap", "forms": ["trap", "traps"], "definition": "A shell command registered to run on an event. EXIT runs when the shell exits; ERR runs on eligible command failures."}, {"id": "tw-process-substitution", "label": "Process substitution", "forms": ["process substitution"], "definition": "<(command) gives another command a path from which it can read that command's output."}, {"id": "tw-here-doc", "label": "Here-doc", "forms": ["here-doc", "heredoc", "here document"], "definition": "Lines supplied to a command's standard input until a delimiter. Quote the delimiter to keep dollar signs literal."}, {"id": "tw-prefix", "label": "Prefix key", "forms": ["prefix key", "prefix"], "definition": "The key you press first to tell tmux that the next key is a tmux command. Here: Ctrl-a."}, {"id": "tw-session", "label": "Session", "forms": ["session", "sessions"], "definition": "A tmux workspace that keeps running when you close the terminal window. You re-attach to it later."}, {"id": "tw-pane", "label": "Pane", "forms": ["pane", "panes"], "definition": "One rectangle inside a tmux window. Each pane runs its own shell."}, {"id": "tw-buffer", "label": "Buffer", "forms": ["buffer", "buffers"], "definition": "A file loaded into Neovim's memory. You edit the buffer, and saving writes it to disk."}, {"id": "tw-register", "label": "Register", "forms": ["register", "registers"], "definition": "A named slot in Neovim that holds text: yanked, deleted or typed."}, {"id": "tw-worktree", "label": "Worktree", "forms": ["worktree", "worktrees"], "definition": "A second folder checked out from the same git repository, on its own branch."}, {"id": "tw-leader", "label": "Leader key", "forms": ["leader key", "leader"], "definition": "A key you press first to start your own Neovim shortcuts. Here: Space."}, {"id": "tw-picker", "label": "Picker", "forms": ["picker", "pickers"], "definition": "A pop-up list you filter by typing, such as the file finder."}, {"id": "tw-hunk", "label": "Hunk", "forms": ["hunk", "hunks"], "definition": "One block of changed lines in a git diff."}, {"id": "tw-quickfix", "label": "Quickfix list", "forms": ["quickfix list", "quickfix"], "definition": "A list of locations, such as search hits or errors, that you step through one by one."}, {"id": "tw-lsp", "label": "LSP", "forms": ["LSP"], "definition": "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."}];</script>
+    <script src="../_shared/search-index.js?v=69a5501798"></script>
+    <script src="../_shared/cheatsheet.js?v=384368195e"></script>
+    <script>
+/* Course page behaviour: tabs, hash links, rule cards, glossary. Base from the SQL course. */
+
+"use strict";
+document.documentElement.classList.add("js-ready");
+const lessons = Array.from(document.querySelectorAll(".lesson"));
+const tabsHost = document.getElementById("tabs");
+const previousButton = document.getElementById("prevBtn");
+const nextButton = document.getElementById("nextBtn");
+const progress = document.getElementById("progressMini");
+let activeLesson = 0;
+const tabs = lessons.map((lesson, index) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "tab";
+  button.id = `tab-${index + 1}`;
+  button.setAttribute("role", "tab");
+  button.setAttribute("aria-controls", lesson.id);
+  button.setAttribute("aria-label", `Open page ${index + 1}`);
+  button.textContent = String(index + 1);
+  button.addEventListener("click", () => goTo(index));
+  tabsHost.append(button);
+  return button;
+});
+function showLesson(index, options = {}) {
+  activeLesson = Math.max(0, Math.min(index, lessons.length - 1));
+  lessons.forEach((lesson, position) => {
+    const selected = position === activeLesson;
+    lesson.classList.toggle("active", selected);
+    lesson.setAttribute("aria-hidden", String(!selected));
+    tabs[position].classList.toggle("active", selected);
+    tabs[position].setAttribute("aria-selected", String(selected));
+    tabs[position].tabIndex = selected ? 0 : -1;
+  });
+  previousButton.disabled = activeLesson === 0;
+  nextButton.disabled = activeLesson === lessons.length - 1;
+  progress.textContent = `${activeLesson + 1}/${lessons.length}`;
+  if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
+}
+// Tab moves rewrite the hash without a new history entry, so reload and shared links keep the page.
+function goTo(index) {
+  showLesson(index);
+  history.replaceState(null, "", `#${lessons[activeLesson].id}`);
+}
+previousButton.addEventListener("click", () => goTo(activeLesson - 1));
+nextButton.addEventListener("click", () => goTo(activeLesson + 1));
+tabsHost.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight") { event.preventDefault(); goTo(activeLesson + 1); tabs[activeLesson].focus(); }
+  if (event.key === "ArrowLeft") { event.preventDefault(); goTo(activeLesson - 1); tabs[activeLesson].focus(); }
+});
+
+const HIT_FLASH_MS = 1600;
+// Any id inside a page works as a deep link: open its tab, open its details, then scroll to it.
+function routeToHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const target = id && document.getElementById(id);
+  const lesson = target && target.closest(".lesson");
+  if (!lesson) return false;
+  showLesson(lessons.indexOf(lesson), { scroll: false });
+  for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: "start" });
+    if (target === lesson) return;
+    target.classList.add("tw-hit");
+    setTimeout(() => target.classList.remove("tw-hit"), HIT_FLASH_MS);
+  });
+  return true;
+}
+addEventListener("hashchange", routeToHash);
+if (!routeToHash()) showLesson(0);
+
+if (!("name" in HTMLDetailsElement.prototype)) {
+  document.querySelectorAll(".rule-card").forEach((card) => {
+    card.addEventListener("toggle", () => {
+      if (!card.open || !card.getAttribute("name")) return;
+      const name = card.getAttribute("name");
+      document.querySelectorAll(`.rule-card[name="${name}"]`).forEach((other) => {
+        if (other !== card && other.open) other.open = false;
+      });
+    });
+  });
+}
+
+(function () {
+  const glossaryEntries = window.TW_GLOSSARY || [];
+      const glossaryFormMap = new Map();
+      glossaryEntries.forEach(function (entry) {
+        entry.forms.forEach(function (form) {
+          glossaryFormMap.set(form.toLowerCase(), entry);
+        });
+      });
+      const glossaryForms = [...glossaryFormMap.keys()].sort(function (a, b) {
+        return b.length - a.length;
+      });
+      const glossaryPattern = new RegExp(
+        "\\b(" +
+          glossaryForms
+            .map(function (term) {
+              return term.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+            })
+            .join("|") +
+          ")\\b",
+        "gi",
+      );
+      const glossarySkip =
+        "button,a,summary,label,input,select,option,textarea,code,pre,script,style,noscript,svg,.tw-codebox,.tw-search,.tw-search-btn,kbd,.glossary-popover,.glossary-term,.eyebrow,.kitchen-strip";
+      const glossarySection = 'section[id^="module-"]';
+
+      function applyGlossary(scope) {
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode: function (node) {
+            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest(glossarySkip))
+              return NodeFilter.FILTER_REJECT;
+            glossaryPattern.lastIndex = 0;
+            return glossaryPattern.test(node.nodeValue)
+              ? NodeFilter.FILTER_ACCEPT
+              : NodeFilter.FILTER_REJECT;
+          },
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function (node) {
+          const text = node.nodeValue;
+          // One link per term per page. The DOM is the record: the observer below re-runs this on every caption change.
+          const section = node.parentElement.closest(glossarySection);
+          const linkedHere = new Set();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          glossaryPattern.lastIndex = 0;
+          let match;
+          while ((match = glossaryPattern.exec(text))) {
+            const entry = glossaryFormMap.get(match[0].toLowerCase());
+            if (
+              section &&
+              (linkedHere.has(entry.id) ||
+                section.querySelector(
+                  '.glossary-term[data-glossary="' + entry.id + '"]',
+                ))
+            )
+              continue;
+            if (match.index > cursor)
+              fragment.append(
+                document.createTextNode(text.slice(cursor, match.index)),
+              );
+            const term = document.createElement("button");
+            term.type = "button";
+            term.className = "glossary-term";
+            term.dataset.glossary = entry.id;
+            term.setAttribute("aria-haspopup", "dialog");
+            term.setAttribute("aria-expanded", "false");
+            term.setAttribute("aria-label", match[0] + ": open definition");
+            term.textContent = match[0];
+            fragment.append(term);
+            linkedHere.add(entry.id);
+            cursor = match.index + match[0].length;
+          }
+          // Nothing linked: leave the node alone, or the observer would loop forever.
+          if (!linkedHere.size) return;
+          if (cursor < text.length)
+            fragment.append(document.createTextNode(text.slice(cursor)));
+          node.replaceWith(fragment);
+        });
+      }
+
+      const glossaryPopover = document.createElement("aside");
+      glossaryPopover.className = "glossary-popover";
+      glossaryPopover.id = "glossary-popover";
+      glossaryPopover.hidden = true;
+      glossaryPopover.setAttribute("role", "dialog");
+      glossaryPopover.setAttribute("aria-label", "Term definition");
+      glossaryPopover.innerHTML =
+        '<button class="glossary-close" type="button" aria-label="Close definition">×</button><strong class="glossary-title"></strong><p class="glossary-definition"></p><span class="glossary-meta">Definition · Press Esc or click elsewhere to close</span>';
+      document.body.append(glossaryPopover);
+
+      let activeGlossaryTerm = null;
+      function closeGlossary() {
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = null;
+        glossaryPopover.hidden = true;
+      }
+      function positionGlossary(term) {
+        const gap = 13,
+          margin = 12,
+          termRect = term.getBoundingClientRect();
+        glossaryPopover.classList.remove("below");
+        glossaryPopover.hidden = false;
+        const popRect = glossaryPopover.getBoundingClientRect();
+        const left = Math.max(
+          margin,
+          Math.min(
+            innerWidth - popRect.width - margin,
+            termRect.left + termRect.width / 2 - popRect.width / 2,
+          ),
+        );
+        let top = termRect.top - popRect.height - gap;
+        if (top < margin) {
+          top = termRect.bottom + gap;
+          glossaryPopover.classList.add("below");
+        }
+        const pointer = Math.max(
+          16,
+          Math.min(
+            popRect.width - 16,
+            termRect.left + termRect.width / 2 - left,
+          ),
+        );
+        glossaryPopover.style.left = left + "px";
+        glossaryPopover.style.top =
+          Math.min(top, innerHeight - popRect.height - margin) + "px";
+        glossaryPopover.style.setProperty("--pointer-x", pointer + "px");
+      }
+      function openGlossary(term) {
+        const entry = glossaryEntries.find(function (item) {
+          return item.id === term.dataset.glossary;
+        });
+        if (!entry) return;
+        if (activeGlossaryTerm === term && !glossaryPopover.hidden) {
+          closeGlossary();
+          return;
+        }
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = term;
+        term.setAttribute("aria-expanded", "true");
+        glossaryPopover.querySelector(".glossary-title").textContent =
+          entry.label;
+        glossaryPopover.querySelector(".glossary-definition").textContent =
+          entry.definition;
+        positionGlossary(term);
+      }
+      document.addEventListener("click", function (event) {
+        const term = event.target.closest(".glossary-term");
+        if (term) {
+          event.preventDefault();
+          event.stopPropagation();
+          openGlossary(term);
+          return;
+        }
+        if (event.target.closest(".glossary-close")) {
+          closeGlossary();
+          return;
+        }
+        if (!event.target.closest(".glossary-popover")) closeGlossary();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !glossaryPopover.hidden) {
+          const term = activeGlossaryTerm;
+          closeGlossary();
+          if (term) term.focus();
+        }
+      });
+      addEventListener("resize", closeGlossary);
+      addEventListener("scroll", closeGlossary, true);
+
+      const glossaryRoot = document.querySelector("main");
+      applyGlossary(glossaryRoot);
+      let glossaryQueued = false;
+      new MutationObserver(function () {
+        if (glossaryQueued) return;
+        glossaryQueued = true;
+        requestAnimationFrame(function () {
+          glossaryQueued = false;
+          applyGlossary(glossaryRoot);
+        });
+      }).observe(glossaryRoot, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+    })();
+
+    </script>
+    <script>
+/* Site behaviour shared by every page: copy buttons, the cheat sheet drawer and site-wide search. */
+"use strict";
+(function () {
+  const MAX_RESULTS = 40;
+  const COPY_RESET_MS = 1500;
+  const KIND_LABEL = { p: "Page", h: "Section", c: "Command", k: "Key", t: "Text" };
+  const KIND_WEIGHT = { c: 30, k: 30, h: 20, p: 15, t: 0 };
+  const PHRASE_BONUS = 100, START_BONUS = 50, SAME_FILE_BONUS = 5;
+  const SYNONYM_START_BONUS = START_BONUS / 2;
+  const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
+  const ACTION_BONUS = PHRASE_BONUS + START_BONUS;
+  const WORD_BONUS = 40;
+  // A module lives at <folder>/index.html but is linked as <folder>/.
+  const MODULE_FILE_RE = /(^|\/)index\.html$/;
+  const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
+
+  // Vim and tmux spellings of the same key must meet: "<C-w>v" and "Ctrl-w v" both become "ctrl-w v".
+  function norm(s) {
+    return String(s).toLowerCase()
+      .replace(/<c-([^>]+)>/g, " ctrl-$1 ")
+      .replace(/<leader>/g, "<space>")
+      .replace(/\bctrl\+/g, "ctrl-")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  function stem(token) {
+    if (!/^[a-z]+$/.test(token)) return token;
+    const base = token.replace(/(?:ing|ed|es|s)$/, "");
+    return base.length >= 3 ? base : token;
+  }
+
+  function whole(hay, word) {
+    for (let at = hay.indexOf(word); at !== -1; at = hay.indexOf(word, at + word.length)) {
+      const tail = hay.slice(at + word.length).match(/^[a-z0-9]*/)[0];
+      if (!/[a-z0-9]/.test(hay[at - 1] || "") && /^(?:s|es|ed|ing)?$/.test(tail)) return true;
+    }
+    return false;
+  }
+
+  function createMatcher(groups) {
+    const aliases = new Map();
+    // Multiword everyday phrases become one query token, just like their synonym.
+    const phrases = groups.flatMap((group) => group.filter((word) => norm(word).includes(" "))
+      .map((phrase) => [new RegExp("\\b" + norm(phrase).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), norm(group[0])]));
+    groups.forEach((group) => {
+      const words = [...new Set(group.flatMap((word) => [norm(word), stem(norm(word))]))];
+      words.forEach((word) => {
+        if (!aliases.has(word)) aliases.set(word, new Set());
+        words.forEach((variant) => aliases.get(word).add(variant));
+      });
+    });
+    function query(q) {
+      const normalized = phrases.reduce((text, [pattern, word]) => text.replace(pattern, word), norm(q));
+      return normalized ? normalized.split(" ").map((original) => {
+        const base = stem(original);
+        // saved -> sav must discover save's groups as well as literal sav matches.
+        const inflected = base === original ? [] : [...aliases.keys()]
+          .filter((word) => word.startsWith(base)).flatMap((word) => [...aliases.get(word)]);
+        return { original, variants: [...new Set([original, base,
+          ...(aliases.get(original) || []), ...(aliases.get(base) || []), ...inflected])] };
+      }) : [];
+    }
+    function match(hay, tokens) {
+      let exact = 0;
+      const variants = [];
+      for (const token of tokens) {
+        const variant = token.variants.find((word) => hay.includes(word));
+        if (!variant) return null;
+        if (hay.includes(token.original)) exact++;
+        variants.push(variant);
+      }
+      return { exact, variants };
+    }
+    return { query, match };
+  }
+
+  function createSearch(data) {
+    const matcher = createMatcher(data.syn || []);
+    const both = data.items.map((it) => norm(it[4] + " " + it[5]));
+    const text = data.items.map((it) => norm(it[5]));
+    const description = data.items.map((it) => it[0] === "k"
+      ? norm(it[5].split(/ {2,}/).slice(1).join("  ")) : "");
+    const title = data.items.map((it) => it[0] === "c" ? norm(it[4]) : "");
+    function search(q, here = "", limit = MAX_RESULTS) {
+      q = norm(q);
+      const tokens = matcher.query(q);
+      if (!tokens.length) return { items: [], total: 0 };
+      const phrase = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])");
+      const hits = [];
+      data.items.forEach((it, i) => {
+        const matched = matcher.match(both[i], tokens);
+        if (!matched) return;
+        let score = KIND_WEIGHT[it[0]] || 0;
+        if (it[0] === "c" || it[0] === "k") score += ACTION_BONUS;
+        if (it[0] === "c" && /^\s*(#|\/\/)/.test(it[5])) score -= ACTION_BONUS * 2;
+        tokens.forEach((token) => {
+          if (token.variants.some((variant) => whole(both[i], variant))) score += WORD_BONUS;
+        });
+        if (phrase.test(both[i])) score += PHRASE_BONUS;
+        // Task titles retain command relevance for multiword queries; single words prefer key actions.
+        const action = description[i] || (tokens.length > 1 ? title[i] : "");
+        const starts = (variant) => action.startsWith(variant) && whole(action.split(" ")[0], variant);
+        if (text[i].startsWith(q) || (action && (action.startsWith(q) || starts(tokens[0].original)))) {
+          score += START_BONUS;
+        } else if (action && tokens[0].variants.some(starts)) {
+          score += SYNONYM_START_BONUS;
+        }
+        if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
+        score -= Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR;
+        hits.push({ i, score, exact: matched.exact });
+      });
+      hits.sort((a, b) => b.exact - a.exact || b.score - a.score || a.i - b.i);
+      // The same row often appears on several pages; keep only its best-ranked copy.
+      const seen = new Set();
+      const unique = hits.filter((hit) => {
+        const key = text[hit.i];
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return { items: unique.slice(0, limit).map((hit) => data.items[hit.i]), total: unique.length };
+    }
+    return { ...matcher, search };
+  }
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { norm, stem, createMatcher, createSearch, highlight };
+  }
+  if (typeof document === "undefined") return;
+  const root = document.body.dataset.root || "";
+  const here = document.body.dataset.file || "index.html";
+  const engine = createSearch(window.TW_SEARCH || { items: [], files: [] });
+
+  // ---- copy
+  function legacyCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    area.remove();
+    return ok;
+  }
+  async function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+    }
+    return legacyCopy(text);
+  }
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".tw-copy");
+    if (!button) return;
+    const box = button.closest(".tw-codebox");
+    const source = box && (box.querySelector(".tw-copy-src code") || box.querySelector("pre.sq-code code"));
+    if (!source) return;
+    const ok = await copyText(source.textContent);
+    button.textContent = ok ? "Copied" : "Copy failed";
+    clearTimeout(button._twReset);
+    button._twReset = setTimeout(() => { button.textContent = "Copy"; }, COPY_RESET_MS);
+  });
+
+  // ---- cheat sheet
+  const STORE_KEY = "tw-cheat";
+  const drawer = document.getElementById("tw-cheat");
+  const cheatBtn = document.querySelector(".tw-cheat-btn");
+  const cheatQ = document.getElementById("tw-cheat-q");
+  const cheatTabs = document.getElementById("tw-cheat-tabs");
+  const cheatBody = document.getElementById("tw-cheat-body");
+  const searchDialog = document.getElementById("tw-search");
+  const cheatState = { open: false, tab: "" };
+  // Set by the course menu below. Layers, topmost first: search, cheat sheet, menu panel.
+  // Returns true when it closed an open panel.
+  let closeMenu = () => false;
+  let cheatNorm = null;
+
+  function loadCheatState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      cheatState.open = saved.open === true;
+      cheatState.tab = typeof saved.tab === "string" ? saved.tab : "";
+    } catch (e) { /* storage unavailable or corrupt: use defaults */ }
+  }
+  function saveCheatState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(cheatState)); } catch (e) { /* storage unavailable */ }
+  }
+
+  function cheatTable(rows, taskFirst = false) {
+    const table = document.createElement("table");
+    table.className = "tw-keytable";
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      const keyCell = document.createElement("td");
+      const kbd = document.createElement("kbd");
+      kbd.className = "tw-key";
+      kbd.textContent = row[0];
+      keyCell.append(kbd);
+      const actionCell = document.createElement("td");
+      actionCell.textContent = row[1];
+      if (taskFirst) tr.append(actionCell, keyCell);
+      else tr.append(keyCell, actionCell);
+      table.append(tr);
+    });
+    return table;
+  }
+
+  function renderCheat() {
+    const sheets = window.TW_CHEAT;
+    if (!drawer || !Array.isArray(sheets) || !sheets.length) return;
+    if (!sheets.some((s) => s.id === cheatState.tab)) cheatState.tab = sheets[0].id;
+    if (!cheatNorm) cheatNorm = sheets.map((s) => s.rows.map((r) => norm(r[0] + " " + r[1])));
+    const q = norm(cheatQ.value);
+    cheatTabs.replaceChildren();
+    sheets.forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tw-cheat-tab";
+      b.textContent = s.title;
+      b.setAttribute("aria-pressed", String(!q && s.id === cheatState.tab));
+      b.addEventListener("click", () => {
+        cheatState.tab = s.id;
+        cheatQ.value = "";
+        saveCheatState();
+        renderCheat();
+      });
+      cheatTabs.append(b);
+    });
+    cheatBody.replaceChildren();
+    if (!q) {
+      const sheet = sheets.find((s) => s.id === cheatState.tab);
+      cheatBody.append(cheatTable(sheet.rows, sheet.task_first));
+      return;
+    }
+    const tokens = engine.query(q);
+    let found = 0;
+    sheets.forEach((s, si) => {
+      const rows = s.rows.filter((_, ri) => engine.match(cheatNorm[si][ri], tokens));
+      if (!rows.length) return;
+      found += rows.length;
+      const h = document.createElement("h3");
+      h.className = "tw-cheat-group";
+      h.textContent = s.title;
+      cheatBody.append(h, cheatTable(rows, s.task_first));
+    });
+    if (!found) {
+      const p = document.createElement("p");
+      p.className = "tw-cheat-empty";
+      p.textContent = "No match.";
+      cheatBody.append(p);
+    }
+  }
+
+  function setCheatOpen(open) {
+    if (!drawer) return;
+    // An open panel would trap Tab behind the drawer, so close it first and move focus into the drawer.
+    const fromMenu = open && closeMenu(false);
+    cheatState.open = open;
+    drawer.hidden = !open;
+    document.body.classList.toggle("tw-cheat-open", open);
+    if (cheatBtn) cheatBtn.setAttribute("aria-expanded", String(open));
+    saveCheatState();
+    if (fromMenu && cheatQ) cheatQ.focus();
+  }
+
+  if (drawer && cheatBtn && cheatQ && cheatTabs && cheatBody) {
+    loadCheatState();
+    renderCheat();
+    setCheatOpen(cheatState.open);
+    cheatBtn.addEventListener("click", () => setCheatOpen(!cheatState.open));
+    drawer.querySelector(".tw-cheat-close").addEventListener("click", () => setCheatOpen(false));
+    cheatQ.addEventListener("input", renderCheat);
+    document.addEventListener("keydown", (event) => {
+      if (searchDialog && !searchDialog.hidden) return;
+      if (event.key === "Escape" && cheatState.open) {
+        setCheatOpen(false);
+      } else if (event.key === "?" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+        event.preventDefault();
+        setCheatOpen(!cheatState.open);
+      }
+    });
+  }
+
+  // ---- course menu: a permanent column on module pages from SIDE_MIN_WIDTH up, a slide-in panel otherwise
+  const side = document.getElementById("tw-side");
+  const menuBtn = document.querySelector(".tw-menu-btn");
+  const backdrop = document.getElementById("tw-backdrop");
+  const SIDE_MIN_WIDTH = 1000;
+  const SIDE_MARGIN = 8;
+
+  if (side && menuBtn && backdrop) {
+    const wide = matchMedia(`(min-width: ${SIDE_MIN_WIDTH}px)`);
+    const menuIsOpen = () => document.body.classList.contains("tw-side-open");
+
+    // Keep the current page's link inside the menu's scroll area.
+    function revealCurrent() {
+      const link = side.querySelector('[aria-current="page"]');
+      if (!link) return;
+      const box = side.getBoundingClientRect();
+      const at = link.getBoundingClientRect();
+      if (at.top < box.top + SIDE_MARGIN) side.scrollTop -= box.top + SIDE_MARGIN - at.top;
+      else if (at.bottom > box.bottom - SIDE_MARGIN) side.scrollTop += at.bottom - box.bottom + SIDE_MARGIN;
+    }
+
+    // The page switcher (course.js) owns which page is shown; the menu follows it.
+    function syncCurrent() {
+      const shown = document.querySelector(".lesson.active");
+      if (!shown) return;
+      side.querySelectorAll("a[data-page]").forEach((link) => {
+        if (link.dataset.page === shown.dataset.module) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    function setMenuOpen(open, restoreFocus = true) {
+      if (open === menuIsOpen()) return;
+      document.body.classList.toggle("tw-side-open", open);
+      menuBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        revealCurrent();
+        (side.querySelector('[aria-current="page"]') || side.querySelector("summary, a")).focus();
+      } else if (restoreFocus && side.contains(document.activeElement)) {
+        menuBtn.focus();
+      }
+    }
+
+    closeMenu = (restoreFocus = true) => {
+      const wasOpen = menuIsOpen();
+      setMenuOpen(false, restoreFocus);
+      return wasOpen;
+    };
+
+    syncCurrent();
+    document.querySelectorAll(".lesson").forEach((lesson) => {
+      new MutationObserver(syncCurrent).observe(lesson, { attributes: true, attributeFilter: ["class"] });
+    });
+    if (document.body.classList.contains("has-side") && wide.matches) revealCurrent();
+
+    menuBtn.addEventListener("click", () => setMenuOpen(!menuIsOpen()));
+    backdrop.addEventListener("click", () => setMenuOpen(false));
+    side.addEventListener("click", (event) => { if (event.target.closest("a")) setMenuOpen(false); });
+    // Widening a module page turns the panel into the permanent column, so reset the panel state.
+    wide.addEventListener("change", () => {
+      if (document.body.classList.contains("has-side") && wide.matches) setMenuOpen(false, false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!menuIsOpen() || (searchDialog && !searchDialog.hidden)) return;
+      if (event.key === "Escape") {
+        if (cheatState.open) return; // the cheat sheet sits above the panel and closes first
+        event.preventDefault();
+        event.stopPropagation();
+        setMenuOpen(false);
+      } else if (event.key === "Tab") {
+        if (drawer && drawer.contains(document.activeElement)) return;
+        // Keep Tab inside the open panel.
+        const stops = [...side.querySelectorAll("summary, a")].filter((el) => el.offsetParent !== null);
+        if (!stops.length) return;
+        const first = stops[0], last = stops[stops.length - 1];
+        if (!side.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+        else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    }, true);
+  }
+
+  // ---- search
+  const dialog = document.getElementById("tw-search");
+  const input = document.getElementById("tw-q");
+  const list = document.getElementById("tw-results");
+  const openButtons = document.querySelectorAll("[data-tw-search]");
+  if (!dialog || !input || !list) return;
+
+  let active = -1;
+  let shown = [];
+  let lastFocus = null;
+
+  function isOpen() { return !dialog.hidden; }
+
+  function openSearch() {
+    if (isOpen()) return;
+    lastFocus = document.activeElement;
+    // A panel left open would stay up, with the page scroll locked, once a result is picked.
+    if (closeMenu(false)) lastFocus = menuBtn;
+    dialog.hidden = false;
+    document.body.classList.add("tw-search-open");
+    input.focus();
+    input.select();
+  }
+
+  function closeSearch() {
+    if (!isOpen()) return;
+    dialog.hidden = true;
+    document.body.classList.remove("tw-search-open");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function search(q) {
+    return engine.search(q, here).items;
+  }
+
+  // Preserve source offsets when key spellings or whitespace normalize differently.
+  function highlightSource(text) {
+    let chars = text.split("").flatMap((char, at) => char.toLowerCase().split("")
+      .map((value) => ({ value, start: at, end: at + 1 })));
+    function replace(pattern, replacement) {
+      const source = chars.map((char) => char.value).join("");
+      const next = [];
+      let at = 0;
+      for (const match of source.matchAll(pattern)) {
+        next.push(...chars.slice(at, match.index));
+        const value = typeof replacement === "function" ? replacement(match) : replacement;
+        const start = chars[match.index].start;
+        const end = chars[match.index + match[0].length - 1].end;
+        value.split("").forEach((letter) => next.push({ value: letter, start, end }));
+        at = match.index + match[0].length;
+      }
+      chars = next.concat(chars.slice(at));
+    }
+    replace(/<c-([^>]+)>/g, (match) => " ctrl-" + match[1] + " ");
+    replace(/<leader>/g, "<space>");
+    replace(/\bctrl\+/g, "ctrl-");
+    replace(/\s+/g, " ");
+    replace(/^\s+|\s+$/g, "");
+    return { lower: chars.map((char) => char.value).join(""), chars };
+  }
+
+  // Mark the actual matching variant using text nodes only.
+  function highlight(host, text, tokens) {
+    const { lower, chars } = highlightSource(text);
+    const marked = new Array(text.length).fill(false);
+    tokens.forEach((t) => {
+      if (!t) return;
+      for (let at = lower.indexOf(t); at !== -1; at = lower.indexOf(t, at + t.length)) {
+        for (let k = chars[at].start; k < chars[at + t.length - 1].end; k++) marked[k] = true;
+      }
+    });
+    let start = 0;
+    while (start < text.length) {
+      let end = start;
+      while (end < text.length && marked[end] === marked[start]) end++;
+      const piece = text.slice(start, end);
+      if (marked[start]) {
+        const mark = document.createElement("mark");
+        mark.textContent = piece;
+        host.append(mark);
+      } else {
+        host.append(document.createTextNode(piece));
+      }
+      start = end;
+    }
+  }
+
+  function setActive(next) {
+    const options = list.querySelectorAll('[role="option"]');
+    if (!options.length) return;
+    active = (next + options.length) % options.length;
+    options.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    input.setAttribute("aria-activedescendant", options[active].id);
+    options[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function render(q) {
+    list.replaceChildren();
+    input.removeAttribute("aria-activedescendant");
+    shown = [];
+    active = -1;
+    if (!q) { input.setAttribute("aria-expanded", "false"); return; }
+    input.setAttribute("aria-expanded", "true");
+    shown = search(q);
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "tw-r-text";
+      li.textContent = "No match. Try a key like Ctrl-w or a command like git worktree.";
+      list.append(li);
+      return;
+    }
+    const data = window.TW_SEARCH;
+    const tokens = engine.query(q);
+    shown.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.id = `tw-r-${i}`;
+      li.setAttribute("role", "option");
+      const mod = data.mods[it[1]];
+      const meta = document.createElement("div");
+      meta.className = "tw-r-meta";
+      const kind = document.createElement("span");
+      kind.className = "tw-r-kind";
+      kind.textContent = KIND_LABEL[it[0]] || it[0];
+      meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
+      const title = document.createElement("div");
+      title.className = "tw-r-title";
+      const variants = engine.match(norm(it[4] + " " + it[5]), tokens).variants;
+      highlight(title, it[4], variants);
+      const snippet = document.createElement("div");
+      snippet.className = "tw-r-text";
+      highlight(snippet, it[5], variants);
+      li.append(meta, title, snippet);
+      li.addEventListener("click", () => go(it));
+      list.append(li);
+    });
+    setActive(0);
+  }
+
+  function go(it) {
+    const file = window.TW_SEARCH.files[it[1]];
+    const target = it[3];
+    closeSearch();
+    if (file === here) {
+      if (location.hash === "#" + target) dispatchEvent(new HashChangeEvent("hashchange"));
+      else location.hash = target;
+    } else {
+      location.href = root + file.replace(MODULE_FILE_RE, "$1") + "#" + target;
+    }
+  }
+
+  input.addEventListener("input", () => render(norm(input.value)));
+  openButtons.forEach((button) => button.addEventListener("click", openSearch));
+  dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
+
+  document.addEventListener("keydown", (event) => {
+    if (isOpen()) {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSearch(); }
+      else if (event.key === "ArrowDown") { event.preventDefault(); setActive(active + 1); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); setActive(active - 1); }
+      else if (event.key === "Enter" && shown[active]) { event.preventDefault(); go(shown[active]); }
+      return;
+    }
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+    event.preventDefault();
+    openSearch();
+  }, true);
+})();
+
+    </script>
+  </body>
+</html>

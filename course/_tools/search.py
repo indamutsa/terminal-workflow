@@ -57,6 +57,19 @@ SYNONYMS: list[list[str]] = [
     ["vertical", "vertically"],
     ["horizontal", "horizontally"],
     ["nvim", "neovim", "lazyvim"],
+    ["find", "search", "locate", "look for", "seek"],
+    ["big", "large", "size", "biggest", "largest"],
+    ["loop", "repeat", "iterate", "each", "every"],
+    ["argument", "flag", "option", "parameter", "args"],
+    ["replace", "substitute", "change", "edit"],
+    ["count", "how many", "total", "number"],
+    ["column", "field"],
+    ["delete", "remove", "drop"],
+    ["rename", "move"],
+    ["read", "input"],
+    ["print", "output", "show"],
+    ["ips", "ip"],
+    ["string", "text"],
 ]
 
 
@@ -71,7 +84,9 @@ def clean(text, code=False, key_row=False):
 
 
 def _lines(code):
-    return [ln for ln in str(code).split("\n") if ln.strip()]
+    # A closing delimiter is not a useful command preview for a task search.
+    closers = {"EOF", "done", "fi", "esac", "else", "then", "do", "}", ";;"}
+    return [ln for ln in str(code).split("\n") if ln.strip() and ln.strip() not in closers]
 
 
 def entries(mods):

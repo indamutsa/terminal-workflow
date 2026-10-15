@@ -5,7 +5,7 @@ shared CSS and JS drive: copyable command boxes with a stated result, key tables
 """
 from html import escape as _esc
 
-from content.common import PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, SITE_URL
+from content.common import MODULE_META, PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, SITE_URL, module_href
 from highlight import highlight
 
 WHERE = {"shell": "Shell", "tmux": "tmux", "nvim": "Neovim", "lazygit": "LazyGit", "fzf": "fzf"}
@@ -189,9 +189,13 @@ def practice(page_n, p):
     return "".join(out)
 
 
-def search_ui():
+def search_button():
+    return ('<button class="tw-search-btn" type="button" data-tw-search aria-haspopup="dialog" aria-controls="tw-search">'
+            'Search <kbd>/</kbd></button>')
+
+
+def search_dialog():
     return (
-        '<button class="tw-search-btn" type="button" aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button>'
         '<div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel">'
         '<input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" '
         'aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" />'
@@ -200,10 +204,15 @@ def search_ui():
     )
 
 
-def cheat_ui():
+def cheat_button():
     return (
         '<button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false">'
         '<span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button>'
+    )
+
+
+def cheat_drawer():
+    return (
         '<aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet">'
         '<header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2>'
         '<button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header>'
@@ -211,3 +220,57 @@ def cheat_ui():
         '<div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div>'
         '<div id="tw-cheat-body" class="tw-cheat-body"></div></aside>'
     )
+
+
+HOME_ICON = ('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" '
+             'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
+             '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg>')
+MENU_ICON = ('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" '
+             'stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>')
+
+
+def topbar(root, home=False):
+    """Sticky bar on every page: Home, Menu (opens the course menu), then Search and Cheat sheet.
+
+    root is the path from this page up to the site root ("" on the home page, "../" in a module).
+    """
+    current = ' aria-current="page"' if home else ""
+    return (
+        f'<header class="tw-topbar"><div class="tw-topbar-in">'
+        f'<a class="tw-home" href="{root or "./"}" aria-label="Terminal Workflow home"{current}>{HOME_ICON}<span>Terminal Workflow</span></a>'
+        f'<button class="tw-menu-btn" type="button" aria-controls="tw-side" aria-expanded="false" aria-label="Menu">'
+        f'{MENU_ICON}<span class="tw-menu-label">Menu</span></button>'
+        f'<div class="tw-topbar-end">{search_button()}{cheat_button()}</div>'
+        f'</div></header>'
+    )
+
+
+def sidebar(mods, current=None, root=""):
+    """The course menu: every group, its modules and their pages, built from MODULE_META and each module's pages.
+
+    The current module is open and links its own pages with bare #module-N anchors (site.js marks the shown page).
+    Groups sort by name, the same order as the course map.
+    """
+    meta = {m["n"]: m for m in MODULE_META}
+    groups = {}
+    for m in mods:
+        groups.setdefault(meta[m["n"]]["group"], []).append(m)
+    out = []
+    for group in sorted(groups):
+        items = []
+        for m in groups[group]:
+            here = m["n"] == current
+            links = []
+            for i, p in enumerate(m["pages"], 1):
+                if here:
+                    shown = ' aria-current="page"' if i == 1 else ""
+                    links.append(f'<li><a href="#{anchor(i)}" data-page="{i}"{shown}>{esc(p["h1"])}</a></li>')
+                else:
+                    links.append(f'<li><a href="{root}{module_href(m["folder"])}#{anchor(i)}">{esc(p["h1"])}</a></li>')
+            state = " open data-current" if here else ""
+            items.append(
+                f'<li><details class="tw-side-mod"{state}><summary><span class="tw-side-num">{m["n"]}</span>'
+                f'<span class="tw-side-title">{esc(m["title"])}</span></summary>'
+                f'<ol class="tw-side-pages">{"".join(links)}</ol></details></li>')
+        out.append(f'<section class="tw-side-group"><h2>{esc(group)}</h2><ul>{"".join(items)}</ul></section>')
+    return f'<nav class="tw-side" id="tw-side" aria-label="Course modules">{"".join(out)}</nav><div class="tw-backdrop" id="tw-backdrop"></div>'

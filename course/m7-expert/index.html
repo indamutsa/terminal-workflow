@@ -809,9 +809,9 @@ footer {
 .tw-keytable td:first-child{white-space:nowrap}
 .tw-key{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--raised);color:var(--chalk);font:500 12.5px var(--mono)}
 .tw-text{margin:12px 0;color:var(--chalk)}
-[id^="module-"]{scroll-margin-top:72px}
+[id^="module-"]{scroll-margin-top:76px}
 .tw-hit{outline:2px solid var(--gold);outline-offset:4px}
-.tw-search-btn{position:fixed;top:12px;right:12px;z-index:40;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-search-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
 .tw-search-btn:hover{border-color:var(--gold)}
 .tw-search-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
 .tw-search[hidden]{display:none}
@@ -831,7 +831,7 @@ footer {
 body.tw-search-open{overflow:hidden}
 
 /* Cheat sheet */
-.tw-cheat-btn{position:fixed;top:12px;right:126px;z-index:40;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-cheat-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
 .tw-cheat-btn:hover{border-color:var(--gold)}
 .tw-cheat-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
 .tw-cheat-short{display:none}
@@ -848,17 +848,74 @@ body.tw-search-open{overflow:hidden}
 .tw-cheat-body{flex:1;min-height:0;overflow-y:auto}
 .tw-cheat-body .tw-keytable td{padding:6px 8px;font-size:13px}
 .tw-cheat-body .tw-keytable td:first-child{white-space:normal;overflow-wrap:anywhere}
+.tw-cheat-body .tw-key{white-space:pre-wrap;overflow-wrap:anywhere}
 .tw-cheat-group{margin:14px 0 4px;color:var(--mint);font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .tw-cheat-empty{color:var(--dim);font-size:13px}
 @media (min-width:1100px){
   body.tw-cheat-open{padding-right:440px}
-  body.tw-cheat-open .tw-search-btn{right:452px}
-  body.tw-cheat-open .tw-cheat-btn{right:566px}
 }
 @media (max-width:480px){
-  .tw-cheat-btn{right:92px}
   .tw-cheat-btn kbd,.tw-cheat-long{display:none}
   .tw-cheat-short{display:inline}
+}
+
+/* Course map: the same palette, with a wider reading and browsing surface. */
+.course-map main,.course-map footer{width:min(1100px,calc(100% - 48px))}
+.course-map h1,.course-map h2{text-wrap:balance}
+.course-map h3{font-family:var(--body);text-wrap:balance}
+.course-map h2{font-size:28px}
+.course-map a{text-underline-offset:4px}
+.cm-hero{padding:64px 0 52px}
+.cm-hero h1{margin:0 0 14px;font-size:clamp(34px,4.2vw,50px);line-height:1.12}
+.cm-hero .subtitle{max-width:none;margin:0;font-size:16px}
+.cm-search{display:flex;cursor:pointer;border:1px solid var(--line);align-items:center;justify-content:space-between;gap:16px;width:min(680px,100%);margin-top:30px;padding:16px 20px;min-height:58px;border-radius:var(--r);background:var(--raised);color:var(--chalk);font:400 16px var(--body);text-align:left}
+.cm-search:hover{border-color:var(--gold)}
+.cm-search kbd{padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:400 14px var(--mono)}
+.cm-search-hint{margin:10px 0 0;color:var(--dim);font-size:12px}
+.cm-jumps{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px;font-size:13px}
+.cm-jumps a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-jumps a:hover{color:var(--gold)}
+.cm-group{padding:32px 0 12px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-group+.cm-group{margin-top:44px}
+.cm-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:24px}
+.cm-group-head h2{margin:0 0 8px}
+.cm-group-head p{margin:0;color:var(--dim);font-size:14px}
+.cm-group-head>span{flex-shrink:0;color:var(--dim);font-size:12px}
+.cm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cm-card{display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);transition:border-color .18s}
+.cm-card:hover,.cm-card:focus-within{border-color:var(--gold)}
+.cm-num{color:var(--mint);font-size:12px;font-weight:500}
+.cm-card h3{margin:12px 0 10px;font-size:22px;letter-spacing:-.025em}
+.cm-card h3 a{color:var(--chalk);text-decoration:none}
+.cm-card p{margin:0 0 18px;color:var(--dim);font-size:13px}
+.cm-card ol{margin:0 0 22px;padding-left:20px;font-size:13px}
+.cm-card li+li{margin-top:8px}
+.cm-card ol a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-card ol a:hover{color:var(--gold)}
+.cm-open{align-self:flex-start;margin-top:auto;color:var(--gold);font-size:12px;font-weight:600;text-decoration:none}
+.cm-learning{display:grid;grid-template-columns:1fr 2fr;gap:48px;margin-top:64px;padding-top:36px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-learning h2{margin-top:0}
+.cm-path{margin:0;padding-left:20px}
+.cm-path li{padding:0 0 22px 8px}
+.cm-path li::marker{color:var(--gold);font:500 13px var(--mono)}
+.cm-path strong{display:block;margin-bottom:4px;font-size:16px}
+.cm-path a{font-size:12px}
+.cm-path p{margin:6px 0 0;color:var(--dim);font-size:13px}
+.cm-reference{font-size:13px;color:var(--dim)}
+.cm-start{max-width:780px;margin-top:48px;padding-top:36px;border-top:1px solid var(--line)}
+@media (min-width:1000px){.cm-group:first-of-type .cm-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:650px){
+  .course-map main,.course-map footer{width:calc(100% - 40px)}
+  .cm-hero{padding:40px 0 36px}
+  .cm-hero .subtitle{font-size:14px}
+  .cm-search{padding:14px;font-size:14px}
+  .cm-search-hint{max-width:32ch}
+  .cm-jumps{gap:12px 20px}
+  .cm-group-head{display:block}
+  .cm-group-head>span{display:block;margin-top:10px}
+  .cm-grid{grid-template-columns:minmax(0,1fr)}
+  .cm-card{padding:22px}
+  .cm-learning{grid-template-columns:minmax(0,1fr);gap:24px}
 }
 .ws-steps em{color:var(--dim);font:600 11px var(--mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
 .ws-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
@@ -867,11 +924,70 @@ body.tw-search-open{overflow:hidden}
 .ws-pane .sq-code{margin:4px 0 0}
 @media (max-width:640px){.ws-pair{grid-template-columns:minmax(0,1fr)}}
 
+/* Top bar and course menu. Below 1000px (and on the course map) the menu is a slide-in panel. */
+:root{--bar:56px;--side:288px}
+.tw-topbar{position:sticky;top:0;z-index:40;height:var(--bar);border-bottom:1px solid var(--line);background:rgba(23,35,29,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.tw-topbar-in{display:flex;align-items:center;gap:8px;height:100%;padding:0 16px}
+.tw-home{display:inline-flex;flex:0 1 auto;align-items:center;gap:9px;min-width:0;min-height:36px;padding:0 10px 0 8px;border-radius:8px;color:var(--chalk);text-decoration:none;font:700 18px/1 var(--display)}
+.tw-home span{overflow:hidden;padding-top:4px;text-overflow:ellipsis;white-space:nowrap}
+.tw-home svg{flex:none;color:var(--gold)}
+.tw-home:hover{background:var(--soft)}
+.tw-menu-btn{display:none;flex:none;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.js .tw-menu-btn{display:inline-flex}
+.tw-menu-btn:hover,.tw-menu-btn[aria-expanded=true]{border-color:var(--gold)}
+.tw-topbar-end{display:flex;flex:none;align-items:center;gap:8px;margin-left:auto}
+.tw-side{position:fixed;z-index:39;top:var(--bar);bottom:0;left:0;width:min(var(--side),calc(100% - 44px));padding:18px 12px 40px;overflow:hidden auto;overscroll-behavior:contain;border-right:1px solid var(--line);background:var(--alt);box-shadow:12px 0 32px rgba(0,0,0,.35);transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility 0s linear .22s}
+.tw-backdrop{position:fixed;z-index:38;inset:var(--bar) 0 0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s}
+body.tw-side-open{overflow:hidden}
+body.tw-side-open .tw-side{transform:none;visibility:visible;transition-delay:0s}
+body.tw-side-open .tw-backdrop{opacity:1;visibility:visible;transition-delay:0s}
+.tw-side h2{margin:0 0 6px;padding:0 10px;color:var(--gold);font:700 17px/1.3 var(--display)}
+.tw-side-group+.tw-side-group{margin-top:22px}
+.tw-side ul,.tw-side ol{margin:0;padding:0;list-style:none}
+.tw-side :focus-visible{outline-offset:-2px}
+.tw-side-mod summary{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;border-radius:8px;color:var(--chalk);cursor:pointer;font-size:14px;font-weight:500;line-height:1.3;list-style:none}
+.tw-side-mod summary::-webkit-details-marker{display:none}
+.tw-side-mod summary::after{content:"";flex:none;width:7px;height:7px;margin:0 3px 0 auto;border-right:1.5px solid var(--dim);border-bottom:1.5px solid var(--dim);transform:rotate(-45deg);transition:transform .15s}
+.tw-side-mod[open]>summary::after{transform:rotate(45deg)}
+.tw-side-mod summary:hover{background:var(--soft)}
+.tw-side-num{display:grid;flex:none;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;color:var(--mint);font:600 11px var(--mono)}
+.tw-side-mod[data-current]>summary .tw-side-num{border-color:var(--gold);background:var(--gold);color:var(--board)}
+.tw-side .tw-side-pages{margin:2px 0 8px 22px;border-left:1px solid var(--line)}
+.tw-side-pages a{display:block;margin-left:-1px;padding:6px 10px 6px 14px;border-left:2px solid transparent;border-radius:0 6px 6px 0;color:var(--dim);font-size:13px;line-height:1.4;text-decoration:none}
+.tw-side-pages a:hover{background:var(--soft);color:var(--chalk)}
+.tw-side-pages a[aria-current=page]{border-left-color:var(--gold);background:var(--soft);color:var(--gold);font-weight:600}
+.cm-hero .eyebrow{margin-bottom:14px}
+html:not(.js) body:not(.has-side) .tw-side{display:none}
+@media (min-width:1000px){
+  body.has-side .tw-side{width:var(--side);box-shadow:none;transform:none;visibility:visible;transition:none}
+  body.has-side .tw-backdrop,body.has-side .tw-menu-btn{display:none}
+  body.has-side .tw-page{padding-left:var(--side)}
+}
+@media (max-width:999.98px){
+  html:not(.js) body.has-side .tw-side{position:static;width:auto;border:0;border-bottom:1px solid var(--line);box-shadow:none;transform:none;visibility:visible}
+}
+@media (max-width:480px){
+  .tw-topbar-in{gap:6px;padding:0 10px}
+  .tw-topbar-end{gap:6px}
+  .tw-home{gap:7px;padding:0 6px 0 4px;font-size:16px}
+  .tw-menu-label{display:none}
+  .tw-menu-btn,.tw-search-btn,.tw-cheat-btn{padding:6px 8px;font-size:12px}
+}
+@media (max-width:359.98px){.tw-home span{display:none}}
+@media print{
+  .tw-topbar,.tw-side,.tw-backdrop{display:none!important}
+  body.has-side .tw-page{padding-left:0}
+  body.tw-side-open,body.tw-cheat-open{overflow:visible;padding-right:0}
+}
+
     </style>
   </head>
-  <body data-root="../" data-file="m7-expert/index.html">
-    <button class="tw-search-btn" type="button" aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
-    <button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false"><span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button><aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet"><header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2><button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header><input id="tw-cheat-q" class="tw-q" type="search" autocomplete="off" spellcheck="false" aria-label="Filter the cheat sheet" placeholder="Filter keys and actions" /><div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div><div id="tw-cheat-body" class="tw-cheat-body"></div></aside>
+  <body class="has-side" data-root="../" data-file="m7-expert/index.html">
+    <header class="tw-topbar"><div class="tw-topbar-in"><a class="tw-home" href="../" aria-label="Terminal Workflow home"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg><span>Terminal Workflow</span></a><button class="tw-menu-btn" type="button" aria-controls="tw-side" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="tw-menu-label">Menu</span></button><div class="tw-topbar-end"><button class="tw-search-btn" type="button" data-tw-search aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false"><span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button></div></div></header>
+    <nav class="tw-side" id="tw-side" aria-label="Course modules"><section class="tw-side-group"><h2>Linux &amp; Bash</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">9</span><span class="tw-side-title">Find and text tools</span></summary><ol class="tw-side-pages"><li><a href="../m9-find-text/#module-1">Find files</a></li><li><a href="../m9-find-text/#module-2">Search inside files</a></li><li><a href="../m9-find-text/#module-3">Slice, sort and count</a></li><li><a href="../m9-find-text/#module-4">Transform</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">10</span><span class="tw-side-title">Bash basics</span></summary><ol class="tw-side-pages"><li><a href="../m10-bash-basics/#module-1">Variables, quoting and exit codes</a></li><li><a href="../m10-bash-basics/#module-2">Decisions</a></li><li><a href="../m10-bash-basics/#module-3">Loops</a></li><li><a href="../m10-bash-basics/#module-4">Script input</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">11</span><span class="tw-side-title">Bash expert</span></summary><ol class="tw-side-pages"><li><a href="../m11-bash-expert/#module-1">Functions, strings and arrays</a></li><li><a href="../m11-bash-expert/#module-2">Safe scripts</a></li><li><a href="../m11-bash-expert/#module-3">Redirection, here-docs and process substitution</a></li><li><a href="../m11-bash-expert/#module-4">Ready-made scripts</a></li></ol></details></li></ul></section><section class="tw-side-group"><h2>tmux &amp; Neovim</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">1</span><span class="tw-side-title">tmux and the shell</span></summary><ol class="tw-side-pages"><li><a href="../m1-tmux/#module-1">Sessions that outlive the window</a></li><li><a href="../m1-tmux/#module-2">Windows and panes</a></li><li><a href="../m1-tmux/#module-3">Copy mode, the command line and fzf</a></li><li><a href="../m1-tmux/#module-4">Make tmux yours</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">2</span><span class="tw-side-title">Neovim essentials</span></summary><ol class="tw-side-pages"><li><a href="../m2-nvim-essentials/#module-1">Open, move, save, quit</a></li><li><a href="../m2-nvim-essentials/#module-2">Move fast and search</a></li><li><a href="../m2-nvim-essentials/#module-3">Delete, yank, paste, undo</a></li><li><a href="../m2-nvim-essentials/#module-4">Buffers, terminals, splits, tabs, leader</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">3</span><span class="tw-side-title">Power editing</span></summary><ol class="tw-side-pages"><li><a href="../m3-power-editing/#module-1">Operators, motions, text objects</a></li><li><a href="../m3-power-editing/#module-2">Visual mode, macros, search and replace</a></li><li><a href="../m3-power-editing/#module-3">Indent, registers, marks, many files</a></li><li><a href="../m3-power-editing/#module-4">Change every copy of a word</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">4</span><span class="tw-side-title">Worktrees and the agent loop</span></summary><ol class="tw-side-pages"><li><a href="../m4-worktrees/#module-1">Parallel branches without stashing</a></li><li><a href="../m4-worktrees/#module-2">Worktrees in tmux</a></li><li><a href="../m4-worktrees/#module-3">The three-window pattern</a></li><li><a href="../m4-worktrees/#module-4">Test, ship, clean up</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">5</span><span class="tw-side-title">Code intelligence and git</span></summary><ol class="tw-side-pages"><li><a href="../m5-lsp-git/#module-1">Navigate code with LSP</a></li><li><a href="../m5-lsp-git/#module-2">Git inside Neovim</a></li><li><a href="../m5-lsp-git/#module-3">Refactor, files and project search</a></li><li><a href="../m5-lsp-git/#module-4">Tests and the debugger</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">6</span><span class="tw-side-title">Plugins and the key map</span></summary><ol class="tw-side-pages"><li><a href="../m6-plugins-keymaps/#module-1">Jump and select</a></li><li><a href="../m6-plugins-keymaps/#module-2">Sessions, history and UI helpers</a></li><li><a href="../m6-plugins-keymaps/#module-3">The g, [ ], and z maps</a></li><li><a href="../m6-plugins-keymaps/#module-4">Ctrl, Space and colon maps</a></li></ol></details></li><li><details class="tw-side-mod" open data-current><summary><span class="tw-side-num">7</span><span class="tw-side-title">Expert Neovim</span></summary><ol class="tw-side-pages"><li><a href="#module-1" data-page="1" aria-current="page">Motions and the dot formula</a></li><li><a href="#module-2" data-page="2">Expert macros and registers</a></li><li><a href="#module-3" data-page="3">Quickfix, marks, substitution and :g</a></li><li><a href="#module-4" data-page="4">Windows, insert, block, ranges and undo</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">8</span><span class="tw-side-title">Coming from VS Code</span></summary><ol class="tw-side-pages"><li><a href="../m8-from-vscode/#module-1">Your VS Code shortcuts in Neovim</a></li><li><a href="../m8-from-vscode/#module-2">View, layout and focus</a></li><li><a href="../m8-from-vscode/#module-3">Editing helpers VS Code gave you free</a></li></ol></details></li></ul></section></nav><div class="tw-backdrop" id="tw-backdrop"></div>
+    <div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
+    <aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet"><header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2><button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header><input id="tw-cheat-q" class="tw-q" type="search" autocomplete="off" spellcheck="false" aria-label="Filter the cheat sheet" placeholder="Filter keys and actions" /><div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div><div id="tw-cheat-body" class="tw-cheat-body"></div></aside>
+    <div class="tw-page">
     <main id="lessonRoot">
 <section class="lesson sq-page active" id="module-1" data-module="1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false"><header class="lesson-header"><div class="eyebrow">Expert Neovim · Page 1 of 4</div><h1>Motions and the dot formula</h1><p class="subtitle">Counts, searches as motions, till-motions, text objects and the repeatable change.</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Shape every edit so that one key repeats it.</p><ul class="kitchen-links"><li><strong>Count a quote <span class="kl-nowrap">→ 2ci&quot;.</span></strong> Change inside the 2nd quoted string.</li><li><strong>Operate to a search <span class="kl-nowrap">→ d/pattern.</span></strong> Delete up to the match.</li><li><strong>Change a match <span class="kl-nowrap">→ cgn.</span></strong> Change the next match, then press `.`.</li><li><strong>Repeat <span class="kl-nowrap">→ ..</span></strong> Run the last change again.</li></ul></div></div><div class="block"><figure class="tw-codebox tw-cmd" id="module-1-setup"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get the practice files</span><button class="tw-copy" type="button" aria-label="Copy: Get the practice files">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> ~/tw &amp;&amp; <span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">curl</span> <span class="hl-f">-fsSO</span> https://nvim-workflow.vercel.app/practice/orders.py <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/notes.md <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/todo.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> shows orders.py, notes.md, todo.txt.</p></figure></div><div class="block" id="module-1-problem"><div class="word-problem"><span class="tag">The problem</span><p>You count characters, hold <code>l</code> and retype the same change at every match.</p><div class="result-box"><strong>The fix:</strong> Use counts, searches and till-motions to land exactly, then <code>cgn</code> and <code>.</code> to repeat the change.</div></div></div><section class="block" id="module-1-d1"><div class="section-label">Type it</div><h2>Open the practice project</h2><p class="section-intro">Every drill runs against <code>nvim-drills</code>. These are throwaway reps: undo with <code>u</code> once you have seen the mechanic work. Autosave writes a file about 3 seconds after you stop typing, and when you leave the buffer, so <code>:e!</code> cannot bring the original back. For a drill that must stay unsaved, run <code>:ASToggle</code> first and again after it. To reset one file, run <code>git checkout -- &lt;file&gt;</code>. Lesson 6 makes the permanent fixes, but none of these drills depend on it.</p><figure class="tw-codebox tw-cmd" id="module-1-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Start Neovim in nvim-drills</span><button class="tw-copy" type="button" aria-label="Copy: Start Neovim in nvim-drills">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> Terminal-Workflow/practice/nvim-drills
 <span class="hl-cmd">nvim</span> .</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Neovim opens on the project, ready for the drills.</p></figure></section><section class="block" id="module-1-d2"><div class="section-label">Type it</div><h2>Count + operator + motion</h2><p class="section-intro">Everything takes a count.</p><figure class="tw-codebox tw-keys" id="module-1-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Neovim</span><span class="tw-code-title">Counts</span><button class="tw-copy" type="button" aria-label="Copy: Counts">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">3dw</kbd></td><td>Delete 3 words</td></tr><tr><td><kbd class="tw-key">5j</kbd></td><td>Move down 5 lines</td></tr><tr><td><kbd class="tw-key">2ci&quot;</kbd></td><td>Change inside the 2nd outer quotes</td></tr><tr><td><kbd class="tw-key">d/pattern</kbd></td><td>Delete until pattern match</td></tr><tr><td><kbd class="tw-key">c/foo</kbd></td><td>Change everything until &quot;foo&quot;</td></tr><tr><td><kbd class="tw-key">y?bar</kbd></td><td>Yank backwards until &quot;bar&quot;</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>3dw  Delete 3 words
@@ -1129,9 +1245,10 @@ item 3: pending</code></pre></div></div><div class="result-box"><strong>Why it m
     <footer>
       <strong>Module 7 · Expert Neovim</strong><br />Counts, operators and the dot formula; macros and registers; quickfix, marks, substitution and :g; windows, insert, block, ranges and undo
     </footer>
+    </div>
     <script>window.TW_GLOSSARY = [{"id": "tw-prefix", "label": "Prefix key", "forms": ["prefix key", "prefix"], "definition": "The key you press first to tell tmux that the next key is a tmux command. Here: Ctrl-a."}, {"id": "tw-session", "label": "Session", "forms": ["session", "sessions"], "definition": "A tmux workspace that keeps running when you close the terminal window. You re-attach to it later."}, {"id": "tw-pane", "label": "Pane", "forms": ["pane", "panes"], "definition": "One rectangle inside a tmux window. Each pane runs its own shell."}, {"id": "tw-buffer", "label": "Buffer", "forms": ["buffer", "buffers"], "definition": "A file loaded into Neovim's memory. You edit the buffer, and saving writes it to disk."}, {"id": "tw-register", "label": "Register", "forms": ["register", "registers"], "definition": "A named slot in Neovim that holds text: yanked, deleted or typed."}, {"id": "tw-worktree", "label": "Worktree", "forms": ["worktree", "worktrees"], "definition": "A second folder checked out from the same git repository, on its own branch."}, {"id": "tw-leader", "label": "Leader key", "forms": ["leader key", "leader"], "definition": "A key you press first to start your own Neovim shortcuts. Here: Space."}, {"id": "tw-picker", "label": "Picker", "forms": ["picker", "pickers"], "definition": "A pop-up list you filter by typing, such as the file finder."}, {"id": "tw-hunk", "label": "Hunk", "forms": ["hunk", "hunks"], "definition": "One block of changed lines in a git diff."}, {"id": "tw-quickfix", "label": "Quickfix list", "forms": ["quickfix list", "quickfix"], "definition": "A list of locations, such as search hits or errors, that you step through one by one."}, {"id": "tw-lsp", "label": "LSP", "forms": ["LSP"], "definition": "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."}];</script>
-    <script src="../_shared/search-index.js?v=7050f6f50e"></script>
-    <script src="../_shared/cheatsheet.js?v=c77d46e8ab"></script>
+    <script src="../_shared/search-index.js?v=69a5501798"></script>
+    <script src="../_shared/cheatsheet.js?v=384368195e"></script>
     <script>
 /* Course page behaviour: tabs, hash links, rule cards, glossary. Base from the SQL course. */
 
@@ -1449,6 +1566,9 @@ if (!("name" in HTMLDetailsElement.prototype)) {
 
   function createMatcher(groups) {
     const aliases = new Map();
+    // Multiword everyday phrases become one query token, just like their synonym.
+    const phrases = groups.flatMap((group) => group.filter((word) => norm(word).includes(" "))
+      .map((phrase) => [new RegExp("\\b" + norm(phrase).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), norm(group[0])]));
     groups.forEach((group) => {
       const words = [...new Set(group.flatMap((word) => [norm(word), stem(norm(word))]))];
       words.forEach((word) => {
@@ -1457,7 +1577,7 @@ if (!("name" in HTMLDetailsElement.prototype)) {
       });
     });
     function query(q) {
-      const normalized = norm(q);
+      const normalized = phrases.reduce((text, [pattern, word]) => text.replace(pattern, word), norm(q));
       return normalized ? normalized.split(" ").map((original) => {
         const base = stem(original);
         // saved -> sav must discover save's groups as well as literal sav matches.
@@ -1492,6 +1612,7 @@ if (!("name" in HTMLDetailsElement.prototype)) {
       q = norm(q);
       const tokens = matcher.query(q);
       if (!tokens.length) return { items: [], total: 0 };
+      const phrase = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])");
       const hits = [];
       data.items.forEach((it, i) => {
         const matched = matcher.match(both[i], tokens);
@@ -1502,7 +1623,7 @@ if (!("name" in HTMLDetailsElement.prototype)) {
         tokens.forEach((token) => {
           if (token.variants.some((variant) => whole(both[i], variant))) score += WORD_BONUS;
         });
-        if (both[i].includes(q)) score += PHRASE_BONUS;
+        if (phrase.test(both[i])) score += PHRASE_BONUS;
         // Task titles retain command relevance for multiword queries; single words prefer key actions.
         const action = description[i] || (tokens.length > 1 ? title[i] : "");
         const starts = (variant) => action.startsWith(variant) && whole(action.split(" ")[0], variant);
@@ -1578,6 +1699,9 @@ if (!("name" in HTMLDetailsElement.prototype)) {
   const cheatBody = document.getElementById("tw-cheat-body");
   const searchDialog = document.getElementById("tw-search");
   const cheatState = { open: false, tab: "" };
+  // Set by the course menu below. Layers, topmost first: search, cheat sheet, menu panel.
+  // Returns true when it closed an open panel.
+  let closeMenu = () => false;
   let cheatNorm = null;
 
   function loadCheatState() {
@@ -1591,7 +1715,7 @@ if (!("name" in HTMLDetailsElement.prototype)) {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(cheatState)); } catch (e) { /* storage unavailable */ }
   }
 
-  function cheatTable(rows) {
+  function cheatTable(rows, taskFirst = false) {
     const table = document.createElement("table");
     table.className = "tw-keytable";
     rows.forEach((row) => {
@@ -1603,7 +1727,8 @@ if (!("name" in HTMLDetailsElement.prototype)) {
       keyCell.append(kbd);
       const actionCell = document.createElement("td");
       actionCell.textContent = row[1];
-      tr.append(keyCell, actionCell);
+      if (taskFirst) tr.append(actionCell, keyCell);
+      else tr.append(keyCell, actionCell);
       table.append(tr);
     });
     return table;
@@ -1632,7 +1757,8 @@ if (!("name" in HTMLDetailsElement.prototype)) {
     });
     cheatBody.replaceChildren();
     if (!q) {
-      cheatBody.append(cheatTable(sheets.find((s) => s.id === cheatState.tab).rows));
+      const sheet = sheets.find((s) => s.id === cheatState.tab);
+      cheatBody.append(cheatTable(sheet.rows, sheet.task_first));
       return;
     }
     const tokens = engine.query(q);
@@ -1644,7 +1770,7 @@ if (!("name" in HTMLDetailsElement.prototype)) {
       const h = document.createElement("h3");
       h.className = "tw-cheat-group";
       h.textContent = s.title;
-      cheatBody.append(h, cheatTable(rows));
+      cheatBody.append(h, cheatTable(rows, s.task_first));
     });
     if (!found) {
       const p = document.createElement("p");
@@ -1656,11 +1782,14 @@ if (!("name" in HTMLDetailsElement.prototype)) {
 
   function setCheatOpen(open) {
     if (!drawer) return;
+    // An open panel would trap Tab behind the drawer, so close it first and move focus into the drawer.
+    const fromMenu = open && closeMenu(false);
     cheatState.open = open;
     drawer.hidden = !open;
     document.body.classList.toggle("tw-cheat-open", open);
     if (cheatBtn) cheatBtn.setAttribute("aria-expanded", String(open));
     saveCheatState();
+    if (fromMenu && cheatQ) cheatQ.focus();
   }
 
   if (drawer && cheatBtn && cheatQ && cheatTabs && cheatBody) {
@@ -1682,11 +1811,93 @@ if (!("name" in HTMLDetailsElement.prototype)) {
     });
   }
 
+  // ---- course menu: a permanent column on module pages from SIDE_MIN_WIDTH up, a slide-in panel otherwise
+  const side = document.getElementById("tw-side");
+  const menuBtn = document.querySelector(".tw-menu-btn");
+  const backdrop = document.getElementById("tw-backdrop");
+  const SIDE_MIN_WIDTH = 1000;
+  const SIDE_MARGIN = 8;
+
+  if (side && menuBtn && backdrop) {
+    const wide = matchMedia(`(min-width: ${SIDE_MIN_WIDTH}px)`);
+    const menuIsOpen = () => document.body.classList.contains("tw-side-open");
+
+    // Keep the current page's link inside the menu's scroll area.
+    function revealCurrent() {
+      const link = side.querySelector('[aria-current="page"]');
+      if (!link) return;
+      const box = side.getBoundingClientRect();
+      const at = link.getBoundingClientRect();
+      if (at.top < box.top + SIDE_MARGIN) side.scrollTop -= box.top + SIDE_MARGIN - at.top;
+      else if (at.bottom > box.bottom - SIDE_MARGIN) side.scrollTop += at.bottom - box.bottom + SIDE_MARGIN;
+    }
+
+    // The page switcher (course.js) owns which page is shown; the menu follows it.
+    function syncCurrent() {
+      const shown = document.querySelector(".lesson.active");
+      if (!shown) return;
+      side.querySelectorAll("a[data-page]").forEach((link) => {
+        if (link.dataset.page === shown.dataset.module) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    function setMenuOpen(open, restoreFocus = true) {
+      if (open === menuIsOpen()) return;
+      document.body.classList.toggle("tw-side-open", open);
+      menuBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        revealCurrent();
+        (side.querySelector('[aria-current="page"]') || side.querySelector("summary, a")).focus();
+      } else if (restoreFocus && side.contains(document.activeElement)) {
+        menuBtn.focus();
+      }
+    }
+
+    closeMenu = (restoreFocus = true) => {
+      const wasOpen = menuIsOpen();
+      setMenuOpen(false, restoreFocus);
+      return wasOpen;
+    };
+
+    syncCurrent();
+    document.querySelectorAll(".lesson").forEach((lesson) => {
+      new MutationObserver(syncCurrent).observe(lesson, { attributes: true, attributeFilter: ["class"] });
+    });
+    if (document.body.classList.contains("has-side") && wide.matches) revealCurrent();
+
+    menuBtn.addEventListener("click", () => setMenuOpen(!menuIsOpen()));
+    backdrop.addEventListener("click", () => setMenuOpen(false));
+    side.addEventListener("click", (event) => { if (event.target.closest("a")) setMenuOpen(false); });
+    // Widening a module page turns the panel into the permanent column, so reset the panel state.
+    wide.addEventListener("change", () => {
+      if (document.body.classList.contains("has-side") && wide.matches) setMenuOpen(false, false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!menuIsOpen() || (searchDialog && !searchDialog.hidden)) return;
+      if (event.key === "Escape") {
+        if (cheatState.open) return; // the cheat sheet sits above the panel and closes first
+        event.preventDefault();
+        event.stopPropagation();
+        setMenuOpen(false);
+      } else if (event.key === "Tab") {
+        if (drawer && drawer.contains(document.activeElement)) return;
+        // Keep Tab inside the open panel.
+        const stops = [...side.querySelectorAll("summary, a")].filter((el) => el.offsetParent !== null);
+        if (!stops.length) return;
+        const first = stops[0], last = stops[stops.length - 1];
+        if (!side.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+        else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    }, true);
+  }
+
   // ---- search
   const dialog = document.getElementById("tw-search");
   const input = document.getElementById("tw-q");
   const list = document.getElementById("tw-results");
-  const openButton = document.querySelector(".tw-search-btn");
+  const openButtons = document.querySelectorAll("[data-tw-search]");
   if (!dialog || !input || !list) return;
 
   let active = -1;
@@ -1698,6 +1909,8 @@ if (!("name" in HTMLDetailsElement.prototype)) {
   function openSearch() {
     if (isOpen()) return;
     lastFocus = document.activeElement;
+    // A panel left open would stay up, with the page scroll locked, once a result is picked.
+    if (closeMenu(false)) lastFocus = menuBtn;
     dialog.hidden = false;
     document.body.classList.add("tw-search-open");
     input.focus();
@@ -1831,7 +2044,7 @@ if (!("name" in HTMLDetailsElement.prototype)) {
   }
 
   input.addEventListener("input", () => render(norm(input.value)));
-  if (openButton) openButton.addEventListener("click", openSearch);
+  openButtons.forEach((button) => button.addEventListener("click", openSearch));
   dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
 
   document.addEventListener("keydown", (event) => {

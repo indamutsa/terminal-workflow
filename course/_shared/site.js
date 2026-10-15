@@ -39,6 +39,9 @@
 
   function createMatcher(groups) {
     const aliases = new Map();
+    // Multiword everyday phrases become one query token, just like their synonym.
+    const phrases = groups.flatMap((group) => group.filter((word) => norm(word).includes(" "))
+      .map((phrase) => [new RegExp("\\b" + norm(phrase).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), norm(group[0])]));
     groups.forEach((group) => {
       const words = [...new Set(group.flatMap((word) => [norm(word), stem(norm(word))]))];
       words.forEach((word) => {
@@ -47,7 +50,7 @@
       });
     });
     function query(q) {
-      const normalized = norm(q);
+      const normalized = phrases.reduce((text, [pattern, word]) => text.replace(pattern, word), norm(q));
       return normalized ? normalized.split(" ").map((original) => {
         const base = stem(original);
         // saved -> sav must discover save's groups as well as literal sav matches.
@@ -82,6 +85,7 @@
       q = norm(q);
       const tokens = matcher.query(q);
       if (!tokens.length) return { items: [], total: 0 };
+      const phrase = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])");
       const hits = [];
       data.items.forEach((it, i) => {
         const matched = matcher.match(both[i], tokens);
@@ -92,7 +96,7 @@
         tokens.forEach((token) => {
           if (token.variants.some((variant) => whole(both[i], variant))) score += WORD_BONUS;
         });
-        if (both[i].includes(q)) score += PHRASE_BONUS;
+        if (phrase.test(both[i])) score += PHRASE_BONUS;
         // Task titles retain command relevance for multiword queries; single words prefer key actions.
         const action = description[i] || (tokens.length > 1 ? title[i] : "");
         const starts = (variant) => action.startsWith(variant) && whole(action.split(" ")[0], variant);
@@ -168,6 +172,9 @@
   const cheatBody = document.getElementById("tw-cheat-body");
   const searchDialog = document.getElementById("tw-search");
   const cheatState = { open: false, tab: "" };
+  // Set by the course menu below. Layers, topmost first: search, cheat sheet, menu panel.
+  // Returns true when it closed an open panel.
+  let closeMenu = () => false;
   let cheatNorm = null;
 
   function loadCheatState() {
@@ -181,7 +188,7 @@
     try { localStorage.setItem(STORE_KEY, JSON.stringify(cheatState)); } catch (e) { /* storage unavailable */ }
   }
 
-  function cheatTable(rows) {
+  function cheatTable(rows, taskFirst = false) {
     const table = document.createElement("table");
     table.className = "tw-keytable";
     rows.forEach((row) => {
@@ -193,7 +200,8 @@
       keyCell.append(kbd);
       const actionCell = document.createElement("td");
       actionCell.textContent = row[1];
-      tr.append(keyCell, actionCell);
+      if (taskFirst) tr.append(actionCell, keyCell);
+      else tr.append(keyCell, actionCell);
       table.append(tr);
     });
     return table;
@@ -222,7 +230,8 @@
     });
     cheatBody.replaceChildren();
     if (!q) {
-      cheatBody.append(cheatTable(sheets.find((s) => s.id === cheatState.tab).rows));
+      const sheet = sheets.find((s) => s.id === cheatState.tab);
+      cheatBody.append(cheatTable(sheet.rows, sheet.task_first));
       return;
     }
     const tokens = engine.query(q);
@@ -234,7 +243,7 @@
       const h = document.createElement("h3");
       h.className = "tw-cheat-group";
       h.textContent = s.title;
-      cheatBody.append(h, cheatTable(rows));
+      cheatBody.append(h, cheatTable(rows, s.task_first));
     });
     if (!found) {
       const p = document.createElement("p");
@@ -246,11 +255,14 @@
 
   function setCheatOpen(open) {
     if (!drawer) return;
+    // An open panel would trap Tab behind the drawer, so close it first and move focus into the drawer.
+    const fromMenu = open && closeMenu(false);
     cheatState.open = open;
     drawer.hidden = !open;
     document.body.classList.toggle("tw-cheat-open", open);
     if (cheatBtn) cheatBtn.setAttribute("aria-expanded", String(open));
     saveCheatState();
+    if (fromMenu && cheatQ) cheatQ.focus();
   }
 
   if (drawer && cheatBtn && cheatQ && cheatTabs && cheatBody) {
@@ -272,11 +284,93 @@
     });
   }
 
+  // ---- course menu: a permanent column on module pages from SIDE_MIN_WIDTH up, a slide-in panel otherwise
+  const side = document.getElementById("tw-side");
+  const menuBtn = document.querySelector(".tw-menu-btn");
+  const backdrop = document.getElementById("tw-backdrop");
+  const SIDE_MIN_WIDTH = 1000;
+  const SIDE_MARGIN = 8;
+
+  if (side && menuBtn && backdrop) {
+    const wide = matchMedia(`(min-width: ${SIDE_MIN_WIDTH}px)`);
+    const menuIsOpen = () => document.body.classList.contains("tw-side-open");
+
+    // Keep the current page's link inside the menu's scroll area.
+    function revealCurrent() {
+      const link = side.querySelector('[aria-current="page"]');
+      if (!link) return;
+      const box = side.getBoundingClientRect();
+      const at = link.getBoundingClientRect();
+      if (at.top < box.top + SIDE_MARGIN) side.scrollTop -= box.top + SIDE_MARGIN - at.top;
+      else if (at.bottom > box.bottom - SIDE_MARGIN) side.scrollTop += at.bottom - box.bottom + SIDE_MARGIN;
+    }
+
+    // The page switcher (course.js) owns which page is shown; the menu follows it.
+    function syncCurrent() {
+      const shown = document.querySelector(".lesson.active");
+      if (!shown) return;
+      side.querySelectorAll("a[data-page]").forEach((link) => {
+        if (link.dataset.page === shown.dataset.module) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    function setMenuOpen(open, restoreFocus = true) {
+      if (open === menuIsOpen()) return;
+      document.body.classList.toggle("tw-side-open", open);
+      menuBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        revealCurrent();
+        (side.querySelector('[aria-current="page"]') || side.querySelector("summary, a")).focus();
+      } else if (restoreFocus && side.contains(document.activeElement)) {
+        menuBtn.focus();
+      }
+    }
+
+    closeMenu = (restoreFocus = true) => {
+      const wasOpen = menuIsOpen();
+      setMenuOpen(false, restoreFocus);
+      return wasOpen;
+    };
+
+    syncCurrent();
+    document.querySelectorAll(".lesson").forEach((lesson) => {
+      new MutationObserver(syncCurrent).observe(lesson, { attributes: true, attributeFilter: ["class"] });
+    });
+    if (document.body.classList.contains("has-side") && wide.matches) revealCurrent();
+
+    menuBtn.addEventListener("click", () => setMenuOpen(!menuIsOpen()));
+    backdrop.addEventListener("click", () => setMenuOpen(false));
+    side.addEventListener("click", (event) => { if (event.target.closest("a")) setMenuOpen(false); });
+    // Widening a module page turns the panel into the permanent column, so reset the panel state.
+    wide.addEventListener("change", () => {
+      if (document.body.classList.contains("has-side") && wide.matches) setMenuOpen(false, false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!menuIsOpen() || (searchDialog && !searchDialog.hidden)) return;
+      if (event.key === "Escape") {
+        if (cheatState.open) return; // the cheat sheet sits above the panel and closes first
+        event.preventDefault();
+        event.stopPropagation();
+        setMenuOpen(false);
+      } else if (event.key === "Tab") {
+        if (drawer && drawer.contains(document.activeElement)) return;
+        // Keep Tab inside the open panel.
+        const stops = [...side.querySelectorAll("summary, a")].filter((el) => el.offsetParent !== null);
+        if (!stops.length) return;
+        const first = stops[0], last = stops[stops.length - 1];
+        if (!side.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+        else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    }, true);
+  }
+
   // ---- search
   const dialog = document.getElementById("tw-search");
   const input = document.getElementById("tw-q");
   const list = document.getElementById("tw-results");
-  const openButton = document.querySelector(".tw-search-btn");
+  const openButtons = document.querySelectorAll("[data-tw-search]");
   if (!dialog || !input || !list) return;
 
   let active = -1;
@@ -288,6 +382,8 @@
   function openSearch() {
     if (isOpen()) return;
     lastFocus = document.activeElement;
+    // A panel left open would stay up, with the page scroll locked, once a result is picked.
+    if (closeMenu(false)) lastFocus = menuBtn;
     dialog.hidden = false;
     document.body.classList.add("tw-search-open");
     input.focus();
@@ -421,7 +517,7 @@
   }
 
   input.addEventListener("input", () => render(norm(input.value)));
-  if (openButton) openButton.addEventListener("click", openSearch);
+  openButtons.forEach((button) => button.addEventListener("click", openSearch));
   dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
 
   document.addEventListener("keydown", (event) => {
