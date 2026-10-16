@@ -18,62 +18,62 @@ def __init__(self):
 MODULE = {
     "n": 3,
     "folder": "m3-power-editing",
-    "title": "Power editing",
-    "footer": "Operators and text objects, visual mode, macros, search and replace, registers, marks and multi-file edits",
-    "tagline": "Operators, text objects, macros and registers: where vim gets fast.",
+    "title": "Change, copy and replace text fast in Neovim",
+    "footer": "Delete, change and copy text, edit columns, record macros, replace words, bookmark places, edit many files",
+    "tagline": "Change words, repeat edits with macros, copy with registers, replace text in many files.",
     "glossary": [],
     "coverage_allow": [],
     "pages": [
         # ============================================================ page 1
         {
-            "h1": "Operators, motions, text objects",
-            "subtitle": "Combine a verb with a target and every edit becomes two or three keys.",
+            "h1": "Delete, change and copy text with a few keys in Neovim",
+            "subtitle": "Delete a word, change the text inside quotes, delete what is inside parentheses, fix the indentation of the whole file",
             "idea": (
-                "Vim's secret: an operator plus a motion is a new command.",
+                "Delete or change text in two or three keys: pick an operator, then a motion.",
                 [
-                    ("Delete a word", "dw", "Operator d, motion w."),
-                    ("Change inside quotes", "ci\"", "Deletes the text and starts typing."),
-                    ("Delete inside parens", "di(", "Keeps the parens."),
-                    ("Auto-indent file", "gg=G", "Operator = from top to bottom."),
+                    ("Delete a word", "dw", "d is the operator, w is the motion."),
+                    ("Change the text inside quotes", "ci\"", "Deletes the text and lets you type a new one."),
+                    ("Delete what is inside parentheses", "di(", "Keeps the parentheses."),
+                    ("Fix the indentation of the whole file", "gg=G", "Runs = from the top to the bottom of the file."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "You edit by selecting with the mouse, or by deleting one character at a time.",
-                "fix": "Name the verb and the target: `ci\"` changes what is inside the quotes, wherever the cursor sits in them.",
+                "fail": "How do I edit text without selecting it with the mouse or deleting one character at a time?",
+                "fix": "Name the action and the target. `ci\"` changes the text inside the quotes, wherever the cursor sits in them.",
             },
             "drills": [
                 {
-                    "h2": "Operators and motions",
-                    "intro": "Every practice file here is in `Terminal-Workflow/practice/nvim-drills`. Autosave writes a file about 3 seconds after you stop typing, and when you leave the buffer, so `:e!` cannot bring the original back. Where an edit should not stay, press `u` to undo it. For a drill that must stay unsaved, run `:ASToggle` first and again after. To reset a file, run `git checkout -- <file>` in that folder.",
+                    "h2": "Delete, change, copy or indent text (operators and motions)",
+                    "intro": "Find every practice file here in `Terminal-Workflow/practice/nvim-drills`. Autosave writes a file about 3 seconds after you stop typing, and when you leave the buffer, so `:e!` cannot bring the original back. Where an edit should not stay, press `u` to undo it. For a drill that must stay unsaved, run `:ASToggle` first and again after. To reset a file, run `git checkout -- <file>` in that folder.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Operators", "rows": [
-                            ("d", "Delete"),
-                            ("c", "Change (delete + enter insert mode)"),
-                            ("y", "Yank (copy)"),
-                            (">", "Indent right"),
-                            ("<", "Indent left"),
-                            ("=", "Auto-indent (fix indentation)"),
+                        {"type": "keys", "where": "nvim", "title": "Delete, change, copy or indent text (operators)", "rows": [
+                            ("d", "Delete text"),
+                            ("c", "Change text (delete it and start typing)"),
+                            ("y", "Copy (yank) text"),
+                            (">", "Indent text to the right"),
+                            ("<", "Indent text to the left"),
+                            ("=", "Fix the indentation (auto-indent)"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Combine with any motion", "rows": [
-                            ("dw", "Delete word forward"),
-                            ("db", "Delete word backward"),
-                            ("d$ or D", "Delete to end of line"),
-                            ("d0", "Delete to start of line"),
-                            ("dG", "Delete to end of file"),
-                            ("dgg", "Delete to start of file"),
-                            ("cw", "Change word (delete word, start typing)"),
-                            ("c$ or C", "Change to end of line"),
-                            ("yy", "Yank (copy) whole line"),
-                            ("yw", "Yank word"),
-                            ("y$", "Yank to end of line"),
-                            (">>", "Indent current line"),
-                            ("<<", "Unindent current line"),
+                        {"type": "keys", "where": "nvim", "title": "Delete, change, copy or indent a word, a line or the rest of the file", "rows": [
+                            ("dw", "Delete a word forward"),
+                            ("db", "Delete a word backward"),
+                            ("d$ or D", "Delete to the end of the line"),
+                            ("d0", "Delete to the start of the line"),
+                            ("dG", "Delete to the end of the file"),
+                            ("dgg", "Delete to the start of the file"),
+                            ("cw", "Change a word (delete it and start typing)"),
+                            ("c$ or C", "Change to the end of the line"),
+                            ("yy", "Copy (yank) the whole line"),
+                            ("yw", "Copy (yank) a word"),
+                            ("y$", "Copy (yank) to the end of the line"),
+                            (">>", "Indent the current line"),
+                            ("<<", "Unindent the current line"),
                             ("5>>", "Indent 5 lines"),
-                            ("=G", "Auto-indent from here to end of file"),
+                            ("=G", "Auto-indent from here to the end of the file"),
                             ("gg=G", "Auto-indent the entire file"),
                         ]},
-                        {"type": "cmd", "where": "nvim", "title": "Bump the tax rate from 8% to 7.5%", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Change a number in a line (tax rate 8% to 7.5%)", "code": C('''
 5G
 dw
 u
@@ -83,14 +83,14 @@ cW
 Esc
 '''),
                          "expect": "The line now reads `TAX_RATE = 0.075`. Press `u` to bring `0.08` back: later lessons expect it."},
-                        {"type": "text", "body": "Open `src/orders.py` first. `dw` leaves `= 0.08`; `u` undoes it, as a proof that `dw` eats the word and the trailing space. Use `cW`, not `cw`: the dot splits `0.08` into three vim words, so `cw` would change only the leading `0` and leave `0.075.08`."},
+                        {"type": "text", "body": "Open `src/orders.py` first. `dw` leaves `= 0.08`; `u` undoes it, as a proof that `dw` deletes the word and the space after it. To change a whole number, use `cW`, not `cw`: the dot splits `0.08` into three vim words, so `cw` would change only the leading `0` and leave `0.075.08`."},
                     ],
                 },
                 {
-                    "h2": "Text objects",
-                    "intro": "Operate on structures: stuff inside brackets, quotes and tags. The pattern is operator, then `a` or `i`, then the object. `a` is around (includes the delimiters). `i` is inside (just the content).",
+                    "h2": "Change or delete the text inside quotes, brackets and tags (text objects)",
+                    "intro": "Change or delete what is inside brackets, quotes and tags. Type the operator, then `a` or `i`, then the object. `a` means around (includes the delimiters). `i` means inside (just the content).",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Change inside", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Change the text inside parentheses, brackets, quotes or a tag", "rows": [
                             ("ci(", "Change inside parentheses: (hello) → () + insert"),
                             ("ci[", "Change inside brackets: [1, 2, 3] → []"),
                             ("ci{", "Change inside braces: { code } → {}"),
@@ -100,88 +100,88 @@ Esc
                             ("ciw", "Change inside word (replaces the word)"),
                             ("cit", "Change inside HTML tag: <div>content</div> → <div></div>"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Delete, yank, select", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Delete, copy or select the text inside brackets and quotes", "rows": [
                             ("di(", "Delete inside parentheses (keeps the parens)"),
                             ("da(", "Delete around parentheses (deletes parens too)"),
-                            ("yi\"", "Yank (copy) inside quotes"),
-                            ("ya{", "Yank around braces (includes the braces)"),
+                            ("yi\"", "Copy (yank) inside quotes"),
+                            ("ya{", "Copy (yank) around braces (includes the braces)"),
                             ("vi{", "Select inside braces (visual mode)"),
                             ("va\"", "Select around quotes"),
-                            ("vip", "Select inside paragraph"),
+                            ("vip", "Select inside a paragraph"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "All text objects", "rows": [
-                            ("iw / aw", "Word"),
-                            ("iW / aW", "WORD (includes punctuation)"),
-                            ("is / as", "Sentence"),
-                            ("ip / ap", "Paragraph"),
-                            ("i) / a)", "Parentheses (same as i( / a()"),
-                            ("i] / a]", "Brackets"),
-                            ("i} / a}", "Braces"),
-                            ("i\" / a\"", "Double quotes"),
-                            ("i' / a'", "Single quotes"),
-                            ("it / at", "HTML/XML tag"),
+                        {"type": "keys", "where": "nvim", "title": "See every text object: word, sentence, paragraph, quotes, tag", "rows": [
+                            ("iw / aw", "Work on a word"),
+                            ("iW / aW", "Work on a WORD (includes punctuation)"),
+                            ("is / as", "Work on a sentence"),
+                            ("ip / ap", "Work on a paragraph"),
+                            ("i) / a)", "Work on parentheses (same as i( / a()"),
+                            ("i] / a]", "Work on brackets"),
+                            ("i} / a}", "Work on braces"),
+                            ("i\" / a\"", "Work on double quotes"),
+                            ("i' / a'", "Work on single quotes"),
+                            ("it / at", "Work on an HTML/XML tag"),
                         ]},
-                        {"type": "cmd", "where": "nvim", "title": "Reword an error message", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Change the text inside quotes (reword an error message)", "code": C('''
 /Cannot divide
 ci"
 Division by zero is not allowed
 Esc
 '''),
                          "expect": "The line reads `raise Exception(\"Division by zero is not allowed\")`. Press `u` to undo it."},
-                        {"type": "text", "body": "Open `src/calculator.py` first. The search leaves the cursor inside `raise Exception(\"Cannot divide by zero\")`."},
-                        {"type": "keys", "where": "nvim", "title": "Text objects on real data", "rows": [
-                            ("di(", "On Order(raw[\"id\"], raw[\"items\"], raw[\"discount\"]) → empties the parens, keeps them"),
-                            ("da(", "Same line → deletes the parens AND their contents, Order(...) becomes Order"),
-                            ("ci{", "Cursor inside the first RAW_ORDERS entry {\"id\": \"A1\", ...} → clears the whole dict body"),
+                        {"type": "text", "body": "To put the cursor inside quotes, search for the text. Open `src/calculator.py` first. The search leaves the cursor inside `raise Exception(\"Cannot divide by zero\")`."},
+                        {"type": "keys", "where": "nvim", "title": "Empty or remove a function call's arguments on real code", "rows": [
+                            ("di(", "Empty the parentheses of Order(raw[\"id\"], raw[\"items\"], raw[\"discount\"]) and keep them"),
+                            ("da(", "Delete the parentheses AND their contents on the same line, so Order(...) becomes Order"),
+                            ("ci{", "Clear the whole dict body: put the cursor inside the first RAW_ORDERS entry {\"id\": \"A1\", ...}"),
                         ], "try": "In `src/orders.py`, use these on `build_order_book` and the `RAW_ORDERS` list. Press `u` after each. After `di(`, press `%` on the opening `(`.",
                          "expect": "The cursor jumps straight to the now-adjacent `)`. Press `u` before moving on: `RAW_ORDERS` needs its six original entries."},
                     ],
                 },
             ],
             "rules": {
-                "h2": "The pattern",
+                "h2": "How to build any edit: operator, then a or i, then an object",
                 "cards": [
-                    ("operator + a or i + object", "One sentence, three parts.", ["Part", "Meaning"], [
-                        ["`d` `c` `y`", "The verb: delete, change, yank"],
+                    ("Build any edit: operator + a or i + object", "Say it as one sentence: the action, inside or around, the object.", ["Part", "Meaning"], [
+                        ["`d` `c` `y`", "The action: delete, change, copy (yank)"],
                         ["`i`", "Inside: just the content"],
                         ["`a`", "Around: includes the delimiters"],
                         ["`w` `(` `\"` `{` `t`", "The object: word, parens, quotes, braces, tag"],
                     ]),
-                    ("Why cW and not cw", "The dot splits a number into three words.", ["Keys", "Result on `0.08`"], [
+                    ("Why does cw leave 0.075.08 when I change a number?", "Vim sees the dot as a word break, so a number is three words.", ["Keys", "Result on `0.08`"], [
                         ["`cw` then `0.075`", "`0.075.08`"],
                         ["`cW` then `0.075`", "`0.075`"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Empty a call, then take it back",
-                "frame": "You want the arguments of a call gone, and the parens kept.",
+                "h2": "Delete the arguments of a function call, then undo it",
+                "frame": "How do I delete what is inside the parentheses of a call and keep the parentheses?",
                 "open": "nvim ~/tw/orders.py",
                 "steps": [
-                    (("line 19, on `(`", "`19G` `f(`"), "`di(`", "The arguments vanish and the parens stay."),
+                    (("line 19, on `(`", "`19G` `f(`"), "`di(`", "Deletes the arguments and keeps the parentheses."),
                     (("on the `(`", "`F(`"), "`%`", "Jumps to the matching `)`."),
-                    (None, "`u`", "Restores the line."),
+                    (None, "`u`", "Undoes the delete and restores the line."),
                 ],
                 "before": "total = calc_totl(price, qty)",
                 "after": "total = calc_totl()",
-                "meaning": "The cursor only has to be inside the object; `da(` would remove the parens too.",
+                "meaning": "The cursor only has to be inside the parentheses. Use `da(` to delete the parentheses too.",
             },
             "practice": {
-                "h2": "Practice: operators and text objects",
+                "h2": "Check yourself: delete, change and copy with operators and text objects",
                 "qs": [
-                    ("Mechanism", "Why does `ci\"` work from the middle of the quoted text?",
+                    ("Mechanism", "Why does `ci\"` work when my cursor is in the middle of the quotes?",
                      "The object is the quotes, not the cursor.",
                      ["`i\"` means the text inside the nearest double quotes.", "`c` deletes it and enters insert mode."],
                      "A text object covers the whole structure around the cursor."),
-                    ("Keystrokes", "Which keys delete the parens and what is inside them?",
+                    ("Keystrokes", "How do I delete the parentheses and what is inside them?",
                      "Around, not inside.",
                      ["Put the cursor inside the parens.", "Press `da(`."],
                      "`da(`."),
-                    ("Application", "Change `8%` to `7.5%` on the `TAX_RATE = 0.08` line.",
+                    ("Application", "How do I change `8%` to `7.5%` on the `TAX_RATE = 0.08` line?",
                      "Whole WORD, not word.",
                      ["Move to `0.08` with `f0`.", "Press `cW`, type `0.075`, press `Esc`."],
                      "`cW` then `0.075`."),
-                    ("Common mistake", "`cw` on `0.08` left you with `0.075.08`. Why?",
+                    ("Common mistake", "Why did `cw` on `0.08` leave me with `0.075.08`?",
                      "How does vim see the dot?",
                      ["A word stops at the dot.", "`cw` changed only the leading `0`.", "Use `cW` for the whole space-delimited WORD."],
                      "Use `cW`."),
@@ -190,42 +190,42 @@ Esc
         },
         # ============================================================ page 2
         {
-            "h1": "Visual mode, macros, search and replace",
-            "subtitle": "Select what you mean, record an edit once, replay it on many lines.",
+            "h1": "Change many lines at once: select, record a macro, replace",
+            "subtitle": "Select lines or a column, comment out several lines, repeat an edit with a macro, replace a word in the whole file",
             "idea": (
-                "Select, record, replace: three ways to change many lines at once.",
+                "Change many lines at once: select them, record a macro, or replace text.",
                 [
-                    ("Select lines", "V", "Line-wise visual mode."),
-                    ("Column edit", "Ctrl-v", "Block mode. Edit many lines at once."),
-                    ("Record a macro", "qa", "Records into register a. q stops."),
-                    ("Replace all", ":%s/old/new/g", "Whole file, every match."),
+                    ("Select whole lines", "V", "Line-wise visual mode."),
+                    ("Edit the same column on many lines", "Ctrl-v", "Block mode edits many lines at once."),
+                    ("Record an edit to repeat it", "qa", "Records into register a. Press q to stop."),
+                    ("Replace a word in the whole file", ":%s/old/new/g", "Whole file, every match."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "Five lines need the same fix, and you type it five times. A word appears fifty times and you edit each by hand.",
+                "fail": "How do I make the same fix on five lines, or change a word that appears fifty times, without editing each one by hand?",
                 "fix": "Use a column insert for the same prefix, a macro for the same edit, and `:%s` for the same word.",
             },
             "drills": [
                 {
-                    "h2": "Visual mode",
-                    "intro": "Select first, then operate.",
+                    "h2": "Select text, lines or a column before you edit (visual mode)",
+                    "intro": "Select the text first, then delete, change or copy it.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Visual modes", "rows": [
-                            ("v", "Character-wise (select chars)"),
-                            ("V", "Line-wise (select whole lines)"),
-                            ("Ctrl-v", "Block/column mode (vertical selection!)"),
+                        {"type": "keys", "where": "nvim", "title": "Select characters, whole lines or a column", "rows": [
+                            ("v", "Select characters (character-wise)"),
+                            ("V", "Select whole lines (line-wise)"),
+                            ("Ctrl-v", "Select a block or column (vertical selection!)"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Select, then operate", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Select words, lines or a column, then edit them", "rows": [
                             ("v3w", "Select 3 words"),
                             ("Vj", "Select 2 lines"),
-                            ("V5j d", "Select 6 lines and delete"),
-                            ("Ctrl-v jjj I", "Column insert: add text to multiple lines"),
-                            ("Ctrl-v jjj d", "Column delete: remove a column"),
-                            ("vip", "Select entire paragraph"),
+                            ("V5j d", "Select 6 lines and delete them"),
+                            ("Ctrl-v jjj I", "Add text to many lines at once (column insert)"),
+                            ("Ctrl-v jjj d", "Remove a column (column delete)"),
+                            ("vip", "Select the entire paragraph"),
                             ("vi{", "Select inside braces"),
                         ]},
-                        {"type": "cmd", "where": "nvim", "title": "Comment out orders A2 to A5", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Comment out four lines at once (orders A2 to A5)", "code": C('''
 ^
 Ctrl-v
 jjj
@@ -234,23 +234,23 @@ I
 Esc
 '''),
                          "expect": "Lines for A2 through A5 now start with `# `. A1 and A6 are untouched. Press `u` to undo it: `RAW_ORDERS` needs all six live entries."},
-                        {"type": "text", "body": "Open `src/orders.py` and put the cursor on the `{\"id\": \"A2\", ...` line. `^` puts it on the opening `{`. Block insert happens at the cursor's column, so the column matters."},
+                        {"type": "text", "body": "Put the cursor in the right column before you start. Open `src/orders.py` and put the cursor on the `{\"id\": \"A2\", ...` line. `^` puts it on the opening `{`. A block insert happens at the cursor's column, so the column matters."},
                     ],
                 },
                 {
-                    "h2": "Macros (recording commands)",
-                    "intro": "Record keystrokes once. Replay them. Perfect for repetitive edits.",
+                    "h2": "Repeat the same edit on many lines with a macro",
+                    "intro": "Record your keystrokes once, then replay them on every line that needs the same edit.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Macro keys", "rows": [
-                            ("qa", "Start recording macro into register 'a' (do your edits...)"),
+                        {"type": "keys", "where": "nvim", "title": "Record, replay and repeat a macro", "rows": [
+                            ("qa", "Start recording a macro into register 'a' (do your edits...)"),
                             ("q", "Stop recording"),
                             ("@a", "Play macro 'a'"),
-                            ("@@", "Repeat last macro"),
+                            ("@@", "Repeat the last macro"),
                             ("5@a", "Play macro 'a' 5 times"),
                         ]},
-                        {"type": "text", "body": "In `src/calculator.py`, the `Person` class has five `__init__` fields with no `self.` prefix. They are dead local variables instead of attributes."},
-                        {"type": "code", "file": "src/calculator.py", "title": "The bug", "code": PERSON_INIT},
-                        {"type": "cmd", "where": "nvim", "title": "Fix it with a macro", "code": C('''
+                        {"type": "text", "body": "Why are my class fields not attributes? In `src/calculator.py`, the `Person` class has five `__init__` fields with no `self.` prefix. They are dead local variables instead of attributes."},
+                        {"type": "code", "file": "src/calculator.py", "title": "Fields missing the self. prefix (the bug)", "code": PERSON_INIT},
+                        {"type": "cmd", "where": "nvim", "title": "Add self. to the start of five lines with a macro", "code": C('''
 qa
 Iself.
 Esc
@@ -259,52 +259,52 @@ q
 4@a
 '''),
                          "expect": "All five lines now read `self.<field> = ...`. This is a genuine bug fix: keep it, or press `u` until the fields read as before to leave the fixture broken for a re-run."},
-                        {"type": "text", "body": "Start with the cursor on `name`. `Iself.` goes to the line start and inserts `self.`. `j` moves to the next field. `4@a` replays on the remaining four lines (age, email, phone, address)."},
+                        {"type": "text", "body": "Start with the cursor on `name`. `Iself.` goes to the start of the line and inserts `self.`. `j` moves to the next field. `4@a` replays the macro on the remaining four lines (age, email, phone, address)."},
                     ],
                 },
                 {
-                    "h2": "Search and replace",
-                    "intro": "`:%s` works on the whole file. Add `c` to confirm each change.",
+                    "h2": "Replace a word in the whole file (search and replace)",
+                    "intro": "Replace text in the whole file with `:%s`. Add `c` to confirm each change.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Substitute", "rows": [
-                            (":%s/old/new/g", "Replace all in file"),
-                            (":%s/old/new/gc", "Replace all with confirmation"),
-                            (":s/old/new/g", "Replace on current line only"),
+                        {"type": "keys", "where": "nvim", "title": "Replace a word in the file, on one line, or delete it", "rows": [
+                            (":%s/old/new/g", "Replace all in the file"),
+                            (":%s/old/new/gc", "Replace all and confirm each change"),
+                            (":s/old/new/g", "Replace on the current line only"),
                             (":%s/foo//g", "Delete all \"foo\""),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Useful patterns", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Remove trailing spaces or add text to every line", "rows": [
                             (":%s/\\s\\+$//g", "Remove trailing whitespace"),
-                            (":%s/^/# /g", "Add \"# \" to start of every line"),
-                            (":%s/$/;/g", "Add \";\" to end of every line"),
+                            (":%s/^/# /g", "Add \"# \" to the start of every line"),
+                            (":%s/$/;/g", "Add \";\" to the end of every line"),
                         ]},
-                        {"type": "cmd", "where": "nvim", "title": "Mark a batch of items done", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Replace pending with done in the whole file, then count what is left", "code": C('''
 :%s/pending/done/g
 :%s/pending//gn
 '''),
                          "expect": "The count command (trailing `n` means count, don't replace) reports `0 matches`. Press `u` to undo it: Lesson 7 uses this same \"pending\" text."},
-                        {"type": "text", "body": "Open `data/log.txt` first: ten lines like `item 1: pending`, mixed with `# TODO` comments and blank lines."},
+                        {"type": "text", "body": "Open `data/log.txt` first. It has ten lines like `item 1: pending`, mixed with `# TODO` comments and blank lines."},
                     ],
                 },
             ],
             "rules": {
-                "h2": "Macros and registers at a glance",
+                "h2": "Record a macro, copy to a register, comment out lines: keys at a glance",
                 "cards": [
-                    ("Macros and registers card", "Record, replay, copy to named slots.", ["Keys", "Action"], [
-                        ["`qa...q`", "Record macro into 'a'"],
-                        ["`@a / 5@a`", "Play macro / 5 times"],
-                        ["`\"ayy/\"ap`", "Yank/paste register a"],
-                        ["`\"+y/\"+p`", "System clipboard"],
-                        ["`\"0p`", "Paste last yank (survives deletes)"],
+                    ("Record a macro or copy into a named register", "Record and replay a macro, copy to named registers, use the clipboard.", ["Keys", "Action"], [
+                        ["`qa...q`", "Record a macro into 'a'"],
+                        ["`@a / 5@a`", "Play the macro / 5 times"],
+                        ["`\"ayy/\"ap`", "Copy (yank) to / paste from register a"],
+                        ["`\"+y/\"+p`", "Copy to / paste from the system clipboard"],
+                        ["`\"0p`", "Paste the last yank (survives deletes)"],
                     ]),
-                    ("Comment five lines", "A column insert in four keys and a prefix.", ["Keys", "Result"], [
+                    ("Comment out five lines", "A column insert takes a few keys and a prefix.", ["Keys", "Result"], [
                         ["`Ctrl-v 4j I # Esc`", "Block insert `# ` on 5 lines"],
-                        ["`:%s/^/# /g`", "Same prefix on every line"],
+                        ["`:%s/^/# /g`", "Add the same prefix to every line"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Fix four lines with one macro",
-                "frame": "Four assignments need an `order_` prefix.",
+                "h2": "Add a prefix to four lines with one macro",
+                "frame": "How do I add an `order_` prefix to four assignments?",
                 "open": "nvim ~/tw/orders.py",
                 "steps": [
                     (("line 15, on `name`", "`15G`"), "`qa` `I` then `order_` then `Esc` `j` `q`", "Records one edit into register a and ends on the next line."),
@@ -313,24 +313,24 @@ q
                 ],
                 "before": 'name = "pen"\nqty = 3\nprice = 2.50\nnote = "rush"',
                 "after": 'order_name = "pen"\norder_qty = 3\norder_price = 2.50\norder_note = "rush"',
-                "meaning": "The macro ends on the next line, so it chains: record one clean edit and let the count do the rest.",
+                "meaning": "End the macro on the next line so it chains: record one clean edit and let the count repeat it.",
             },
             "practice": {
-                "h2": "Practice: visual, macros, replace",
+                "h2": "Check yourself: select, macros and replace",
                 "qs": [
-                    ("Mechanism", "Why does `4@a` fix four lines after you edited one?",
+                    ("Mechanism", "Why does `4@a` fix four more lines after I edited one?",
                      "What did the macro end on?",
                      ["The macro ended with `j`, on the next line.", "Each replay starts where the last one stopped."],
                      "The macro moves to the next line, so replays chain."),
-                    ("Keystrokes", "Which keys add `# ` to four lines in a column?",
+                    ("Keystrokes", "How do I add `# ` to the start of four lines in a column?",
                      "Block mode, then insert.",
                      ["Press `Ctrl-v` and `jjj`.", "Press `I`, type `# `, press `Esc`."],
                      "`Ctrl-v jjj I`, `# `, `Esc`."),
-                    ("Application", "Replace `pending` with `done` everywhere, then count what is left.",
+                    ("Application", "How do I replace `pending` with `done` everywhere and then count what is left?",
                      "Substitute, then substitute with `n`.",
                      ["Run `:%s/pending/done/g`.", "Run `:%s/pending//gn`."],
                      "The count reports `0 matches`."),
-                    ("Common mistake", "Your block insert landed in the wrong column. Why?",
+                    ("Common mistake", "Why did my block insert land in the wrong column?",
                      "Where does the block start?",
                      ["Block insert uses the cursor's column.", "Press `^` first to sit on the first non-blank."],
                      "The cursor column matters. Press `^` before `Ctrl-v`."),
@@ -339,44 +339,44 @@ q
         },
         # ============================================================ page 3
         {
-            "h1": "Indent, registers, marks, many files",
-            "subtitle": "Fix indentation, keep several clipboards, bookmark places and edit across files.",
+            "h1": "Fix indentation, copy with registers, bookmark places, edit many files",
+            "subtitle": "Fix a badly indented file, paste after a delete, copy to the system clipboard, jump back to a bookmarked line, replace text in many files",
             "idea": (
-                "Indent in one key, keep many clipboards, jump to bookmarks, edit many files.",
+                "Fix indentation in one key, keep many clipboards, jump to bookmarks, edit many files.",
                 [
-                    ("Auto-indent file", "gg=G", "Fixes indentation everywhere."),
-                    ("Named register", "\"ayy", "Yank a line into register a."),
-                    ("Global mark", "mA", "Jump back from any file with 'A."),
-                    ("Many files", ":args src/*.py", "Load files, then run :argdo."),
+                    ("Fix the indentation of the whole file", "gg=G", "Fixes indentation everywhere."),
+                    ("Copy a line into its own clipboard", "\"ayy", "Yanks (copies) a line into register a."),
+                    ("Bookmark a line and jump back from any file", "mA", "Jump back from any file with 'A."),
+                    ("Change text in many files", ":args src/*.py", "Load the files, then run :argdo."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "A paste is mis-indented. A delete wiped what you copied. A bookmark only works inside one file.",
-                "fix": "Re-indent with `gg=G`, paste the last yank with `\"0p`, and use an uppercase mark such as `mA` across files.",
+                "fail": "Why is my pasted text indented wrong, why did a delete wipe what I copied, and why does my bookmark only work in one file?",
+                "fix": "Re-indent with `gg=G`, paste the last yank (copy) with `\"0p`, and use an uppercase mark such as `mA` across files.",
             },
             "drills": [
                 {
-                    "h2": "Indentation and formatting",
-                    "intro": "`src/messy.py` has three functions and a class with deliberately inconsistent, but valid, indentation.",
+                    "h2": "Fix the indentation of a file or a block of lines",
+                    "intro": "Use `src/messy.py`: it has three functions and a class with deliberately inconsistent, but valid, indentation.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Indent keys", "rows": [
-                            (">>", "Indent current line"),
-                            ("<<", "Unindent current line"),
+                        {"type": "keys", "where": "nvim", "title": "Indent, unindent or auto-indent lines", "rows": [
+                            (">>", "Indent the current line"),
+                            ("<<", "Unindent the current line"),
                             ("5>>", "Indent 5 lines"),
-                            (">}", "Indent to next paragraph"),
-                            ("==", "Auto-indent current line"),
-                            ("=G", "Auto-indent from here to end of file"),
-                            ("gg=G", "Auto-indent entire file"),
+                            (">}", "Indent to the next paragraph"),
+                            ("==", "Auto-indent the current line"),
+                            ("=G", "Auto-indent from here to the end of the file"),
+                            ("gg=G", "Auto-indent the entire file"),
                             ("=i{", "Auto-indent inside braces"),
                             ("<Space>cf", "Format the file with its language formatter (ruff, prettier, etc.)"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "In visual mode", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Indent or auto-indent the lines you selected", "rows": [
                             ("V5j >", "Indent 6 selected lines"),
-                            ("V5j <", "Unindent"),
-                            ("V5j =", "Auto-indent"),
+                            ("V5j <", "Unindent the selected lines"),
+                            ("V5j =", "Auto-indent the selected lines"),
                         ]},
-                        {"type": "cmd", "where": "nvim", "title": "Clean up inconsistent indentation", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Fix inconsistent indentation in a Python file", "code": C('''
 gg=G
 :!python3 -m py_compile %
 '''),
@@ -384,34 +384,34 @@ gg=G
                     ],
                 },
                 {
-                    "h2": "Registers (multiple clipboards)",
-                    "intro": "Vim has 26 named registers (a-z) plus special ones. Yank something, delete something else, and the default register is overwritten. `\"0p` pastes what you originally yanked.",
+                    "h2": "Copy and paste with many clipboards (registers)",
+                    "intro": "Vim has 26 named registers (a-z) plus special ones. If you copy (yank) something and then delete something else, the default register is overwritten. `\"0p` pastes what you originally yanked.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Named registers", "rows": [
-                            ("\"ayy", "Yank line into register a"),
+                        {"type": "keys", "where": "nvim", "title": "Copy and paste with a named register or the system clipboard", "rows": [
+                            ("\"ayy", "Copy (yank) a line into register a"),
                             ("\"ap", "Paste from register a"),
-                            ("\"byy", "Yank into register b"),
+                            ("\"byy", "Copy (yank) a line into register b"),
                             ("\"bp", "Paste from register b"),
-                            ("\"+y", "Yank into system clipboard (Cmd+V works after)"),
-                            ("\"+p", "Paste from system clipboard"),
+                            ("\"+y", "Copy (yank) into the system clipboard (Cmd+V works after)"),
+                            ("\"+p", "Paste from the system clipboard"),
                             (":reg", "See all registers"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Special registers", "rows": [
-                            ("\"\"", "Last yanked/deleted text (default)"),
-                            ("\"0", "Last yank (survives deletes!)"),
-                            ("\"+", "System clipboard"),
-                            ("\".", "Last inserted text"),
-                            ("\"%", "Current filename"),
-                            ("\":", "Last command"),
+                        {"type": "keys", "where": "nvim", "title": "See what the special registers hold: last yank, clipboard, filename", "rows": [
+                            ("\"\"", "Use the last yanked or deleted text (default)"),
+                            ("\"0", "Use the last yank (survives deletes!)"),
+                            ("\"+", "Use the system clipboard"),
+                            ("\".", "Use the last inserted text"),
+                            ("\"%", "Use the current filename"),
+                            ("\":", "Use the last command"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Paste with auto-indentation", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Paste text and match the indentation", "rows": [
                             ("]p", "Paste below and match the indent of the current line"),
                             ("[p", "Paste above and match the indent of the current line"),
                             ("p then =']", "Paste, then auto-indent the pasted block (proper reformat)"),
                             ("p then V']=", "Paste, select pasted text, auto-indent (visual way)"),
                         ]},
-                        {"type": "text", "body": "`]p` matches the indent of the surrounding line, a shallow fix. For full reformatting, do `p` then `=']`."},
-                        {"type": "cmd", "where": "nvim", "title": "Registers survive an unrelated delete", "code": C(r'''
+                        {"type": "text", "body": "Pasted text indented wrong? `]p` matches the indent of the surrounding line, a shallow fix. For full reformatting, do `p` then `=']`."},
+                        {"type": "cmd", "where": "nvim", "title": "Paste your copy after you delete another line", "code": C(r'''
 5G
 "ayy
 /A3
@@ -425,31 +425,31 @@ dd
                     ],
                 },
                 {
-                    "h2": "Marks (bookmarks)",
-                    "intro": "Lowercase marks (a-z) are per-file. Uppercase marks (A-Z) are global, across files.",
+                    "h2": "Bookmark a line and jump back to it (marks)",
+                    "intro": "Lowercase marks (a-z) work in one file. Uppercase marks (A-Z) are global: they work across files.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Mark keys", "rows": [
-                            ("ma", "Set mark 'a' at cursor"),
+                        {"type": "keys", "where": "nvim", "title": "Set a bookmark, jump to it, list all bookmarks", "rows": [
+                            ("ma", "Set mark 'a' at the cursor"),
                             ("'a", "Jump to mark 'a' (line)"),
                             ("`a", "Jump to mark 'a' (exact position)"),
-                            ("''", "Jump back to previous position"),
-                            ("`.", "Jump to last edit location"),
+                            ("''", "Jump back to the previous position"),
+                            ("`.", "Jump to the last edit location"),
                             (":marks", "List all marks"),
                         ], "try": "In `src/calculator.py`, put the cursor on `class Person:` and press `mA`. Open `src/orders.py` with `<Space>sf`, then press `'A`.",
                          "expect": "`'A` jumps back to the `Person` class line in `calculator.py`. `:marks` lists `A` with `calculator.py` as its file."},
                     ],
                 },
                 {
-                    "h2": "Multi-file operations",
-                    "intro": "Workflow: `<Space>/` to grep, `Ctrl-q` to send to quickfix, then `:cdo s/old/new/g | w`.",
+                    "h2": "Change text in many files at once",
+                    "intro": "Search with `<Space>/`, press `Ctrl-q` to send the results to quickfix, then run `:cdo s/old/new/g | w`.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Edit many files", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Replace text in many files, open buffers or search results", "rows": [
                             (":args **/*.py", "Load all Python files"),
-                            (":argdo %s/old/new/g | w", "Replace across all"),
+                            (":argdo %s/old/new/g | w", "Replace across all the loaded files"),
                             (":bufdo %s/old/new/g | w", "Replace across open buffers"),
                             (":cdo s/old/new/g | w", "Replace in quickfix results"),
                         ]},
-                        {"type": "cmd", "where": "nvim", "title": "Touch every file, safely", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Edit every Python file, then undo it safely", "code": C('''
 :ASToggle
 :args src/*.py
 :args
@@ -461,43 +461,43 @@ dd
 :ASToggle
 '''),
                          "expect": "`:ASToggle` pauses autosave. `:ls` shows a `+` on every arglist buffer: modified in memory only, since there is no `| w`. `:argdo e!` reloads every buffer from disk and discards the edits, because nothing was written. The last `:ASToggle` turns autosave back on."},
-                        {"type": "text", "body": "`:args src/*.py` loads the four real modules plus the empty `__init__.py` (and `scratch.py` if the git drills created it). `:next` and `:prev` flip through the buffers and show the marker at the bottom of each. Run them before the edit: with autosave on, leaving a changed buffer writes it. The full form, `:argdo %s/old/new/g | w`, is for when you want the change saved."},
+                        {"type": "text", "body": "Which files does `:args src/*.py` load? The four real modules plus the empty `__init__.py` (and `scratch.py` if the git drills created it). `:next` and `:prev` flip through the buffers and show the marker at the bottom of each. Run them before the edit: with autosave on, leaving a changed buffer writes it. Use the full form, `:argdo %s/old/new/g | w`, when you want the change saved."},
                     ],
                 },
             ],
             "rules": {
-                "h2": "Cheat sheet",
+                "h2": "Find the key for an edit: delete, change, copy, indent, replace",
                 "cards": [
-                    ("Cheat sheet (print this)", "Intent, keys and what happens.", ["Intent", "Keys", "Example"], [
-                        ["Delete word", "`dw`", "`hello world` → `world`"],
-                        ["Delete inside parens", "`di(`", "`func(arg1, arg2)` → `func()`"],
-                        ["Change inside quotes", "`ci\"`", "`\"old\"` → `\"\"` + insert"],
-                        ["Change word", "`ciw`", "replaces whole word"],
-                        ["Delete to end of line", "`D`", "removes after cursor"],
-                        ["Delete entire line", "`dd`", "line gone"],
+                    ("Find the key for an edit (cheat sheet)", "What you want to do, the keys, and what happens.", ["Intent", "Keys", "Example"], [
+                        ["Delete a word", "`dw`", "`hello world` → `world`"],
+                        ["Delete inside parentheses", "`di(`", "`func(arg1, arg2)` → `func()`"],
+                        ["Change the text inside quotes", "`ci\"`", "`\"old\"` → `\"\"` + insert"],
+                        ["Change a word", "`ciw`", "replaces the whole word"],
+                        ["Delete to the end of the line", "`D`", "removes everything after the cursor"],
+                        ["Delete the entire line", "`dd`", "line gone"],
                         ["Copy inside braces", "`yi{`", "copies between `{}`"],
-                        ["Select inside block", "`vi{`", "highlights between `{}`"],
-                        ["Indent 5 lines", "`5>>`", "pushes right"],
-                        ["Auto-indent file", "`gg=G`", "fixes all indentation"],
-                        ["Format file", "`<Space>cf`", "language formatter"],
-                        ["Comment 5 lines", "`Ctrl-v 4j I # Esc`", "block insert"],
-                        ["Repeat last edit", "`.`", "exact same change"],
-                        ["Record macro", "`qa ... q`", "`@a` to replay"],
-                        ["Paste from yank", "`\"0p`", "even after deleting"],
-                        ["System clipboard", "`\"+y`", "works with Cmd+V"],
-                        ["Jump bracket", "`%`", "`(` ↔ `)`"],
+                        ["Select inside a block", "`vi{`", "highlights between `{}`"],
+                        ["Indent 5 lines", "`5>>`", "pushes them right"],
+                        ["Auto-indent the file", "`gg=G`", "fixes all indentation"],
+                        ["Format the file", "`<Space>cf`", "language formatter"],
+                        ["Comment out 5 lines", "`Ctrl-v 4j I # Esc`", "block insert"],
+                        ["Repeat the last edit", "`.`", "exact same change"],
+                        ["Record a macro", "`qa ... q`", "`@a` to replay"],
+                        ["Paste your last copy (yank)", "`\"0p`", "even after deleting"],
+                        ["Copy to the system clipboard", "`\"+y`", "works with Cmd+V"],
+                        ["Jump to the matching bracket", "`%`", "`(` ↔ `)`"],
                         ["Jump to line 50", "`50G`", "instant"],
-                        ["Search & replace", "`:%s/old/new/g`", "whole file"],
+                        ["Search and replace", "`:%s/old/new/g`", "whole file"],
                     ]),
-                    ("Which mark?", "Lowercase stays in the file. Uppercase crosses files.", ["Mark", "Scope"], [
+                    ("Which mark jumps between files?", "Lowercase stays in the file. Uppercase crosses files.", ["Mark", "Scope"], [
                         ["`ma`", "This file only"],
                         ["`mA`", "Global: jump back with `'A` from any file"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Paste what you yanked, after a delete",
-                "frame": "You yank a line, delete another, and still want the first.",
+                "h2": "Paste your copy after you deleted another line",
+                "frame": "How do I paste a line I copied after I deleted another line?",
                 "open": "nvim ~/tw/orders.py",
                 "steps": [
                     (("line 1", "`gg`"), '`yy` then `"ayy`', "Yanks the line into register 0 and into register a."),
@@ -508,24 +508,24 @@ dd
                 ],
                 "before": 'note = "rush"\ntotal = calc_totl(price, qty)',
                 "after": "total = calc_totl(price, qty)\nTAX_RATE = 0.08\nTAX_RATE = 0.08",
-                "meaning": 'Named registers and `"0` keep your yank safe from later deletes.',
+                "meaning": 'Copy into a named register or use `"0`, and later deletes cannot overwrite your yank.',
             },
             "practice": {
-                "h2": "Practice: indent, registers, marks",
+                "h2": "Check yourself: indent, registers and marks",
                 "qs": [
-                    ("Mechanism", "Why does `p` paste the deleted line instead of the yanked one?",
+                    ("Mechanism", "Why does `p` paste the line I deleted instead of the one I copied?",
                      "Deletes use the default register too.",
                      ["A delete overwrites the default register.", "`\"0` holds the last yank."],
                      "Use `\"0p` to paste the last yank."),
-                    ("Keystrokes", "Which keys re-indent the whole file?",
+                    ("Keystrokes", "How do I re-indent the whole file?",
                      "Top, then auto-indent to the end.",
                      ["Press `gg` to go to the top.", "Press `=G`."],
                      "`gg=G`."),
-                    ("Application", "Bookmark `class Person:` in one file and jump back from another.",
+                    ("Application", "How do I bookmark `class Person:` in one file and jump back to it from another?",
                      "Uppercase mark.",
                      ["Press `mA` on the class line.", "Open another file.", "Press `'A`."],
                      "`mA`, then `'A`."),
-                    ("Common mistake", "After `:argdo` your files show `+` and you do not want them. What do you run?",
+                    ("Common mistake", "My files show `+` after `:argdo` and I do not want the edits. What do I run?",
                      "Nothing was saved.",
                      ["The edits live in memory only while autosave is paused (`:ASToggle`).", "Then `:argdo e!` reloads from disk. If autosave already wrote them, undo with `u` in each buffer."],
                      "`:argdo e!`, with autosave paused."),
@@ -534,43 +534,43 @@ dd
         },
         # ============================================================ page 4
         {
-            "h1": "Change every copy of a word",
-            "subtitle": "Do VS Code's Cmd+D, Cmd+Shift+L and F2 in Neovim.",
+            "h1": "Change every copy of a word or rename a variable (Cmd+D in Neovim)",
+            "subtitle": "Do VS Code's Cmd+D in Neovim, change every copy of a word at once, edit many lines together, rename a variable in every file",
             "idea": (
-                "Search for a word once, then let one key change each copy.",
+                "Change many copies of a word: search it once, then let one key change each copy.",
                 [
-                    ("One copy at a time", "* cgn .", "Cmd+D the Vim way."),
-                    ("Every copy at once", ":%s//new/g", "Reuses the word you just searched."),
-                    ("Same column", "Ctrl-v", "Edit many lines together."),
-                    ("Rename a symbol", "<Space>cr", "Every file, real references only."),
+                    ("Change a word one copy at a time", "* cgn .", "Cmd+D, the Vim way."),
+                    ("Change every copy of a word at once", ":%s//new/g", "Reuses the word you just searched."),
+                    ("Edit the same column on many lines", "Ctrl-v", "Edit many lines together."),
+                    ("Rename a variable in every file", "<Space>cr", "Every file, real references only."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "A name appears five times. In VS Code you press Cmd+D five times. In Neovim you retype the same change five times.",
+                "fail": "How do I change a name that appears five times? In VS Code I press Cmd+D five times. In Neovim I retype the same change five times.",
                 "fix": "Search the word with `*`, change the first copy with `cgn`, then press `.` for each next copy. Or change them all with `:%s//new/g`.",
             },
             "drills": [
                 {
-                    "h2": "Cmd+D the Vim way: * then cgn",
-                    "intro": "`*` searches the word under the cursor. `cgn` changes the next match. `.` repeats it on the one after.",
+                    "h2": "Change a word one copy at a time (Cmd+D in VS Code)",
+                    "intro": "Search the word under the cursor with `*`, change the next match with `cgn`, then press `.` to repeat it on the one after.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "One copy at a time", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Search a word, change the next copy, repeat", "rows": [
                             ("*", "Search the word under the cursor and jump to the next copy"),
-                            ("#", "Same search, jump backward"),
+                            ("#", "Search the same word and jump backward"),
                             ("gn", "Select the next match"),
                             ("cgn", "Change the next match"),
-                            (".", "Repeat on the next copy"),
+                            (".", "Repeat the change on the next copy"),
                             ("n", "Jump to the next copy without changing it"),
                             ("dgn", "Delete the next match"),
                             ("u", "Undo one change"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Search any text, not only a word", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Search any selected text, not only a word", "rows": [
                             ("v ... *", "Select text, then `*` searches exactly that text"),
                         ], "try": "In `~/tw/notes.md` press `3G`, `fR`, `w`, `v`, `ee`, then `*`.",
                          "expect": "The cursor jumps to `Orders ship` at the start of line 3. The words you selected are now the search, so `cgn` would change them."},
                         {"type": "text", "body": "Open the file with `nvim ~/tw/orders.py`. `*` jumps to the next copy of the word, so the first `cgn` changes line 19 and the dots go on from there."},
-                        {"type": "cmd", "where": "nvim", "title": "Rename qty to quantity", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Rename a variable in one file (qty to quantity)", "code": C('''
 16G
 *
 cgn
@@ -582,31 +582,31 @@ Esc
 .
 '''),
                          "expect": "All five `qty` words now read `quantity`: lines 6, 7, 16, 19 and 20. The search wraps from the end of the file back to the top. Press `u` five times to undo it."},
-                        {"type": "text", "body": "Why `.` here and not `ciw`? After `ciw`, `.` changes the word under the cursor again, so the cursor must walk to the next copy first. After `cgn`, `.` finds the next copy itself."},
-                        {"type": "text", "body": "`.` changes the copy you stand on, or the next one if you are not on a copy. To skip one, press `n` to land on it, then `n` again to pass it, then `.`."},
+                        {"type": "text", "body": "Why use `cgn` and not `ciw`? After `ciw`, `.` changes the word under the cursor again, so the cursor must walk to the next copy first. After `cgn`, `.` finds the next copy itself."},
+                        {"type": "text", "body": "How do I skip a copy? `.` changes the copy you stand on, or the next one if you are not on a copy. To skip one, press `n` to land on it, then `n` again to pass it, then `.`."},
                     ],
                 },
                 {
-                    "h2": "Cmd+Shift+L: change them all with :s",
-                    "intro": "An empty pattern means the last search. Press `*`, then substitute with nothing between the slashes.",
+                    "h2": "Change every copy of a word at once (Cmd+Shift+L in VS Code)",
+                    "intro": "Change all copies with an empty pattern, which means the last search. Press `*`, then substitute with nothing between the slashes.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Substitute every copy", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Replace every copy of a word, ask first, or only count them", "rows": [
                             (":%s//new/g", "Change every copy of the word you just searched"),
-                            (":%s/\\<old\\>/new/g", "Same, with the word typed out"),
-                            (":%s/old/new/gc", "Ask first: y yes, n no, a all, q quit, l last"),
-                            ("Ctrl-r Ctrl-w", "In the command line: put in the word under the cursor"),
-                            (":%s//new/gn", "Only count the copies"),
-                            ("\\C", "Inside the pattern: match upper and lower case exactly"),
+                            (":%s/\\<old\\>/new/g", "Change the same copies, with the word typed out"),
+                            (":%s/old/new/gc", "Ask before each change: y yes, n no, a all, q quit, l last"),
+                            ("Ctrl-r Ctrl-w", "Put the word under the cursor into the command line"),
+                            (":%s//new/gn", "Count the copies without changing them"),
+                            ("\\C", "Match upper and lower case exactly (use inside the pattern)"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Change fewer copies", "rows": [
-                            (":s/old/new/g", "This line only"),
-                            (":'<,'>s/old/new/g", "The selected lines"),
-                            (":'<,'>s/\\%Vold/new/g", "Only inside the selected characters or block"),
+                        {"type": "keys", "where": "nvim", "title": "Replace a word on one line or in the selected lines only", "rows": [
+                            (":s/old/new/g", "Change the copies on this line only"),
+                            (":'<,'>s/old/new/g", "Change the copies in the selected lines"),
+                            (":'<,'>s/\\%Vold/new/g", "Change the copies only inside the selected characters or block"),
                             ("&", "Repeat the last `:s` on this line"),
                             ("g&", "Repeat it on every line, with the last search"),
                         ]},
-                        {"type": "text", "body": "As you type a `:s` command, Neovim previews the change in the file before you press Enter. Press `Esc` to cancel."},
-                        {"type": "cmd", "where": "nvim", "title": "Rename price to cost everywhere", "code": C('''
+                        {"type": "text", "body": "Can I see the change before I press Enter? Yes: as you type a `:s` command, Neovim previews the change in the file. Press `Esc` to cancel."},
+                        {"type": "cmd", "where": "nvim", "title": "Rename a variable everywhere in the file (price to cost)", "code": C('''
 17G
 *
 :%s//cost/g
@@ -615,10 +615,10 @@ Esc
                     ],
                 },
                 {
-                    "h2": "Alt+Click and Cmd+Option+Down: column and line edits",
-                    "intro": "A column edit adds the same text to a run of lines. `:g` with `norm` does it to every matching line.",
+                    "h2": "Edit many lines at once (Alt+Click, Cmd+Option+Down in VS Code)",
+                    "intro": "Add the same text to a run of lines with a column edit. Do it to every matching line with `:g` and `norm`.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Column keys", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Add or change text in a column on many lines", "rows": [
                             ("Ctrl-v", "Start a column, then `j` to extend it down"),
                             ("I", "Insert before the column on every line"),
                             ("A", "Append after the column on every line"),
@@ -628,11 +628,11 @@ Esc
                             ("o", "Jump to the other corner"),
                             ("gv", "Select the last selection again"),
                         ]},
-                        {"type": "keys", "where": "nvim", "title": "Same edit on matching lines", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Add text to every line that matches a word", "rows": [
                             (":g/pat/norm A text", "Run `A text` on every line that matches `pat`"),
                         ]},
                         {"type": "text", "body": "Open the file with `nvim ~/tw/todo.txt`. Lines 1 to 10 are `item N: pending`, and `item 10` is longer than the rest."},
-                        {"type": "cmd", "where": "nvim", "title": "Add a note to the end of ten lines", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Add text to the end of ten lines", "code": C('''
 gg
 Ctrl-v
 9j
@@ -642,17 +642,17 @@ A
 Esc
 '''),
                          "expect": "Lines 1 to 10 end with `pending (done)`, including `item 10`. Without the `$`, `A` would append after the first column, and the text would land inside the word `item`. Press `u` to undo it."},
-                        {"type": "cmd", "where": "nvim", "title": "Mark every TODO line", "code": C('''
+                        {"type": "cmd", "where": "nvim", "title": "Add text to the end of every TODO line", "code": C('''
 :g/TODO/norm A !
 '''),
                          "expect": "The three `TODO` lines (12, 14 and 16) end with ` !`. The `buy` lines are untouched. Press `u` to undo it."},
                     ],
                 },
                 {
-                    "h2": "F2 and Cmd+Shift+H: rename a symbol, replace across files",
-                    "intro": "Searching text is not the same as knowing code. The language server renames the real symbol, and grug-far replaces text across files.",
+                    "h2": "Rename a function or variable in every file (F2, Cmd+Shift+H in VS Code)",
+                    "intro": "Rename the real symbol, not just matching text: the language server renames it in every file, and grug-far replaces text across files.",
                     "blocks": [
-                        {"type": "keys", "where": "nvim", "title": "Across files", "rows": [
+                        {"type": "keys", "where": "nvim", "title": "Rename a symbol or replace text across files", "rows": [
                             ("<Space>cr", "Rename a symbol in every file: type the new name, then Enter"),
                             ("grn", "Rename a symbol with Neovim's built-in rename (same as `<Space>cr`)"),
                             ("<Space>sr", "Replace text across files: open the search and replace panel (grug-far). On a word it fills that word; in visual mode it fills the selection"),
@@ -660,15 +660,15 @@ Esc
                             ("[[", "Jump to the previous copy"),
                         ], "try": "In `~/tw/orders.py` press `6G`, `fq`, wait a moment, then `]]`.",
                          "expect": "Every `qty` in the file is highlighted. `]]` moves the cursor to the next one, on line 7. `[[` moves back."},
-                        {"type": "text", "body": "Module 5 teaches `<Space>cr` and `<Space>sr` step by step, with the same `orders.py` rename."},
-                        {"type": "text", "body": "A plugin called multicursor.nvim brings VS Code's multiple cursors to Neovim. It is not installed here, and the keys above do the same jobs."},
+                        {"type": "text", "body": "Rename step by step: module 5 teaches `<Space>cr` and `<Space>sr` with the same `orders.py` rename."},
+                        {"type": "text", "body": "How do I get multiple cursors like VS Code? A plugin called multicursor.nvim brings them to Neovim. It is not installed here, and the keys above do the same jobs."},
                     ],
                 },
             ],
             "rules": {
-                "h2": "Pick the right tool",
+                "h2": "Which keys should I use to change many copies of a word?",
                 "cards": [
-                    ("Which tool for which job", "Match the size of the job to the tool.", ["The job", "Use"], [
+                    ("Pick a way to change many copies, by job size", "Match the size of the job to the keys.", ["The job", "Use"], [
                         ["A few copies, you choose each", "`*` `cgn` `.` (`n` skips)"],
                         ["Every copy in the file", "`*` then `:%s//new/g`"],
                         ["Some copies, reviewed one by one", "`:%s/old/new/gc`"],
@@ -677,7 +677,7 @@ Esc
                         ["The same column on many lines", "`Ctrl-v`"],
                         ["Edits that differ per line", "A macro: `qa` ... `q`"],
                     ]),
-                    ("VS Code to Neovim", "The shortcut you know and its Neovim answer.", ["VS Code", "Neovim"], [
+                    ("Find the Neovim keys for a VS Code shortcut", "Look up the VS Code shortcut you know and type its Neovim keys.", ["VS Code", "Neovim"], [
                         ["Cmd+D", "`*` `cgn` `.`"],
                         ["Cmd+K Cmd+D (skip one)", "`n`"],
                         ["Cmd+Shift+L", "`*` then `:%s//new/g`"],
@@ -689,8 +689,8 @@ Esc
                 ],
             },
             "worked": {
-                "h2": "Rename qty in one file",
-                "frame": "The name `qty` appears five times and should read `quantity`.",
+                "h2": "Rename a variable in one file with cgn",
+                "frame": "How do I rename `qty`, which appears five times, to `quantity`?",
                 "open": "nvim ~/tw/orders.py",
                 "steps": [
                     (("line 16, on `qty`", "`16G`"), "`*`", "Searches for `qty` and jumps to line 19."),
@@ -703,21 +703,21 @@ Esc
                 "meaning": "The first `cgn` changes one copy, and each `.` finds the next, so one clean edit becomes five.",
             },
             "practice": {
-                "h2": "Practice: change every copy",
+                "h2": "Check yourself: change every copy of a word",
                 "qs": [
-                    ("Mechanism", "Why does `.` after `cgn` move on to the next copy?",
+                    ("Mechanism", "Why does `.` after `cgn` move on to the next copy by itself?",
                      "What does `gn` select?",
                      ["`gn` selects the next match.", "`.` repeats `cgn`, so it changes the next match."],
                      "`.` repeats `cgn`, which finds the next match itself. After `ciw`, `.` stays on the cursor."),
-                    ("Keystrokes", "You changed one copy with `cgn`. Skip the next copy and change the one after.",
+                    ("Keystrokes", "I changed one copy with `cgn`. How do I skip the next copy and change the one after?",
                      "`n` moves without changing.",
                      ["Press `n` to land on the next copy.", "Press `n` again to pass it.", "Press `.`."],
                      "`n` `n` `.`."),
-                    ("Application", "Rename the loop variable `code` on lines 11 and 12 without touching `codes`.",
+                    ("Application", "How do I rename the loop variable `code` on lines 11 and 12 without touching `codes`?",
                      "Whole words only.",
                      ["Press `11G`, then `fc` to land on `code`.", "Press `*`, then `cgn`, the new name and `Esc`.", "Press `.` twice."],
                      "`*` matches whole words, so `codes` stays. Three copies change."),
-                    ("Common mistake", "You rename with `cw` and `.`, and the next edit lands in the wrong place. Why?",
+                    ("Common mistake", "Why does my next edit land in the wrong place when I rename with `cw` and `.`?",
                      "Where does `.` act?",
                      ["`.` repeats at the cursor.", "Only `cgn` finds the next match for you."],
                      "Use `cgn`, not `cw`, so each `.` jumps to the next copy."),

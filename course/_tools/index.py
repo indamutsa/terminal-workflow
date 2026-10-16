@@ -9,25 +9,25 @@ TIERS = {
     9: "Beginner → Advanced", 10: "Beginner", 11: "Expert",
 }
 
-HERO_SUBTITLE = "Find files, shape text, automate Bash, and work faster in tmux & Neovim."
+HERO_SUBTITLE = "Find files, search text, write Bash scripts, and work faster in tmux and Neovim."
 
 # (stage, module numbers, outcome) — one route through both parts of the toolkit.
 LEARNING_PATH = [
-    ("Shell basics", (10,), "Variables, decisions, loops and script input."),
-    ("Everyday tasks", (9,), "Find files, search logs and turn text into answers."),
-    ("Your workspace", (1, 2, 3), "Keep sessions running and edit without reaching for the mouse."),
-    ("Automation", (11, 4), "Build reliable scripts and work across parallel branches."),
-    ("Expert workflow", (5, 6, 7), "Navigate code, tune your tools and make every edit count."),
+    ("Learn Bash basics", (10,), "Save values, check conditions, loop over files and read script input."),
+    ("Do everyday tasks", (9,), "Find files, search logs and turn text into answers."),
+    ("Set up your workspace", (1, 2, 3), "Keep your work running after you close the terminal. Edit without the mouse."),
+    ("Automate your work", (11, 4), "Write scripts that stop on errors. Work on several branches at once."),
+    ("Work like an expert", (5, 6, 7), "Jump around code, tune your tools and repeat edits."),
 ]
 
 GROUP_INTROS = {
-    "Linux & Bash": "Find it. Transform it. Automate it.",
-    "tmux & Neovim": "A lasting workspace. An editor that keeps up.",
+    "Linux & Bash": "Find files, search text and write Bash scripts.",
+    "tmux & Neovim": "Keep sessions running. Edit without the mouse.",
 }
 
 START = {
     "where": "shell",
-    "title": "Start your first session",
+    "title": "Start a tmux session",
     "code": "tmux new -s main",
     "expect": "The tmux status bar appears at the bottom with `[main]` on the left.",
 }
@@ -69,7 +69,7 @@ def write(course, mods, version, cheat):
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="Become a Linux power user. Find files, transform text, automate Bash, and work faster with tmux and Neovim. Search any task for commands and examples." />
+    <meta name="description" content="Find the command for any terminal task. Find files, search text, write Bash scripts, and work faster with tmux and Neovim." />
     <title>Terminal Workflow — Course Map</title>
     <script>document.documentElement.classList.add("js");</script>
     <style>
@@ -84,7 +84,7 @@ def write(course, mods, version, cheat):
     <main>
       <header class="cm-hero">
         <div class="eyebrow">{len(mods)} modules · {total} pages</div>
-        <h1>Become a Linux power user.</h1>
+        <h1>Find the command for any terminal task.</h1>
         <p class="subtitle">{kit.esc(HERO_SUBTITLE)}</p>
         <button class="cm-search" type="button" data-tw-search aria-haspopup="dialog" aria-controls="tw-search">Search a task or command <kbd>/</kbd></button>
         <p class="cm-search-hint">Try “find big files”, “loop over files”, or “script flags”.</p>
@@ -92,13 +92,13 @@ def write(course, mods, version, cheat):
       </header>
       {"".join(sections)}
       <section class="cm-learning" id="learning-path" aria-labelledby="path-title">
-        <div><h2 id="path-title">From basics to expert</h2><p class="section-intro">Follow the path once. Come back for any command.</p></div>
+        <div><h2 id="path-title">What to learn first</h2><p class="section-intro">Read it once in order. Search it whenever you are stuck.</p></div>
         <div><ol class="cm-path">{"".join(path)}</ol>
         <p class="cm-reference">Coming from VS Code? <a href="{module_href(by_number[8]['folder'])}">Keep module 8 beside you.</a></p></div>
       </section>
       <section class="cm-start" aria-labelledby="start-title">
-        <h2 id="start-title">Make it hands-on</h2>
-        <p class="section-intro">Start Bash lessons with <code>bash</code>. For tmux lessons, start a session below.</p>
+        <h2 id="start-title">Try the commands yourself</h2>
+        <p class="section-intro">For Bash lessons, run <code>bash</code> first. For tmux lessons, start a session below.</p>
         {kit.cmd("start", START)}
         {kit.practice_setup("setup")}
       </section>

@@ -39,8 +39,8 @@ FIND_TEXT = [
     ("python files changed in the last 2 days", (9, "module-1-d2-b4")),
     ("files modified in the last 7 days", (9, "module-1-d5-b4")),
     ("find files older than 30 days", (9, "module-1-d3-b4")),
-    ("find a file with this name opened last week", None),
-    ("find files created today", None),
+    ("find a file with this name opened last week", (9, "module-1-d5-b8")),
+    ("find files created today", (9, "module-1-d5-b9")),
     ("run a command on every file i find", (9, "module-1-d2-b5")),
     ("find files by name with the find command", (9, "module-1-d3-b1")),
     ("delete the files i just found", (9, "module-1-d3-b8")),
@@ -49,7 +49,7 @@ FIND_TEXT = [
     ("search my whole mac for a file by name", (9, "module-1-d5-b1")),
     ("search the documents folder for invoice with spotlight", (9, "module-1-d5-b2")),
     ("how big is each folder", (9, "module-1-d5-b6")),
-    ("find duplicate files", None),
+    ("find duplicate files", (9, "module-1-d3-b9")),
     # search text (m9 page 2)
     ("search for a word in every file", (9, "module-2-d1-b2")),
     ("search ignoring case", (9, "module-2-d1-b3")),
@@ -74,7 +74,7 @@ FIND_TEXT = [
     ("show the top 5 ip addresses in my access log", (9, "module-4-d7-b1")),
     ("replace a word in a file with sed", (9, "module-4-d2-b1")),
     ("edit a file in place with sed on a mac", (9, "module-4-d2-b6")),
-    ("replace a word in every file of a folder from the shell", None),
+    ("replace a word in every file of a folder from the shell", (9, "module-4-d2-b10")),
     ("run a command once for each line of input", (9, "module-4-d5-b1")),
     ("xargs breaks on file names with spaces", (9, "module-4-d5-b4")),
     ("pretty print a json file", (9, "module-4-d6-b1")),
@@ -121,13 +121,13 @@ BASH = [
     ("rename all the jpeg files to jpg", (11, "module-4-d1-b4")),
     ("try a command 3 times before giving up", (11, "module-4-d3-b1")),
     # gaps: nothing in the course answers these
-    ("go back to the previous folder with cd", None),
-    ("make a shortcut link to a file", None),
-    ("unzip a downloaded archive", None),
-    ("run my script every night", None),
-    ("show free disk space", None),
-    ("which process is using port 3000", None),
-    ("download a file from a url", None),
+    ("go back to the previous folder with cd", (10, "module-1-d5-b1")),
+    ("make a shortcut link to a file", (9, "module-1-d6-b1")),
+    ("unzip a downloaded archive", (11, "module-4-d4-b2")),
+    ("run my script every night", (11, "module-4-d4-b3")),
+    ("show free disk space", (10, "module-1-d5-b2")),
+    ("which process is using port 3000", (10, "module-1-d5-b3")),
+    ("download a file from a url", (11, "module-4-d4-b1")),
 ]
 
 TMUX = [
@@ -239,8 +239,8 @@ EDITING = [
     ("who changed this line", (5, "module-2-d4-b1")),
     ("replace text across several files", (5, "module-3-d3-b1")),
     ("run the tests", (5, "module-4-d1-b1")),
-    ("merge a branch into main", None),
-    ("squash my last 3 commits", None),
+    ("merge a branch into main", (5, "module-2-d6-b1")),
+    ("squash my last 3 commits", (5, "module-2-d6-b2")),
     ("resolve a merge conflict", (5, "module-2-d5-b3")),
 ]
 
