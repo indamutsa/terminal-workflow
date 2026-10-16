@@ -60,6 +60,8 @@ FIND_TEXT = [
     ("look for one word or another", (9, "module-2-d3-b3")),
     ("grep for lines that do not contain info", (9, "module-2-d4-b3")),
     ("filter the output of a command with grep", (9, "module-2-d5-b1")),
+    ("grep lines with OK or FAIL", [(9, "module-2-d4-b4"), (2, "module-4-d2-b7"), (2, "module-4-d2-b8")]),
+    ("search a log for several words at once", (9, "module-2-d4-b4")),
     # columns, sort, count (m9 page 3)
     ("get the first column of a log", (9, "module-3-d1-b2")),
     ("sort numbers properly not alphabetically", (9, "module-3-d2-b1")),
@@ -68,6 +70,8 @@ FIND_TEXT = [
     ("how many lines does access.log have", (9, "module-3-d3-b4")),
     ("show the last 3 lines of a file", (9, "module-3-d5-b1")),
     ("watch a log file as new lines arrive", (9, "module-3-d5-b6")),
+    ("watch a log and only show errors", (9, "module-3-d5-b7")),
+    ("tail a log and grep live", (9, "module-3-d5-b7")),
     # awk, sed, xargs, jq (m9 page 4)
     ("print the third column with awk", (9, "module-4-d1-b2")),
     ("add up a column of numbers", (9, "module-4-d1-b4")),
@@ -200,6 +204,10 @@ EDITING = [
     ("open a file in a vertical split", (2, "module-4-d4-b1")),
     ("copy text out of the terminal output", (2, "module-4-d3-b3")),
     ("get out of terminal mode", (5, "module-3-d4-b4")),
+    ("follow a log in nvim", (2, "module-4-d2-b7")),
+    ("watch backup log inside neovim", (2, "module-4-d2-b7")),
+    ("put command output into the file in nvim", (2, "module-4-d2-b8")),
+    ("insert shell output in vim", (2, "module-4-d2-b8")),
     # Power editing (m3, m6, m7)
     ("change the text inside parentheses", (3, "module-1-d2-b1")),
     ("record a macro", (3, "module-2-d2-b1")),
