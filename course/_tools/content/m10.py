@@ -11,40 +11,40 @@ BASH_FIRST = "Type `bash` first: these snippets are bash, and zsh splits words d
 MODULE = {
     "n": 10,
     "folder": "m10-bash-basics",
-    "title": "Bash basics",
-    "footer": "Bash basics by task: variables, quoting, exit codes, if and case, for and while loops, script arguments and input",
-    "tagline": "Look up the bash snippet for the job, type it, and see the real output.",
+    "title": "Write Bash scripts with variables, loops and flags",
+    "footer": "Quote variables, check exit codes, use if and case, loop over files and lines, read flags and typed answers",
+    "tagline": "Save values, test conditions, loop over files and read script arguments in bash.",
     "glossary": [
-        ("tw-exit-code", "Exit code", ["exit code", "exit codes"], "A number every command leaves behind. 0 means it worked, anything else means it failed. Read it with $?."),
-        ("tw-shebang", "Shebang", ["shebang"], "The first line of a script, such as #!/bin/bash. It names the program that runs the file."),
-        ("tw-word-splitting", "Word splitting", ["word splitting"], "Bash cuts an unquoted $variable into words at every space, tab and newline (the IFS characters), then expands any * patterns. Quote it to keep it whole."),
+        ("tw-exit-code", "Exit code", ["exit code", "exit codes"], "How do I tell if a command worked? Every command leaves a number: 0 means it worked, anything else means it failed. Read it with $?."),
+        ("tw-shebang", "Shebang", ["shebang"], "Which program runs my script? The first line, such as #!/bin/bash, names it."),
+        ("tw-word-splitting", "Word splitting", ["word splitting"], "Why does a $variable with spaces break my command? Bash cuts an unquoted $variable into words at every space, tab and newline (the IFS characters), then expands any * patterns. Quote it to keep it whole."),
     ],
     "coverage_allow": [],
     "pages": [
         # ============================================================ page 1
         {
-            "h1": "Variables, quoting and exit codes",
-            "subtitle": "Run a script, keep values in variables, quote them, and read whether a command worked.",
+            "h1": "Run a bash script, save values and check if a command worked",
+            "subtitle": "Run a script file, save a value in a variable, quote a file name with spaces, check if a command worked",
             "idea": (
-                "Quote every variable, and read $? after a command to know if it worked.",
+                "Make a script safe with spaces and check if a command worked: quote every variable and read $? after the command.",
                 [
-                    ("Run a script", "bash hello.sh", "Or chmod +x it and run ./hello.sh."),
-                    ("Keep a value", "name=Ada", "No spaces around the equals sign."),
-                    ("Use it safely", "\"$name\"", "Double quotes keep spaces inside the value."),
-                    ("Did it work", "echo $?", "0 is success, anything else is a failure."),
+                    ("Run a script file", "bash hello.sh", "Or chmod +x it and run ./hello.sh."),
+                    ("Save a value in a variable", "name=Ada", "No spaces around the equals sign."),
+                    ("Use a value with spaces safely", "\"$name\"", "Double quotes keep spaces inside the value."),
+                    ("Check if a command worked", "echo $?", "0 is success, anything else is a failure."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "A script works on `report.txt` and breaks on `my notes.txt`, or `name = Ada` says `command not found`.",
-                "fix": "Write `name=Ada` with no spaces, and put `\"$name\"` in double quotes every time you use it.",
+                "fail": "Why does my script work on `report.txt` but break on `my notes.txt`? Why does `name = Ada` say `command not found`?",
+                "fix": "Fix both: write `name=Ada` with no spaces, and put `\"$name\"` in double quotes every time you use it.",
             },
             "drills": [
                 {
-                    "h2": "Run a script",
-                    "intro": "A script is a text file of commands. Run it with `bash`, or make it executable and run it by path.",
+                    "h2": "Run a script file (bash or ./)",
+                    "intro": "Run a script file: type `bash` and the file name, or make the file executable and run it by path.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Create the sample files for this page", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Create the practice files for running scripts", "code": C(r'''
 mkdir -p /tmp/tw/vars && cd /tmp/tw/vars
 cat > hello.sh <<'EOF'
 #!/bin/bash
@@ -54,41 +54,41 @@ printf 'first line\nsecond line\n' > 'my notes.txt'
 cat hello.sh
 '''),
                          "expect": "The two lines of the script print: `#!/bin/bash` and `echo \"Hello from a script\"`. The folder `/tmp/tw/vars` now holds `hello.sh` and `my notes.txt`."},
-                        {"type": "cmd", "where": "shell", "title": "Run a script with bash, then run it as ./hello.sh", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Run a script with bash, or run it as ./hello.sh", "code": C(r'''
 cd /tmp/tw/vars
 bash hello.sh
 chmod +x hello.sh
 ./hello.sh
 '''),
                          "expect": "`Hello from a script` prints twice, once from `bash hello.sh` and once from `./hello.sh`. Without the `chmod +x`, `./hello.sh` fails with `Permission denied`."},
-                        {"type": "text", "body": "The first line `#!/bin/bash` is the shebang. It tells the system which program runs the file when you run `./hello.sh`. `bash hello.sh` ignores it."},
+                        {"type": "text", "body": "Which program runs my script? The first line `#!/bin/bash` (the shebang) names it when you run `./hello.sh`. `bash hello.sh` ignores it."},
                     ],
                 },
                 {
-                    "h2": "Variables and quotes",
+                    "h2": "Save a value in a variable and quote it",
                     "intro": BASH_FIRST,
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Set a variable and print it", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Save a value in a variable and print it", "code": C(r'''
 name=Ada
 echo "Hello, $name"
 name = Ada
 '''),
                          "expect": "`Hello, Ada` prints, then `bash: name: command not found`. With spaces, bash runs `name` as a command."},
-                        {"type": "cmd", "where": "shell", "title": "Keep a $variable literal or expand it: double, single or no quotes", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Print a $variable's value, or print it literally", "code": C(r'''
 name=Ada
 echo "Hi $name"
 echo 'Hi $name'
 echo Hi $name
 '''),
                          "expect": "Three lines: `Hi Ada`, `Hi $name`, `Hi Ada`. Single quotes print the text, double quotes and no quotes expand it."},
-                        {"type": "cmd", "where": "shell", "title": "Stop a filename with a space from breaking", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Stop a file name with a space from breaking my command", "code": C(r'''
 cd /tmp/tw/vars
 f='my notes.txt'
 cat $f
 cat "$f"
 '''),
                          "expect": "`cat $f` fails twice: `cat: my: No such file or directory` and `cat: notes.txt: No such file or directory`. `cat \"$f\"` prints `first line` and `second line`."},
-                        {"type": "cmd", "where": "shell", "title": "Put text right after a variable with ${var}", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Add text right after a variable (${var})", "code": C(r'''
 fruit=apple
 echo "$fruits"
 echo "${fruit}s"
@@ -97,25 +97,25 @@ echo "${fruit}s"
                     ],
                 },
                 {
-                    "h2": "Capture output and do arithmetic",
-                    "intro": "`$(command)` swaps in what the command prints. `$(( ))` does whole-number maths.",
+                    "h2": "Save a command's output and do maths",
+                    "intro": "Save what a command prints with `$(command)`. Do whole-number maths with `$(( ))`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Save a command's output in a variable with $(...)", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Save what a command prints in a variable ($(...))", "code": C(r'''
 cd /tmp/tw/vars
 first=$(head -1 'my notes.txt')
 echo "First line: $first"
 echo "Lines: $(wc -l < 'my notes.txt' | tr -d ' ')"
 '''),
                          "expect": "`First line: first line` and `Lines: 2`."},
-                        {"type": "cmd", "where": "shell", "title": "Do arithmetic with $(( ))", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Add, multiply and divide numbers ($(( )))", "code": C(r'''
 a=7; b=3
 echo $((a + b)) $((a * b)) $((a / b)) $((a % b))
 ((a++)); echo $a
 echo "scale=2; 7/3" | bc
 '''),
                          "expect": "Three lines: `10 21 2 1`, then `8`, then `2.33`. The integer sum, product, quotient and remainder come first, `((a++))` makes 7 into 8, and `bc` gives the decimals."},
-                        {"type": "text", "body": "`$(( ))` drops the decimals: `7 / 3` is `2`. For decimals pipe the sum to `bc`."},
-                        {"type": "cmd", "where": "shell", "title": "Print with echo or printf (tabs, padding, decimals)", "code": C(r'''
+                        {"type": "text", "body": "Why does 7 / 3 give 2? `$(( ))` drops the decimals: `7 / 3` is `2`. For decimals pipe the sum to `bc`."},
+                        {"type": "cmd", "where": "shell", "title": "Print a tab, pad a number or round decimals (echo, printf)", "code": C(r'''
 echo "a\tb"
 printf 'a\tb\n'
 printf '%s\n' one two three
@@ -126,10 +126,10 @@ printf '%-6s|%4d\n' ab 7
                     ],
                 },
                 {
-                    "h2": "Exit codes",
-                    "intro": "Every command leaves a number: `0` for success, anything else for failure. `$?` holds the last one.",
+                    "h2": "Check if a command worked (exit codes)",
+                    "intro": "Check if the last command worked: every command leaves a number, `0` for success and anything else for failure. `$?` holds the last one.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Check if the last command worked with $?", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Check if the last command worked ($?)", "code": C(r'''
 cd /tmp/tw/vars
 ls hello.sh
 echo $?
@@ -137,8 +137,8 @@ ls nope
 echo $?
 '''),
                          "expect": "`hello.sh` and `0`, then `ls: nope: No such file or directory` and `1`."},
-                        {"type": "text", "body": "Linux differs: GNU `ls` exits with `2` for a missing file where macOS `ls` exits with `1`. Only `0` versus not `0` is portable."},
-                        {"type": "cmd", "where": "shell", "title": "Exit a script with your own code, and read true and false", "code": C(r'''
+                        {"type": "text", "body": "Is the exit code the same on Linux? No: GNU `ls` exits with `2` for a missing file where macOS `ls` exits with `1`. Only `0` versus not `0` is portable."},
+                        {"type": "cmd", "where": "shell", "title": "End a script with your own exit code, and read true and false", "code": C(r'''
 cd /tmp/tw/vars
 true; echo $?
 false; echo $?
@@ -152,22 +152,47 @@ echo $?
                          "expect": "`0` for `true`, `1` for `false`, then `checking` from the script and `3`, the code `exit 3` set."},
                     ],
                 },
+                {
+                    "h2": "Go back to the previous folder, check free disk space and find what uses a port",
+                    "intro": "Three everyday shell checks. They also run in zsh.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Go back to the previous folder with cd", "code": C('''
+cd /tmp/tw
+cd /usr
+cd -
+pwd
+'''),
+                         "expect": "`cd -` prints `/tmp/tw`, the folder it takes you back to, and `pwd` prints `/tmp/tw` again. Each `cd` remembers the folder you came from, so a second `cd -` jumps back to `/usr`."},
+                        {"type": "cmd", "where": "shell", "title": "Show free disk space (df, du)", "code": C('''
+df -h /
+du -sh ~/Downloads
+'''),
+                         "expect": "`df -h /` prints a header (`Filesystem Size Used Avail Capacity ... Mounted on`) and one line for `/`, for example `/dev/disk3s1s1 926Gi 12Gi 350Gi 4%`. `Avail` is the space you can still use. `du -sh ~/Downloads` prints one total and the path, for example `1.3G` then a tab then the folder. Your numbers differ."},
+                        {"type": "cmd", "where": "shell", "title": "Which process is using port 3000 (lsof)", "code": C('''
+python3 -m http.server 3999 >/dev/null 2>&1 &
+sleep 1
+lsof -iTCP:3999 -sTCP:LISTEN
+kill $(lsof -ti :3999)
+'''),
+                         "expect": "A job line such as `[1] 69538` from the background start. Then `lsof` prints a header (`COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME`) and one line like `python3.1 69538 you 4u IPv6 ... TCP *:3999 (LISTEN)`; the number under `PID` is the process that holds the port. The PID and the `python3` name differ. The last command stops that process with its PID; the shell may then print `Terminated`. Replace `3999` with your own port, such as `3000`, to find what holds it."},
+                    ],
+                },
             ],
             "rules": {
-                "h2": "Variables and exit codes at a glance",
+                "h2": "Look up how to quote variables, save output and check exit codes",
                 "cards": [
-                    ("Keep a value whole or let it split", "Bash splits an unquoted value at spaces, tabs and newlines (IFS), then expands `*` patterns. Quotes stop both.", ["Task", "Write"], [
-                        ["Keep a value whole", "`\"$name\"`: one word, spaces kept. Use this by default."],
+                    ("Keep a variable's spaces, or let it split", "Why does an unquoted value break? Bash splits it at spaces, tabs and newlines (IFS), then expands `*` patterns. Quotes stop both.", ["What you want", "Type this"], [
+                        ["Keep a value in one piece", "`\"$name\"`: one word, spaces kept. Use this by default."],
                         ["Print the text `$name` as typed", "`'$name'`: nothing expands."],
-                        ["See what unquoted does", "`$name`: split and pattern-expanded, so `my notes.txt` breaks."],
-                        ["Put text right after a value", "`\"${name}s\"`"],
+                        ["See what happens without quotes", "`$name`: split and pattern-expanded, so `my notes.txt` breaks."],
+                        ["Add text right after a variable", "`\"${name}s\"`"],
                     ]),
-                    ("Save output or do maths", "Three dollar forms that look alike.", ["Task", "Write"], [
-                        ["Use a variable", "`$name`"],
+                    ("Save a command's output or add numbers", "Which $ form do I use? Three look alike.", ["What you want", "Type this"], [
+                        ["Use a variable's value", "`$name`"],
                         ["Save what a command prints", "`first=$(head -1 file)`"],
                         ["Add or multiply whole numbers", "`$((a + b))`"],
                     ]),
-                    ("Check if a command worked", "A command's success is a number.", ["Task", "Write"], [
+                    ("Check if a command worked", "How do I see if a command worked? Its result is a number.", ["What you want", "Type this"], [
                         ["Read the last command's result", "`echo $?`: 0 is success. Read it before running anything else."],
                         ["End a script with your own code", "`exit 3`"],
                         ["Make a command that always succeeds or fails", "`true` (code 0) or `false` (code 1)"],
@@ -175,33 +200,33 @@ echo $?
                 ],
             },
             "worked": {
-                "h2": "Print the line count of a file with a space in its name",
-                "frame": "You want one sentence that says how many lines `my notes.txt` has.",
+                "h2": "Count the lines in a file with a space in its name",
+                "frame": "How do I print how many lines `my notes.txt` has, in one sentence?",
                 "open": "cd /tmp/tw/vars",
                 "steps": [
-                    (None, "`file='my notes.txt'`", "The quotes keep the space inside the value."),
+                    (None, "`file='my notes.txt'`", "Quote the name: the space stays inside the value."),
                     (None, "`n=$(wc -l < \"$file\" | tr -d ' ')`", "`wc -l` counts the lines. `tr -d ' '` removes the padding spaces macOS adds."),
-                    (None, "`echo \"$file has $n lines\"`", "Double quotes keep the filename whole."),
+                    (None, "`echo \"$file has $n lines\"`", "Double quotes keep the file name whole."),
                 ],
                 "after": "my notes.txt has 2 lines",
-                "meaning": "Quote the variable and the filename stays one word, whatever is in it.",
+                "meaning": "Keep a file name with spaces whole: quote the variable and it stays one word.",
             },
             "practice": {
-                "h2": "Practice: variables and exit codes",
+                "h2": "Check what you know: quote variables and read exit codes",
                 "qs": [
                     ("Mechanism", "Why does `cat $f` fail when `f='my notes.txt'`, while `cat \"$f\"` works?",
                      "How many words does the command get?",
                      ["Without quotes bash cuts the value at the space.", "`cat` then gets two names, `my` and `notes.txt`.", "Quotes keep it as one name."],
                      "Unquoted `$f` splits into two words. `\"$f\"` stays one."),
-                    ("Keystrokes", "Which line stores today's year in `y` and prints `Year: ...`?",
+                    ("Keystrokes", "How do I save today's year in `y` and print `Year: ...`?",
                      "Command substitution, then echo.",
                      ["Write `y=$(date +%Y)`.", "Write `echo \"Year: $y\"`."],
                      "`y=$(date +%Y)` then `echo \"Year: $y\"`."),
-                    ("Application", "Make a script `fail.sh` that prints `oops` and ends with code 4. How do you check the code?",
+                    ("Application", "How do I make a script `fail.sh` that prints `oops` and ends with code 4, then check the code?",
                      "Put exit last, then read the code.",
                      ["Create it with `printf 'echo oops\\nexit 4\\n' > fail.sh`.", "Run `bash fail.sh`.", "Run `echo $?` straight after."],
                      "`bash fail.sh` prints `oops`, then `echo $?` prints `4`."),
-                    ("Common mistake", "`count = 5` prints `count: command not found`. What is wrong?",
+                    ("Common mistake", "Why does `count = 5` print `count: command not found`?",
                      "Look at the spaces around the equals sign.",
                      ["Bash reads `count` as a command and `=` and `5` as its arguments.", "An assignment has no spaces around `=`."],
                      "Write `count=5`."),
@@ -210,28 +235,28 @@ echo $?
         },
         # ============================================================ page 2
         {
-            "h1": "Decisions",
-            "subtitle": "Branch with if, test strings, numbers and files, and match patterns with case.",
+            "h1": "Check a file, a number or text, then choose what to run",
+            "subtitle": "Check if a file exists, compare two numbers, compare two strings, match a file name pattern, pick a branch with case",
             "idea": (
-                "Put the test inside [[ ]] with spaces around everything, and let the exit code pick the branch.",
+                "Run a command only if something is true: put the test inside [[ ]] with spaces around everything, and let the exit code pick the branch.",
                 [
-                    ("Test a file", "[[ -f report.txt ]]", "Also -d, -e, -s and -x."),
-                    ("Compare numbers", "[[ $n -gt 5 ]]", "Or (( n > 5 )) for maths."),
-                    ("Match a pattern", "[[ $f == *.txt ]]", "No quotes around the pattern."),
-                    ("Pick by value", "case $x in a) ... ;; esac", "Use | to join choices."),
+                    ("Check if a file exists", "[[ -f report.txt ]]", "Also -d, -e, -s and -x."),
+                    ("Compare two numbers", "[[ $n -gt 5 ]]", "Or (( n > 5 )) for maths."),
+                    ("Match a file name pattern", "[[ $f == *.txt ]]", "No quotes around the pattern."),
+                    ("Pick a branch by value", "case $x in a) ... ;; esac", "Use | to join choices."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "Your script tests `[ $name = Ada ]` and errors when the name is empty or has a space, or `[[ $n=5 ]]` is always true.",
+                "fail": "Why does `[ $name = Ada ]` error when the name is empty or has a space? Why is `[[ $n=5 ]]` always true?",
                 "fix": "Use `[[ ]]` with a space on every side of the operator: `[[ $n = 5 ]]`.",
             },
             "drills": [
                 {
-                    "h2": "if, elif, else",
+                    "h2": "Choose what to run with if, elif and else",
                     "intro": BASH_FIRST,
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Create the sample files for this page", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Create the practice files for testing", "code": C(r'''
 mkdir -p /tmp/tw/tests/data && cd /tmp/tw/tests
 printf 'alpha\nbeta\n' > report.txt
 : > empty.txt
@@ -239,7 +264,7 @@ printf '#!/bin/bash\necho run\n' > run.sh && chmod +x run.sh
 ls
 '''),
                          "expect": "`ls` lists `data`, `empty.txt`, `report.txt` and `run.sh`."},
-                        {"type": "cmd", "where": "shell", "title": "Run one of three branches with if, elif and else", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Run one of three branches (if, elif, else)", "code": C(r'''
 n=7
 if [[ $n -gt 10 ]]; then
   echo "big"
@@ -250,7 +275,7 @@ else
 fi
 '''),
                          "expect": "`medium` prints. The first test fails, the `elif` passes, and bash skips the `else`."},
-                        {"type": "cmd", "where": "shell", "title": "Compare strings with = != -z -n", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Check if two strings match, or if a string is empty (= != -z -n)", "code": C(r'''
 s=hello
 [[ $s == hello ]] && echo "same"
 [[ $s != bye ]] && echo "different"
@@ -258,7 +283,7 @@ s=hello
 [[ -n $s ]] && echo "not empty"
 '''),
                          "expect": "Four lines: `same`, `different`, `empty`, `not empty`."},
-                        {"type": "cmd", "where": "shell", "title": "Compare numbers with -eq -lt -gt, and see why < fails", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Compare numbers (-eq -lt -gt), and see why < gives the wrong answer", "code": C(r'''
 [[ 3 -lt 10 ]] && echo "3 is less than 10"
 [[ 5 -eq 5 ]] && echo "equal"
 [[ 9 < 10 ]] || echo "as text, 9 sorts after 10"
@@ -267,10 +292,10 @@ s=hello
                     ],
                 },
                 {
-                    "h2": "Test files and combine tests",
-                    "intro": "Each file test is one letter. Join tests with `&&` and `||` inside the brackets.",
+                    "h2": "Check a file or folder, and combine tests",
+                    "intro": "Check a file with one letter after the dash. Join tests with `&&` and `||` inside the brackets.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Test if a file or folder exists with -f -d -e -s -x", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Check if a file or folder exists, is empty or can run (-f -d -e -s -x)", "code": C(r'''
 cd /tmp/tw/tests
 [[ -f report.txt ]] && echo "file"
 [[ -d data ]] && echo "folder"
@@ -279,28 +304,28 @@ cd /tmp/tw/tests
 [[ -x run.sh ]] && echo "runnable"
 '''),
                          "expect": "Five lines: `file`, `folder`, `missing`, `empty file`, `runnable`."},
-                        {"type": "cmd", "where": "shell", "title": "Combine tests with && and || inside [[ ]]", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Check two things at once (&& and || inside [[ ]])", "code": C(r'''
 cd /tmp/tw/tests
 n=12
 [[ -f report.txt && -s report.txt ]] && echo "has content"
 [[ $n -lt 0 || $n -gt 10 ]] && echo "out of range"
 '''),
                          "expect": "Two lines: `has content` and `out of range`."},
-                        {"type": "cmd", "where": "shell", "title": "Match a filename pattern like *.txt", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Check if a file name matches a pattern like *.txt", "code": C(r'''
 f=notes.txt
 [[ $f == *.txt ]] && echo "text file"
 [[ $f == n* ]] && echo "starts with n"
 [[ $f == "*.txt" ]] || echo "quoted, it is just those characters"
 '''),
                          "expect": "Three lines: `text file`, `starts with n`, `quoted, it is just those characters`. A quoted pattern matches only itself."},
-                        {"type": "cmd", "where": "shell", "title": "Test numbers with maths using (( ))", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Compare numbers with maths symbols (( ))", "code": C(r'''
 n=7
 (( n > 5 )) && echo "over 5"
 (( n % 2 == 0 )) || echo "odd"
 (( n * 2 == 14 )) && echo "double is 14"
 '''),
                          "expect": "Three lines: `over 5`, `odd`, `double is 14`."},
-                        {"type": "cmd", "where": "shell", "title": "Spot the missing spaces in [[ ]]", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Why is my [[ ]] test always true? Find the missing spaces", "code": C(r'''
 n=7
 [[ $n=5 ]] && echo "always true"
 [[ $n = 5 ]] || echo "really false"
@@ -309,10 +334,10 @@ n=7
                     ],
                 },
                 {
-                    "h2": "case and short-circuit",
-                    "intro": "`case` picks a branch by pattern. `&&` and `||` run the next command on success or failure.",
+                    "h2": "Pick a branch with case, or run a command only if another worked",
+                    "intro": "Pick a branch by pattern with `case`. Run the next command on success or on failure with `&&` and `||`.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Pick a branch by value with case, patterns and |", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Pick a branch by value (case, patterns and |)", "code": C(r'''
 ans=yes
 case $ans in
   y|yes) echo "going ahead" ;;
@@ -321,7 +346,7 @@ case $ans in
 esac
 '''),
                          "expect": "`going ahead` prints. `y|yes` matches `yes`, and each branch ends with `;;`."},
-                        {"type": "cmd", "where": "shell", "title": "Run a different command by file extension with case", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Run a different command for each file type (case)", "code": C(r'''
 for f in a.txt b.sh c.md; do
   case $f in
     *.txt|*.md) echo "$f: text" ;;
@@ -330,13 +355,13 @@ for f in a.txt b.sh c.md; do
 done
 '''),
                          "expect": "Three lines: `a.txt: text`, `b.sh: script`, `c.md: text`."},
-                        {"type": "cmd", "where": "shell", "title": "Run a command only if another worked: cmd && echo ok || echo fail", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Run a command only if another worked (cmd && echo ok || echo fail)", "code": C(r'''
 cd /tmp/tw/tests
 [[ -f report.txt ]] && echo ok || echo fail
 [[ -f nope ]] && echo ok || echo fail
 '''),
                          "expect": "`ok` for the file that exists, `fail` for the one that does not."},
-                        {"type": "cmd", "where": "shell", "title": "Fix the && || trap: fail prints even when the test passed", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Why does fail print even when the test passed? (the && || trap)", "code": C(r'''
 cd /tmp/tw/tests
 [[ -f report.txt ]] && false || echo "fail printed anyway"
 if [[ -f report.txt ]]; then false; else echo "fail"; fi
@@ -347,57 +372,57 @@ echo "if/else done"
                 },
             ],
             "rules": {
-                "h2": "Tests at a glance",
+                "h2": "Look up a test for a file, a string or a number",
                 "cards": [
-                    ("Check a file or folder", "One letter after the dash.", ["Task", "Write"], [
+                    ("Check a file or folder", "Which letter checks what? One letter after the dash.", ["What you want to check", "Type this"], [
                         ["Check a file exists", "`[[ -f x ]]` (a regular file)"],
                         ["Check a folder exists", "`[[ -d x ]]`"],
                         ["Check something exists (a broken symlink counts as missing)", "`[[ -e x ]]`"],
                         ["Check a file is not empty", "`[[ -s x ]]`"],
                         ["Check a file can be run (or a folder entered)", "`[[ -x x ]]`"],
                     ]),
-                    ("Compare text and numbers", "Quote the right side of `=` to match it as literal text. Unquoted, it is a pattern.", ["Task", "Write"], [
+                    ("Compare text and numbers", "How do I match text literally? Quote the right side of `=`. Unquoted, it is a pattern.", ["What you want to check", "Type this"], [
                         ["Check two strings match", "`[[ $a = \"$b\" ]]` (`!=` for different)"],
                         ["Check a string is empty or not", "`[[ -z $a ]]` or `[[ -n $a ]]`"],
                         ["Compare whole numbers", "`[[ $a -lt $b ]]`. Also `-le -gt -ge -eq -ne`."],
                         ["Compare with maths symbols", "`(( a > b ))`"],
                     ]),
-                    ("Run a command on pass or fail", "`a && b || c` is not if/else.", ["Task", "Write"], [
+                    ("Run a command on pass or fail", "Is `a && b || c` the same as if/else? No.", ["What you want", "Type this"], [
                         ["Run b only when a works", "`a && b`"],
                         ["Run c only when a fails", "`a || c`"],
                         ["Choose between two branches safely", "`if a; then b; else c; fi`"],
-                        ["Avoid this shape", "`a && b || c` also runs c when b fails."],
+                        ["Avoid this trap", "`a && b || c` also runs c when b fails."],
                     ]),
                 ],
             },
             "worked": {
                 "h2": "Check that a file exists and has content",
-                "frame": "A script should only read `report.txt` when it is there and not empty.",
+                "frame": "How do I make a script read `report.txt` only when it is there and not empty?",
                 "open": "cd /tmp/tw/tests",
                 "steps": [
-                    (None, "`f=report.txt`", "Name the file once."),
+                    (None, "`f=report.txt`", "Save the file name once."),
                     (None, "`if [[ -f $f && -s $f ]]; then echo \"$f has data\"; else echo \"$f is missing or empty\"; fi`", "`-f` and `-s` must both pass."),
                     (None, "`f=empty.txt`, then run the `if` line again", "The file exists but `-s` fails."),
                 ],
                 "after": "report.txt has data\nempty.txt is missing or empty",
-                "meaning": "One [[ ]] with && checks both facts before the script touches the file.",
+                "meaning": "Check a file exists and is not empty in one test: [[ ]] with && checks both facts before the script touches the file.",
             },
             "practice": {
-                "h2": "Practice: decisions",
+                "h2": "Check what you know: if, case and tests",
                 "qs": [
                     ("Mechanism", "Why does `[[ 9 < 10 ]]` come out false?",
                      "Is `<` a number test or a text test?",
                      ["Inside `[[ ]]`, `<` compares text in dictionary order.", "As text, `9` sorts after `10`."],
                      "Use `-lt` for numbers: `[[ 9 -lt 10 ]]`."),
-                    ("Keystrokes", "Which test is true when `$f` ends in `.log`?",
+                    ("Keystrokes", "How do I test if `$f` ends in `.log`?",
                      "A pattern on the right, no quotes.",
                      ["Use `==` inside `[[ ]]`.", "Put `*.log` on the right, unquoted."],
                      "`[[ $f == *.log ]]`."),
-                    ("Application", "Write a case that prints `weekend` for `sat` or `sun` and `weekday` for anything else.",
+                    ("Application", "How do I write a case that prints `weekend` for `sat` or `sun` and `weekday` for anything else?",
                      "Join two choices with a pipe.",
                      ["Start with `case $d in`.", "Add `sat|sun) echo weekend ;;`.", "Add `*) echo weekday ;;` and `esac`."],
                      "`case $d in sat|sun) echo weekend ;; *) echo weekday ;; esac`."),
-                    ("Common mistake", "`[[ -f report.txt ]] && false || echo fail` prints `fail` though the file exists. Why?",
+                    ("Common mistake", "Why does `[[ -f report.txt ]] && false || echo fail` print `fail` though the file exists?",
                      "What runs after the middle command fails?",
                      ["`&&` runs `false`, which fails.", "`||` then runs on that failure."],
                      "`a && b || c` also runs `c` when `b` fails. Use `if` and `else`."),
@@ -406,28 +431,28 @@ echo "if/else done"
         },
         # ============================================================ page 3
         {
-            "h1": "Loops",
-            "subtitle": "Repeat a command over a list, files, a range, a counter or the lines of a file.",
+            "h1": "Loop over files, numbers and lines in bash",
+            "subtitle": "Run a command on every file, count from 1 to 5, repeat until something changes, read a file line by line, split a CSV line",
             "idea": (
-                "for walks a list, while repeats until a test fails, and while read walks lines.",
+                "Repeat a command in bash: for walks a list, while repeats until a test fails, and while read walks lines.",
                 [
                     ("Loop over files", "for f in *.txt; do ...; done", "Quote \"$f\" inside."),
                     ("Count to five", "for i in {1..5}; do ...; done", "Or for ((i=0; i<5; i++))."),
-                    ("Read lines", "while read -r line; do ...; done < file", "Safe with spaces in a line."),
-                    ("Split columns", "while IFS=, read -r a b", "IFS is the separator."),
+                    ("Read a file line by line", "while read -r line; do ...; done < file", "Safe with spaces in a line."),
+                    ("Split a CSV line into columns", "while IFS=, read -r a b", "IFS is the separator."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "`for x in $(cat file)` cuts every line at its spaces, and a loop after a pipe loses the variable it set.",
+                "fail": "Why does `for x in $(cat file)` cut every line at its spaces? Why does a loop after a pipe lose the variable it set?",
                 "fix": "Read lines with `while IFS= read -r line; do ...; done < file`, and quote `\"$f\"` in every loop.",
             },
             "drills": [
                 {
-                    "h2": "for loops",
+                    "h2": "Loop over files, words and numbers (for)",
                     "intro": BASH_FIRST,
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Create the sample files for this page", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Create the practice files for loops", "code": C(r'''
 mkdir -p /tmp/tw/loops && cd /tmp/tw/loops
 printf 'one\n' > a.txt
 printf 'one\ntwo\n' > b.txt
@@ -450,37 +475,37 @@ for f in *.txt; do
 done
 '''),
                          "expect": "Four lines: `a.txt has 1 lines`, `b.txt has 2 lines`, `c d.txt has 3 lines`, `names.txt has 3 lines`. The name with a space stays whole."},
-                        {"type": "cmd", "where": "shell", "title": "Skip the loop when no file matches *.zip", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Stop a loop from running when no file matches *.zip", "code": C(r'''
 cd /tmp/tw/loops
 for f in *.zip; do echo "got $f"; done
 for f in *.zip; do [[ -e $f ]] || continue; echo "got $f"; done
 echo "done"
 '''),
                          "expect": "The first loop prints `got *.zip`: no file matched, so the pattern itself is the value. The guarded loop prints nothing. Then `done`."},
-                        {"type": "cmd", "where": "shell", "title": "Count from 1 to 5 with a range {1..5}", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Count from 1 to 5 ({1..5})", "code": C(r'''
 for i in {1..5}; do printf '%s ' "$i"; done; echo
 for c in {a..e}; do printf '%s ' "$c"; done; echo
 '''),
                          "expect": "`1 2 3 4 5` on one line, then `a b c d e`."},
-                        {"type": "cmd", "where": "shell", "title": "Count with a C-style for ((i=0; i<3; i++))", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Count with a C-style loop: for ((i=0; i<3; i++))", "code": C(r'''
 for ((i=0; i<3; i++)); do
   echo "i=$i"
 done
 '''),
                          "expect": "Three lines: `i=0`, `i=1`, `i=2`."},
-                        {"type": "cmd", "where": "shell", "title": "Count to a variable or by steps with seq", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Count up to a variable, or in steps (seq)", "code": C(r'''
 n=3
 echo {1..$n}
 for i in $(seq 1 $n); do printf '%s ' "$i"; done; echo
 seq 1 3 10
 '''),
                          "expect": "`{1..3}` prints as typed, because braces do not expand a variable. Then `1 2 3` from `seq`, then `1`, `4`, `7`, `10` on separate lines: start 1, step 3, stop at 10."},
-                        {"type": "text", "body": "`{1..$n}` does not expand a variable. Use `seq`. GNU `seq` works the same on Linux."},
+                        {"type": "text", "body": "Why does `{1..$n}` not count to my variable? Braces do not expand a variable. Use `seq`. GNU `seq` works the same on Linux."},
                     ],
                 },
                 {
-                    "h2": "while and until",
-                    "intro": "`while` repeats as long as its test passes. `until` repeats as long as it fails.",
+                    "h2": "Repeat until something changes (while and until)",
+                    "intro": "Repeat as long as a test passes with `while`. Repeat as long as it fails with `until`.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Repeat while a counter is small", "code": C(r'''
 i=1
@@ -498,7 +523,7 @@ until [[ $i -gt 3 ]]; do
 done
 '''),
                          "expect": "Three lines: `i=1`, `i=2`, `i=3`."},
-                        {"type": "cmd", "where": "shell", "title": "Stop early with break, skip one with continue", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Stop a loop early (break) or skip one round (continue)", "code": C(r'''
 for i in 1 2 3 4 5; do
   [[ $i -eq 2 ]] && continue
   [[ $i -eq 4 ]] && break
@@ -509,8 +534,8 @@ done
                     ],
                 },
                 {
-                    "h2": "Read lines and columns",
-                    "intro": "Use `while read -r` to take one line at a time. Feed it a file with `< file`.",
+                    "h2": "Read a file line by line and split columns",
+                    "intro": "Read one line at a time with `while read -r`. Feed it a file with `< file`.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Read a file line by line with while read -r", "code": C(r'''
 cd /tmp/tw/loops
@@ -519,7 +544,7 @@ while IFS= read -r line || [[ -n $line ]]; do
 done < names.txt
 '''),
                          "expect": "Each line of `names.txt` with `> ` in front: `> red apple`, `> green pear`, `> blue plum`."},
-                        {"type": "text", "body": "`|| [[ -n $line ]]` keeps a last line that has no newline at the end: `read` fails on it, but `$line` is still set."},
+                        {"type": "text", "body": "How do I keep a last line that has no newline at the end? Add `|| [[ -n $line ]]`: `read` fails on it, but `$line` is still set."},
                         {"type": "cmd", "where": "shell", "title": "Loop over every line of a command's output", "code": C(r'''
 cd /tmp/tw/loops
 ls *.txt | while IFS= read -r f; do
@@ -527,14 +552,14 @@ ls *.txt | while IFS= read -r f; do
 done
 '''),
                          "expect": "One line per file: `got: a.txt`, `got: b.txt`, `got: c d.txt`, `got: names.txt`."},
-                        {"type": "cmd", "where": "shell", "title": "Split simple comma-separated lines (no quoted fields) with while IFS=, read -r", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Split simple CSV lines with no quoted fields (while IFS=, read -r)", "code": C(r'''
 cd /tmp/tw/loops
 while IFS=, read -r name age; do
   echo "$name is $age"
 done < people.csv
 '''),
                          "expect": "Three lines: `Ada is 36`, `Bo is 41`, `Cy is 29`."},
-                        {"type": "cmd", "where": "shell", "title": "Fix a counter that stays 0 after a pipe into while", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Why does my counter stay 0 after a pipe into while?", "code": C(r'''
 cd /tmp/tw/loops
 count=0
 cat names.txt | while read -r x; do count=$((count + 1)); done
@@ -543,7 +568,7 @@ while read -r x; do count=$((count + 1)); done < names.txt
 echo "after redirect: $count"
 '''),
                          "expect": "`after pipe: 0` and `after redirect: 3`. The piped loop ran in a subshell and counted a copy."},
-                        {"type": "cmd", "where": "shell", "title": "Loop over lines safely, not with for x in $(cat file)", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Loop over lines with spaces safely (not for x in $(cat file))", "code": C(r'''
 cd /tmp/tw/loops
 for w in $(cat names.txt); do echo "[$w]"; done
 while IFS= read -r l || [[ -n $l ]]; do echo "[$l]"; done < names.txt
@@ -553,55 +578,55 @@ while IFS= read -r l || [[ -n $l ]]; do echo "[$l]"; done < names.txt
                 },
             ],
             "rules": {
-                "h2": "Loops at a glance",
+                "h2": "Look up which loop to use",
                 "cards": [
-                    ("Pick a loop", "Pick by what you are walking.", ["Task", "Write"], [
+                    ("Pick a loop for the job", "Choose by what you want to repeat over.", ["What you want to loop over", "Type this"], [
                         ["Loop over every file", "`for f in *.txt; do ...; done`"],
                         ["Repeat a fixed count", "`for i in {1..5}` or `for ((i=0; i<5; i++))`"],
                         ["Repeat a count held in a variable", "`for i in $(seq 1 $n)`"],
                         ["Read every line of a file", "`while IFS= read -r line || [[ -n $line ]]; do ...; done < file`"],
                         ["Split a line into columns", "`while IFS=, read -r a b; do ...; done < file`"],
                     ]),
-                    ("Stop, skip or repeat", "Four words steer a loop.", ["Task", "Write"], [
+                    ("Stop a loop, skip a round or repeat", "Which word controls a loop? Four do.", ["What you want", "Type this"], [
                         ["Leave the loop now", "`break`"],
                         ["Skip to the next round", "`continue`"],
                         ["Repeat while a test passes", "`while test; do ...; done`"],
                         ["Repeat until a test passes", "`until test; do ...; done`"],
                     ]),
-                    ("Avoid two traps", "Both lose data without an error.", ["Task", "Write"], [
+                    ("Avoid two loop traps that lose data", "Both lose data without showing an error.", ["What you want", "Type this"], [
                         ["Loop over lines that contain spaces", "`while IFS= read -r x; do ...; done < file`, not `for x in $(cat file)`"],
                         ["Keep a variable set inside the loop", "`while read ...; done < file`, not `cmd | while read`"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Add up the ages in a CSV",
-                "frame": "`people.csv` has `name,age` on each line. You want the total of the ages.",
+                "h2": "Add up a column of numbers in a CSV file",
+                "frame": "`people.csv` has `name,age` on each line. How do I get the total of the ages?",
                 "open": "cd /tmp/tw/loops",
                 "steps": [
-                    (None, "`total=0`", "Start the sum."),
+                    (None, "`total=0`", "Start the total at 0."),
                     (None, "`while IFS=, read -r name age; do total=$((total + age)); done < people.csv`", "Each line splits at the comma. The loop reads from the file, so `total` survives."),
-                    (None, "`echo \"total age: $total\"`", "Print the sum."),
+                    (None, "`echo \"total age: $total\"`", "Print the total."),
                 ],
                 "after": "total age: 106",
-                "meaning": "Redirecting the file in keeps the loop in your shell, so the variable is still set afterwards.",
+                "meaning": "Keep a variable set after a loop: redirect the file in, so the loop stays in your shell.",
             },
             "practice": {
-                "h2": "Practice: loops",
+                "h2": "Check what you know: loops",
                 "qs": [
                     ("Mechanism", "Why is `count` still `0` after `cat f | while read -r x; do count=$((count+1)); done`?",
                      "Where does each side of a pipe run?",
                      ["Each side of a pipe runs in its own subshell.", "The loop changes a copy of `count`.", "The copy disappears when the pipe ends."],
                      "Feed the loop with `< f` instead of a pipe."),
-                    ("Keystrokes", "Which loop prints `a.txt`, `b.txt` and the rest of the `.txt` files, even when a name has a space?",
+                    ("Keystrokes", "How do I print `a.txt`, `b.txt` and the rest of the `.txt` files in a loop, even when a name has a space?",
                      "A glob, with quotes on the variable.",
                      ["Use `for f in *.txt; do`.", "Write `echo \"$f\"`.", "Close with `done`."],
                      "`for f in *.txt; do echo \"$f\"; done`."),
-                    ("Application", "Print `Ada`, `Bo` and `Cy` from `people.csv`, one per line.",
+                    ("Application", "How do I print `Ada`, `Bo` and `Cy` from `people.csv`, one per line?",
                      "Split at the comma and ignore the age.",
                      ["Write `while IFS=, read -r name age; do`.", "Write `echo \"$name\"`.", "End with `done < people.csv`."],
                      "`while IFS=, read -r name age; do echo \"$name\"; done < people.csv`."),
-                    ("Common mistake", "`for f in *.zip` prints `*.zip` when there are no zip files. How do you stop that?",
+                    ("Common mistake", "Why does `for f in *.zip` print `*.zip` when there are no zip files, and how do I stop that?",
                      "Test that the file exists inside the loop.",
                      ["With no match the pattern stays as text.", "Add `[[ -e $f ]] || continue` as the first line of the loop."],
                      "`for f in *.zip; do [[ -e $f ]] || continue; ...; done`."),
@@ -610,28 +635,28 @@ while IFS= read -r l || [[ -n $l ]]; do echo "[$l]"; done < names.txt
         },
         # ============================================================ page 4
         {
-            "h1": "Script input",
-            "subtitle": "Read arguments, flags and typed answers, and stop with a usage message on bad input.",
+            "h1": "Make a script read arguments, flags and typed answers",
+            "subtitle": "Read the first argument, give an argument a default, read -v and -n NAME flags, ask the user a question, print usage on bad input",
             "idea": (
-                "A script reads its arguments from $1, $2 and $@, and its flags from a case loop or getopts.",
+                "Make a script read input: arguments come from $1, $2 and $@, and flags from a case loop or getopts.",
                 [
                     ("Read the first argument", "$1", "$2 is the second, $# is the count."),
-                    ("Give a default", "${1:-world}", "Used when $1 is empty."),
-                    ("Parse flags", "getopts \"vn:\" opt", "A colon means the flag takes a value."),
-                    ("Ask the user", "read -p \"Name: \" name", "-s hides it, -t 5 times out."),
+                    ("Give an argument a default value", "${1:-world}", "Used when $1 is empty."),
+                    ("Read flags like -v and -n NAME", "getopts \"vn:\" opt", "A colon means the flag takes a value."),
+                    ("Ask the user a question", "read -p \"Name: \" name", "-s hides it, -t 5 times out."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "Your script breaks on `bash backup.sh \"my folder\"`, or runs with a missing argument and does the wrong thing.",
+                "fail": "Why does my script break on `bash backup.sh \"my folder\"`? Why does it run with a missing argument and do the wrong thing?",
                 "fix": "Quote `\"$@\"` and `\"$1\"`, require what you need with `${1:?usage}`, and print usage and `exit 1` on bad input.",
             },
             "drills": [
                 {
-                    "h2": "Arguments",
-                    "intro": "Each script is created with a here-doc and run with `bash name.sh args`, so it works from zsh too.",
+                    "h2": "Read the arguments you pass to a script",
+                    "intro": "Create each script with a here-doc and run it with `bash name.sh args`, so it works from zsh too.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Read the arguments: $0 $1 $2 $# and $@", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Read each argument, the count and all of them ($0 $1 $2 $# $@)", "code": C(r'''
 mkdir -p /tmp/tw/args && cd /tmp/tw/args
 cat > show.sh <<'EOF'
 echo "script: $0"
@@ -643,7 +668,7 @@ EOF
 bash show.sh apple "red pear" plum
 '''),
                          "expect": "Five lines: `script: show.sh`, `first:  apple`, `second: red pear`, `count:  3`, `all:    apple red pear plum`. The quoted `red pear` is one argument."},
-                        {"type": "cmd", "where": "shell", "title": "Keep arguments with spaces whole: \"$@\" versus $* and \"$*\"", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Keep arguments with spaces whole (\"$@\" versus $* and \"$*\")", "code": C(r'''
 cd /tmp/tw/args
 cat > each.sh <<'EOF'
 for a in "$@"; do echo "[$a]"; done
@@ -655,7 +680,7 @@ EOF
 bash each.sh one "two words" three
 '''),
                          "expect": "Three groups. `\"$@\"` prints `[one]`, `[two words]`, `[three]`. `$*` prints `[one]`, `[two]`, `[words]`, `[three]`. `\"$*\"` prints `[one two words three]`. Each group is separated by `---`."},
-                        {"type": "cmd", "where": "shell", "title": "Walk through every argument with shift", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Loop over every argument (shift)", "code": C(r'''
 cd /tmp/tw/args
 cat > shiftall.sh <<'EOF'
 while [[ $# -gt 0 ]]; do
@@ -666,7 +691,7 @@ EOF
 bash shiftall.sh a b c
 '''),
                          "expect": "Three lines: `arg: a (left: 3)`, `arg: b (left: 2)`, `arg: c (left: 1)`. Each `shift` drops `$1` and the rest move up."},
-                        {"type": "cmd", "where": "shell", "title": "Take arguments two at a time with shift 2", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Take arguments two at a time (shift 2)", "code": C(r'''
 cd /tmp/tw/args
 cat > pairs.sh <<'EOF'
 [[ $(( $# % 2 )) -eq 0 ]] || { echo "usage: pairs.sh KEY VALUE ..." >&2; exit 1; }
@@ -681,8 +706,8 @@ bash pairs.sh host web port 80
                     ],
                 },
                 {
-                    "h2": "Defaults, required values and usage",
-                    "intro": "`${1:-x}` falls back to `x`. `${1:?message}` stops the script with the message when `$1` is missing.",
+                    "h2": "Give an argument a default, require it, or print usage",
+                    "intro": "Fall back to `x` with `${1:-x}`. Stop the script with a message when `$1` is missing with `${1:?message}`.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Give an argument a default value with ${1:-default}", "code": C(r'''
 cd /tmp/tw/args
@@ -717,12 +742,12 @@ echo "exit: $?"
 bash copy2.sh a b
 '''),
                          "expect": "`usage: copy2.sh SRC DEST` and `exit: 1` for one argument. Then `copying a to b`."},
-                        {"type": "text", "body": "`usage() { ...; }` is a function. Module 11 covers them."},
+                        {"type": "text", "body": "Where do I learn functions like `usage() { ...; }`? Module 11 covers them."},
                     ],
                 },
                 {
-                    "h2": "Flags",
-                    "intro": "Two ways to read flags: a `case` loop with `shift`, or the built-in `getopts`.",
+                    "h2": "Read flags like -v and -n NAME",
+                    "intro": "Read flags two ways: a `case` loop with `shift`, or the built-in `getopts`.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Read -n NAME and --name NAME flags with a case loop", "code": C(r'''
 cd /tmp/tw/args
@@ -765,14 +790,14 @@ bash opts.sh -v -n Ada one two
 bash opts.sh -x
 '''),
                          "expect": "`verbose=1 name=Ada rest=one two`. Then for `-x`, getopts prints `opts.sh: illegal option -- x` and the script prints its usage line."},
-                        {"type": "text", "body": "In `getopts \"vn:\"`, `v` is a switch and `n:` takes a value, held in `$OPTARG`. `OPTIND` is the index of the next argument, so `shift $((OPTIND - 1))` leaves only the files."},
+                        {"type": "text", "body": "What does `getopts \"vn:\"` mean? `v` is a switch and `n:` takes a value, held in `$OPTARG`. `OPTIND` is the index of the next argument, so `shift $((OPTIND - 1))` leaves only the files."},
                     ],
                 },
                 {
-                    "h2": "Ask the user",
-                    "intro": "`read` waits for a typed line. These scripts wait for you, so type the answer and press Enter.",
+                    "h2": "Ask the user a question and read the answer",
+                    "intro": "Wait for a typed line with `read`. These scripts wait for you, so type the answer and press Enter.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Ask a question and store the answer with read -p", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Ask a question and save the answer (read -p)", "code": C(r'''
 cd /tmp/tw/args
 cat > ask.sh <<'EOF'
 read -p "Your name: " name
@@ -781,7 +806,7 @@ EOF
 bash ask.sh
 '''),
                          "expect": "`Your name: ` waits. Type `Ada` and press Enter: `Hi Ada` prints."},
-                        {"type": "cmd", "where": "shell", "title": "Type a password without showing it using read -s", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Hide what the user types, like a password (read -s)", "code": C(r'''
 cd /tmp/tw/args
 cat > secret.sh <<'EOF'
 read -s -p "Password: " pw
@@ -791,7 +816,7 @@ EOF
 bash secret.sh
 '''),
                          "expect": "`Password: ` waits and shows nothing as you type. After Enter, the cursor moves to a new line and `got 7 characters` prints for a 7-letter password such as `hunter2`."},
-                        {"type": "cmd", "where": "shell", "title": "Give up waiting for input after 3 seconds with read -t", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Stop waiting for an answer after 3 seconds (read -t)", "code": C(r'''
 cd /tmp/tw/args
 cat > quick.sh <<'EOF'
 read -t 3 -p "Answer in 3 seconds: " a || echo " too slow"
@@ -799,7 +824,7 @@ EOF
 bash quick.sh
 '''),
                          "expect": "`Answer in 3 seconds: ` waits. With no input, after 3 seconds ` too slow` appears on the same line."},
-                        {"type": "cmd", "where": "shell", "title": "Keep backslashes in typed text with read -r", "code": C(r'''
+                        {"type": "cmd", "where": "shell", "title": "Keep backslashes in typed text (read -r)", "code": C(r'''
 printf 'C:\\temp\n' | { read line; echo "plain: $line"; }
 printf 'C:\\temp\n' | { read -r line; echo "raw:   $line"; }
 '''),
@@ -808,21 +833,21 @@ printf 'C:\\temp\n' | { read -r line; echo "raw:   $line"; }
                 },
             ],
             "rules": {
-                "h2": "Script input at a glance",
+                "h2": "Look up how to read arguments, defaults and typed input",
                 "cards": [
-                    ("Read the arguments", "Set by bash when the script starts.", ["Task", "Write"], [
+                    ("Read the arguments", "Where do arguments come from? Bash sets them when the script starts.", ["What you want", "Type this"], [
                         ["Read the first argument", "`$1` (`$2` is the second)"],
                         ["Count the arguments", "`$#`"],
                         ["Pass every argument on, each kept whole", "`\"$@\"`"],
                         ["Print the script name", "`$0`"],
                         ["Avoid this one", "`$*` cuts arguments at spaces"],
                     ]),
-                    ("Default, required or checked", "Decide what a missing argument means.", ["Task", "Write"], [
+                    ("Give a default, require a value or check the count", "What should happen when an argument is missing? Pick one.", ["What you want", "Type this"], [
                         ["Use a default when $1 is empty", "`${1:-world}`"],
                         ["Stop with a message when $1 is empty", "`${1:?usage: x FILE}`"],
                         ["Run your own usage check", "`[[ $# -eq 2 ]] || usage`"],
                     ]),
-                    ("Ask the user", "Flags that change how read waits.", ["Task", "Write"], [
+                    ("Ask the user a question", "Which flag changes how read waits? Pick one.", ["What you want", "Type this"], [
                         ["Show a prompt", "`read -p \"Name: \" name`"],
                         ["Hide what is typed", "`read -s pw`"],
                         ["Give up after 5 seconds", "`read -t 5 a`"],
@@ -831,32 +856,32 @@ printf 'C:\\temp\n' | { read -r line; echo "raw:   $line"; }
                 ],
             },
             "worked": {
-                "h2": "Greet by name with a default and a loud switch",
-                "frame": "`parse.sh` greets `world` by default, takes `-n NAME`, and shouts with `-l`.",
+                "h2": "Greet by name, with a default name and a switch for shouting",
+                "frame": "How do I make `parse.sh` greet `world` by default, take `-n NAME`, and shout with `-l`?",
                 "open": "cd /tmp/tw/args",
                 "steps": [
                     (None, "`bash parse.sh`", "No flags: the default name stays."),
                     (None, "`bash parse.sh -l -n Bo`", "The loop reads `-l`, then `-n` and its value with `shift 2`."),
                 ],
                 "after": "Hello, world\nHELLO, BO",
-                "meaning": "A case loop with shift handles flags in any order, and the `*)` branch rejects anything else.",
+                "meaning": "Handle flags in any order: a case loop with shift reads them, and the `*)` branch rejects anything else.",
             },
             "practice": {
-                "h2": "Practice: script input",
+                "h2": "Check what you know: arguments, flags and input",
                 "qs": [
-                    ("Mechanism", "What do `\"$@\"` and `$*` do differently with `one \"two words\" three`?",
+                    ("Mechanism", "What is the difference between `\"$@\"` and `$*` with `one \"two words\" three`?",
                      "Count the words each one produces.",
                      ["`\"$@\"` gives three words, keeping `two words` together.", "Unquoted `$*` gives four words."],
                      "`\"$@\"` keeps each argument whole. `$*` cuts at spaces."),
-                    ("Keystrokes", "Which line sets `dir` to the first argument, or `.` when none is given?",
+                    ("Keystrokes", "How do I set `dir` to the first argument, or to `.` when none is given?",
                      "A default with a colon and a dash.",
                      ["Use `${1:-.}`.", "Assign it with `dir=`."],
                      "`dir=${1:-.}`."),
-                    ("Application", "Write the line that makes a script stop with `usage: run.sh FILE` when no file is given.",
+                    ("Application", "How do I make a script stop with `usage: run.sh FILE` when no file is given?",
                      "A required value with a question mark.",
                      ["Use `${1:?...}`.", "Put the usage text after the question mark."],
                      "`file=${1:?usage: run.sh FILE}`."),
-                    ("Common mistake", "Your `getopts \"vn:\"` script sees `-n` but `$name` is empty. What did you forget?",
+                    ("Common mistake", "Why is `$name` empty when my `getopts \"vn:\"` script sees `-n`? What did I forget?",
                      "Where does getopts put a flag's value?",
                      ["A flag that ends in `:` takes a value.", "The value is in `$OPTARG`, not in `$1`."],
                      "Write `n) name=$OPTARG ;;`."),

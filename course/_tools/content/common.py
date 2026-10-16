@@ -1,17 +1,17 @@
 """Shared data for every module: the module list and the site-wide glossary."""
 
 MODULE_META = [
-    {"n": 1, "folder": "m1-tmux", "title": "tmux and the shell", "group": "tmux & Neovim"},
-    {"n": 2, "folder": "m2-nvim-essentials", "title": "Neovim essentials", "group": "tmux & Neovim"},
-    {"n": 3, "folder": "m3-power-editing", "title": "Power editing", "group": "tmux & Neovim"},
-    {"n": 4, "folder": "m4-worktrees", "title": "Worktrees and the agent loop", "group": "tmux & Neovim"},
-    {"n": 5, "folder": "m5-lsp-git", "title": "Code intelligence and git", "group": "tmux & Neovim"},
-    {"n": 6, "folder": "m6-plugins-keymaps", "title": "Plugins and the key map", "group": "tmux & Neovim"},
-    {"n": 7, "folder": "m7-expert", "title": "Expert Neovim", "group": "tmux & Neovim"},
-    {"n": 8, "folder": "m8-from-vscode", "title": "Coming from VS Code", "group": "tmux & Neovim"},
+    {"n": 1, "folder": "m1-tmux", "title": "Keep your work running with tmux and fzf", "group": "tmux & Neovim"},
+    {"n": 2, "folder": "m2-nvim-essentials", "title": "Edit files in the terminal with Neovim", "group": "tmux & Neovim"},
+    {"n": 3, "folder": "m3-power-editing", "title": "Change, copy and replace text fast in Neovim", "group": "tmux & Neovim"},
+    {"n": 4, "folder": "m4-worktrees", "title": "Work on several branches at once (worktrees)", "group": "tmux & Neovim"},
+    {"n": 5, "folder": "m5-lsp-git", "title": "Jump around code and use git in Neovim", "group": "tmux & Neovim"},
+    {"n": 6, "folder": "m6-plugins-keymaps", "title": "Use Neovim plugins and find any key", "group": "tmux & Neovim"},
+    {"n": 7, "folder": "m7-expert", "title": "Edit faster in Neovim: repeat, macros, undo", "group": "tmux & Neovim"},
+    {"n": 8, "folder": "m8-from-vscode", "title": "VS Code shortcuts in Neovim (Cmd+P and more)", "group": "tmux & Neovim"},
     {"n": 9, "folder": "m9-find-text", "title": "Find files, search text and change output", "group": "Linux & Bash"},
-    {"n": 10, "folder": "m10-bash-basics", "title": "Bash basics", "group": "Linux & Bash"},
-    {"n": 11, "folder": "m11-bash-expert", "title": "Bash expert", "group": "Linux & Bash"},
+    {"n": 10, "folder": "m10-bash-basics", "title": "Write Bash scripts with variables, loops and flags", "group": "Linux & Bash"},
+    {"n": 11, "folder": "m11-bash-expert", "title": "Write safer Bash scripts and reuse functions", "group": "Linux & Bash"},
 ]
 
 # (id, label, forms, definition) — shared by every module; a module's own glossary wins on a clash.

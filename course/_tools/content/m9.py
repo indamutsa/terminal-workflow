@@ -147,6 +147,15 @@ find . -name "*.log" -print
 find . -name "*.log" -print
 find . -name "*.log" -delete
 ''')},
+                        {"type": "cmd", "where": "shell", "title": "Find duplicate files (md5, sort, awk)", "code": C('''
+mkdir -p /tmp/tw/dupes && cd /tmp/tw/dupes
+echo 'same text' > a.txt
+echo 'same text' > b.txt
+echo 'other text' > c.txt
+find . -type f -exec md5 -r {} + | sort
+find . -type f -exec md5 -r {} + | sort | awk 'seen[$1]++ { print "duplicate:", $0 }'
+'''),
+                         "expect": "The first command prints one line per file: its md5 hash and its path. `./a.txt` and `./b.txt` share the hash `abcb64ed947cb225988f26378a31bba7`; `./c.txt` has `426e712f0524e4dee5de612f6520bf86`. The second command prints `duplicate: abcb64ed947cb225988f26378a31bba7 ./b.txt`: every copy after the first one for a hash. Files with the same content get the same hash, whatever their names. `md5 -r` is the macOS tool; on Linux use `md5sum`, or `shasum` on both."},
                     ],
                 },
                 {
@@ -216,6 +225,31 @@ du -sh * | sort -rh | head -3
 command ls -lt | head -4
 '''),
                          "expect": "A `total` line, then the newest entries with sizes and dates. `big.bin` comes first here. `ls` is an alias for `eza` in this shell and `eza` reads `-t` differently, so `command ls` runs the real one."},
+                        {"type": "cmd", "where": "shell", "title": "Find a file with this name opened last week (mdfind, find)", "code": C('''
+mdfind -onlyin ~ 'kMDItemFSName == "*.pdf"c && kMDItemLastUsedDate >= $time.today(-7)' | head -3
+find /tmp/tw/find -name "*.txt" -atime -7
+'''),
+                         "expect": "The first command prints up to three full paths of PDF files you opened in the last 7 days, and nothing if you opened none. `kMDItemFSName` is the file name, `*` is a wildcard and the trailing `c` ignores upper and lower case. Spotlight records an open when Finder or an app opens the file, not when `cat` reads it. The second command prints `/tmp/tw/find/my file.txt` and `/tmp/tw/find/docs/todo.txt` when you made the practice files within the last 7 days, and leaves out `old.txt`. The order can differ. `-atime -7` tests the last time a file was read, and macOS may not update that time on every read, so trust `mdfind` first."},
+                        {"type": "cmd", "where": "shell", "title": "Find files created today (mdfind, find)", "code": C('''
+mdfind -onlyin ~/Downloads 'kMDItemFSCreationDate >= $time.today' | head -3
+find /tmp/tw/find -type f -newerBt "$(date +%Y-%m-%d)" | sort
+'''),
+                         "expect": "The first command prints up to three full paths of files in Downloads created since midnight, and nothing if there are none. `$time.today` is midnight today. The second command prints nine paths when you made the practice files today, from `/tmp/tw/find/.cfg/.env` to `/tmp/tw/find/src/test_app.py`, and leaves out `old.txt` because `touch -t` moved its creation time back to 2024. `-newerBt` compares the creation (birth) time on macOS. `-newerct` compares the change time instead, which `touch` and renames also update, so it lists `old.txt` too and is not a creation date."},
+                    ],
+                },
+                {
+                    "h2": "Make a shortcut (link) to a file",
+                    "intro": "Make a second name that points to a file: `ln -s target linkname`. Opening the link opens the target.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Make a shortcut link to a file (ln -s)", "code": C('''
+mkdir -p /tmp/tw/links && cd /tmp/tw/links
+echo 'real file' > report.txt
+ln -s report.txt latest.txt
+command ls -l latest.txt
+readlink latest.txt
+cat latest.txt
+'''),
+                         "expect": "`ls -l` prints a line that starts with `l` (`lrwxr-xr-x`) and ends with `latest.txt -> report.txt`; the arrow shows where the link points. Owner and date differ. `readlink` prints `report.txt`. `cat` prints `real file`, the content of the target. Run `ln -s` a second time and it says `File exists`; add `-f` to replace the link."},
                     ],
                 },
             ],
@@ -985,6 +1019,17 @@ sed 's/^/> /' notes.txt
 sed -E 's/([a-z]+) ([a-z]+)/\\2 \\1/' notes.txt
 '''),
                          "expect": "`world hello`, `bash hello`, `world bye`. `-E` turns on groups and `\\1`, `\\2` paste them back."},
+                        {"type": "cmd", "where": "shell", "title": "Replace a word in every file of a folder from the shell (rg, xargs, sed)", "code": C('''
+mkdir -p /tmp/tw/replace/sub && cd /tmp/tw/replace
+echo 'colour red' > a.txt
+echo 'dark colour' > "my notes.txt"
+echo 'no match here' > b.txt
+echo 'colour colour' > sub/c.txt
+rg colour .
+rg -l0 colour . | xargs -0 sed -i '' 's/colour/color/g'
+rg colo .
+'''),
+                         "expect": "The first `rg` lists the three files that hold the old word: `./a.txt:colour red`, `./my notes.txt:dark colour` and `./sub/c.txt:colour colour`. The order can differ. The second `rg` shows the same lines with `color`: `./a.txt:color red`, `./my notes.txt:dark color`, `./sub/c.txt:color color`. `b.txt` is untouched because it never matched. `rg -l0` lists only the names of matching files, separated by NUL characters, and `xargs -0` keeps `my notes.txt` whole. On Linux drop the `''` after `-i`, or use `perl -pi -e 's/colour/color/g'` in place of `sed -i ''` on both."},
                     ],
                 },
                 {

@@ -26,45 +26,45 @@ def K(title, rows, where="nvim", **kw):
 
 
 LSP_NAV = r'''
-gd               Go to definition: jump to where a symbol is defined (Ctrl-t to jump back)
-gr               Find every use of a symbol: references (who uses this?)
-gI               Go to the implementation
-gy               Go to the type definition
-gD               Go to the declaration
-gK               Show the function signature: signature help
-gO               Show the outline of this file: document symbols
+gd               Jump to where a symbol is defined: go to definition (Ctrl-t to jump back)
+gr               Find every place a symbol is used: references (who uses this?)
+gI               Jump to the implementation
+gy               Jump to the type definition
+gD               Jump to the declaration
+gK               Show a function's arguments: signature help
+gO               Show the outline (list of symbols) of this file: document symbols
 K                Show docs for the word under the cursor: hover (press again to enter the float)
 '''
 
 DIAG = r'''
 ]d               Jump to the next error or warning
 [d               Jump to the previous error or warning
-<Space>xx        Open or close the diagnostics panel: Trouble
-<Space>xX        Show diagnostics for this buffer only
-<Space>sd        List diagnostics: search them in a picker
-<Space>cs        Show the symbols outline: Aerial
+<Space>xx        Open or close the list of all errors and warnings: Trouble
+<Space>xX        Show errors and warnings for this file (buffer) only
+<Space>sd        Search the errors and warnings (diagnostics) in a picker
+<Space>cs        Show the outline of symbols in this file: Aerial
 <Space>xQ        Show the quickfix list: Trouble
 <Space>xL        Show the location list: Trouble
 '''
 
 GITSIGNS = r'''
-]h               Jump to the next hunk (changed block)
-[h               Jump to the previous hunk
-<Space>ghs       Stage this hunk
-<Space>ghu       Unstage the last staged hunk: undo stage hunk
-<Space>ghr       Discard this hunk: reset hunk
-<Space>ghS       Stage the whole buffer
-<Space>ghR       Discard every change in the buffer: reset buffer
-<Space>ghp       Preview the hunk diff inline
-<Space>ghb       Show blame for this line: detailed blame
-<Space>ghB       Show blame for the whole buffer
+]h               Jump to the next changed block (hunk)
+[h               Jump to the previous changed block (hunk)
+<Space>ghs       Stage this changed block (hunk)
+<Space>ghu       Undo the last stage: unstage hunk
+<Space>ghr       Discard this changed block (hunk): reset hunk
+<Space>ghS       Stage the whole file (buffer)
+<Space>ghR       Discard every change in the file (buffer): reset buffer
+<Space>ghp       Preview what changed in this hunk, inline
+<Space>ghb       See who changed this line: detailed blame
+<Space>ghB       See who changed each line of the file: blame for the whole buffer
 <Space>ghd       Show the diff of this file
-<Space>ghD       Show the diff of this file against the previous commit
+<Space>ghD       Compare this file with the previous commit: show the diff
 '''
 
 LAZYGIT_OPEN = r'''
 <Space>gg        Open LazyGit at the repository root
-<Space>gG        Open LazyGit in the current working directory
+<Space>gG        Open LazyGit in the current folder (working directory)
 '''
 
 LAZYGIT_KEYS = r'''
@@ -72,10 +72,10 @@ Space            Stage or unstage the file
 c                Commit the staged files
 P                Push commits to the remote
 p                Pull commits from the remote
-3                Show the branches panel
+3                Show your branches: the branches panel
 4                Show the commits panel: the commit log
 s                Stash all changes (in the files panel)
-l                Move focus to the next panel
+l                Move to the next panel
 ?                Show every key: help
 
 EXIT:
@@ -83,22 +83,22 @@ q                Quit LazyGit and go back to Neovim
 '''
 
 SNACKS_GIT = r'''
-<Space>gL        Show the git log for the current working directory
-<Space>gb        Show the commit history for this line
+<Space>gL        Show the git log for the current folder
+<Space>gb        Show the commit history for this line (who changed it, and when)
 <Space>gf        Show the commit history for this file
 <Space>gl        Show the repository log
-<Space>gB        Open this file or line on its remote (e.g. GitHub)
-<Space>gY        Copy the remote URL of this file or line
-<Space>gs        Show git status in a picker
+<Space>gB        Open this file or line on its remote (e.g. GitHub) in the browser
+<Space>gY        Copy the link (URL) to this file or line on its remote
+<Space>gs        Show git status in a picker: see what changed
 <Space>gd        Show the git diff, hunk by hunk, in a picker
-<Space>gD        Show the git diff against origin
-<Space>gS        Show the git stashes
+<Space>gD        Compare your changes with origin: show the git diff against origin
+<Space>gS        Show your stashed changes: the git stashes
 <Space>gi / gI   List GitHub issues: open / all
 <Space>gp / gP   List GitHub pull requests: open / all
 '''
 
 DIFFVIEW_OPEN = r'''
-<Space>gv        Open the working-tree diff in Diffview
+<Space>gv        Open the diff of your changes in Diffview (working tree)
 <Space>gV        Open the history of this file in Diffview
 '''
 
@@ -108,29 +108,29 @@ Enter            Open the selected diff
 s or -           Stage or unstage the selected file
 S / U            Stage all files / unstage all files
 [x / ]x          Jump to the previous / next merge conflict
-<Space>co        Resolve the conflict with our version: choose ours
-<Space>ct        Resolve the conflict with their version: choose theirs
-<Space>cb        Resolve the conflict with the base version: choose base
-<Space>ca        Keep all versions of the conflict: choose all
-g?               Show Diffview help for the current panel
+<Space>co        Fix the merge conflict with our version: choose ours
+<Space>ct        Fix the merge conflict with their version: choose theirs
+<Space>cb        Fix the merge conflict with the base version: choose base
+<Space>ca        Keep every version of the conflict: choose all
+g?               Show Diffview help for this panel
 '''
 
 EXPLORER = r'''
-<Space>e         Open or close the Snacks explorer at the project root
-<Space>E         Open or close the Snacks explorer in the current working directory
-\                Open or close the Snacks explorer in the current working directory (custom mapping)
+<Space>e         Open or close the file explorer (Snacks) at the project root
+<Space>E         Open or close the file explorer (Snacks) in the current folder
+\                Open or close the file explorer (Snacks) in the current folder (custom mapping)
 '''
 
 NEOTREE_OPEN = r'''
-\                Open or close the explorer sidebar
+\                Open or close the file explorer sidebar
 '''
 
 NEOTREE_KEYS = r'''
-a                Add a file or directory (end with / for a directory)
-d                Delete the entry
-r                Rename the entry
-c                Copy the entry
-m                Move the entry
+a                Create a file or folder (directory): end the name with / for a folder
+d                Delete (remove) the file or folder
+r                Rename the file or folder
+c                Copy the file or folder
+m                Move the file or folder
 /                Switch between the file list and the filter box
 H                Show or hide hidden files
 ?                Show the explorer help
@@ -141,15 +141,15 @@ q                Close the explorer
 '''
 
 LSP_ACTIONS = r'''
-<Space>cr        Rename a symbol across the whole project
-<Space>ca        Fix or refactor the code: code actions (quick fixes, auto-imports, refactors)
+<Space>cr        Rename a function or variable (symbol) across the whole project
+<Space>ca        Fix an error or refactor the code: code actions (quick fixes, auto-imports, refactors)
 <Space>cf        Format the file (ruff for Python, prettier for JS, etc.)
-<Space>cd        Show the diagnostics for this line in a float
-<Space>cl        Show LSP info: which servers are attached
+<Space>cd        Show the error or warning for this line in a float: diagnostics
+<Space>cl        See which language servers are attached: LSP info
 '''
 
 GRUG = r'''
-<Space>sr        Replace text across files: open the search and replace panel (grug-far; works on a word or selection too)
+<Space>sr        Replace text in every file: open the search and replace panel (grug-far; works on a word or selection too)
 '''
 
 GRUG_EXIT = r'''
@@ -176,33 +176,33 @@ Ctrl-\ Ctrl-n    Leave terminal mode and go back to normal mode
 '''
 
 FIND = r'''
-<Space>sf        Find a file by name in the current working directory (your primary find-file)
-<Space><Space>   Find a file by name: same as <Space>sf, in the current working directory
-<Space>ff        Find a file by name in the current working directory
-<Space>fF        Find a file by name in the current working directory (same as <Space>ff)
-<Space>fr        Open a recent file
-<Space>fg        Find a git-tracked file in the current working directory
-<Space>fb        Switch to an open buffer
-<Space>,         Switch to an open buffer: quick switch
+<Space>sf        Find a file by name in the current folder (your main find-file key)
+<Space><Space>   Find a file by name: same as <Space>sf, in the current folder
+<Space>ff        Find a file by name in the current folder
+<Space>fF        Find a file by name in the current folder (same as <Space>ff)
+<Space>fr        Open a file you used recently
+<Space>fg        Find a git-tracked file in the current folder
+<Space>fb        Switch to an open file (buffer)
+<Space>,         Switch to an open file (buffer): quick switch
 <Space>fc        Find a config file
 '''
 
 GREP = r'''
-<Space>/         Search text in all files: grep in the current working directory
-<Space>sg        Search text in all files: grep in the current working directory
-<Space>sG        Search text in all files: grep in the current working directory (same as <Space>sg)
-<Space>sw        Search for the word or selection under the cursor: grep in the current working directory
-<Space>sb        Search for a line in this buffer
+<Space>/         Search text in every file: grep in the current folder
+<Space>sg        Search text in every file: grep in the current folder
+<Space>sG        Search text in every file: grep in the current folder (same as <Space>sg)
+<Space>sw        Search every file for the word or selection under the cursor: grep in the current folder
+<Space>sb        Search for a line in this file (buffer)
 <Space>sB        Search text in open files: grep in listed file buffers below the current folder
 '''
 
 PICKERS = r'''
-<Space>sd        List the diagnostics
+<Space>sd        List the errors and warnings (diagnostics)
 <Space>sR        Reopen the last picker: resume
 <Space>sh        Search the help pages
 <Space>sk        Search the keymaps
 <Space>sC        Run a command by name: command list
-<Space>s"        Show the registers
+<Space>s"        Show the registers (copied text)
 <Space>sm        Show the marks
 <Space>sj        Show the jump list
 <Space>st        List the todo comments
@@ -221,10 +221,10 @@ Ctrl-c           Close the picker as well
 '''
 
 NEOTEST = r'''
-<Space>tr        Run the nearest test: the one under the cursor
+<Space>tr        Run the test under the cursor (the nearest test)
 <Space>tt        Run all tests in this file
 <Space>tT        Run every test file
-<Space>ts        Open or close the test summary panel (see all pass and fail)
+<Space>ts        Open or close the test summary panel (see which tests pass and fail)
 <Space>to        Show the test output (print and debug output)
 <Space>tO        Open or close the output panel
 <Space>tl        Run the last test again
@@ -234,7 +234,7 @@ NEOTEST = r'''
 '''
 
 DAP = r'''
-<Space>db        Set or clear a breakpoint on this line
+<Space>db        Set or clear a breakpoint on this line (stop the program here)
 <Space>dB        Set a conditional breakpoint (prompts for the condition)
 <Space>dc        Start or continue the program (run)
 <Space>di        Step into the function
@@ -261,9 +261,9 @@ VENV = r'''
 MODULE = {
     "n": 5,
     "folder": "m5-lsp-git",
-    "title": "Code intelligence and git",
-    "footer": "LSP navigation and diagnostics; gitsigns, LazyGit and Diffview; refactor, files and search; tests and the debugger",
-    "tagline": "Jump to definitions, stage hunks, rename safely and debug a test.",
+    "title": "Jump around code and use git in Neovim",
+    "footer": "Jump to definitions, find errors, stage and commit changes, rename across files, search the project, run and debug tests",
+    "tagline": "Jump to a definition, stage one change, rename a function everywhere and debug a test.",
     "glossary": [],
     "coverage_allow": [
         ("<Space>Tf", "lesson maps capital <Space>Tf; the live config has lowercase <Space>tf for the float terminal"),
@@ -273,39 +273,39 @@ MODULE = {
     "pages": [
         # ============================================================ page 1
         {
-            "h1": "Navigate code with LSP",
-            "subtitle": "Jump to definitions and references, and read diagnostics without leaving the editor.",
+            "h1": "Jump to where a function is defined and find its uses",
+            "subtitle": "Jump to a function's definition, find every place it is used, jump back, find errors and warnings, find unused imports",
             "idea": (
-                "The language server knows what your code means. Ask it instead of searching text.",
+                "Find where a function is defined or used: ask the language server instead of searching text.",
                 [
-                    ("Definition", "gd", "Jump to where a name is defined."),
-                    ("References", "gr", "List every real use of a name."),
-                    ("Next problem", "]d", "Jump to the next error or warning."),
-                    ("Jump back", "Ctrl-o", "Return to where you started."),
+                    ("Jump to where a name is defined", "gd", "Go to the definition."),
+                    ("Find every use of a name", "gr", "List every real use: the references."),
+                    ("Jump to the next error or warning", "]d", "Find problems without scrolling."),
+                    ("Go back to where you started", "Ctrl-o", "Return to the spot you jumped from."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "You grep the project for a function name and wade through comments, strings and unrelated matches.",
+                "fail": "How do I find where a function is used without wading through comments, strings and unrelated matches from grep?",
                 "fix": "Ask the language server. `gd` jumps to the definition and `gr` lists the real references.",
             },
             "drills": [
                 {
-                    "h2": "Open the practice project",
+                    "h2": "Open the practice project (nvim-drills)",
                     "intro": "Every exercise runs against `nvim-drills`: a small Python project with bad names, an off-by-one bug, unused imports and a failing test. This lesson is for LazyVim, where the leader key is Space.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Open nvim-drills", "code": "cd Terminal-Workflow/practice/nvim-drills\nv .",
+                        {"type": "cmd", "where": "shell", "title": "Open the practice project in Neovim", "code": "cd Terminal-Workflow/practice/nvim-drills\nv .",
                          "expect": "Neovim opens on the project, ready for the exercises."},
-                        {"type": "text", "body": "Work top to bottom. Do the git exercises on page 2 before the `calc` rename on page 3, because the reset script would silently undo your rename."},
+                        {"type": "text", "body": "Do the exercises in order. Do the git exercises on page 2 before the `calc` rename on page 3, because the reset script would silently undo your rename."},
                     ],
                 },
                 {
-                    "h2": "Navigation",
-                    "intro": "LSP is already configured per language. Open a file and it works.",
+                    "h2": "Jump to a definition or find every use of a function",
+                    "intro": "LSP is already set up for each language. Open a file and it works.",
                     "blocks": [
-                        K("LSP navigation", LSP_NAV),
-                        {"type": "text", "body": "Neovim 0.11 also ships native `gr*` LSP maps that work alongside the above: `grn` rename, `gra` code action, `grr` references, `gri` implementation, `grt` type definition. Use `gd` and `gr` as your primaries; the `gr*` set is a fallback."},
-                        K("Trace a function to every caller", [
+                        K("Jump to a definition, a use or the docs (LSP keys)", LSP_NAV),
+                        {"type": "text", "body": "Prefer the built-in maps? Neovim 0.11 also ships native `gr*` LSP maps that work alongside the above: `grn` rename, `gra` code action, `grr` references, `gri` implementation, `grt` type definition. Use `gd` and `gr` as your primaries; the `gr*` set is a fallback."},
+                        K("Find every place a function is called", [
                             ("<Space>sf orders.py", "Find and open orders.py"),
                             ("gd", "Go to definition: jumps to `def calc(o):` a few lines down"),
                             ("gr", "Find every use of `calc`: opens the references list"),
@@ -315,11 +315,11 @@ MODULE = {
                     ],
                 },
                 {
-                    "h2": "Diagnostics",
-                    "intro": "`src/orders.py` imports two modules it never uses. Find them.",
+                    "h2": "Find errors, warnings and unused imports",
+                    "intro": "Find the two modules that `src/orders.py` imports but never uses.",
                     "blocks": [
-                        K("Diagnostic keys", DIAG),
-                        K("Find the dead imports", [
+                        K("Jump between errors and warnings", DIAG),
+                        K("Find the unused imports in a file", [
                             ("gg", "Go to the top of orders.py"),
                             ("]d", "Jump to the first unused-import warning"),
                             ("]d", "Jump to the second unused-import warning"),
@@ -327,15 +327,15 @@ MODULE = {
                             ("<Space>sd", "List every diagnostic reported by Neovim (open buffers): picker"),
                         ], **{"try": "Open `orders.py` and press the keys in order.",
                               "expect": "`<Space>sd` lists exactly 2 diagnostics, both unused import in `orders.py`. Leave them for page 3."}),
-                        {"type": "cmd", "where": "shell", "title": "No diagnostics in Neovim? Ask ruff", "code": "ruff check src/orders.py",
+                        {"type": "cmd", "where": "shell", "title": "No errors showing in Neovim? Check with ruff", "code": "ruff check src/orders.py",
                          "expect": "The same two `F401` findings (unused imports), per the repo's `pyproject.toml`."},
                     ],
                 },
             ],
             "rules": {
-                "h2": "Servers and quick keys",
+                "h2": "Which language server and which keys do I use?",
                 "cards": [
-                    ("Supported languages", "Each language has its own server, formatter and linter.", ["Language", "LSP", "Formatter", "Linter"], [
+                    ("Which language server does each language use?", "Each language has its own server, formatter and linter.", ["Language", "LSP", "Formatter", "Linter"], [
                         ["Python", "basedpyright", "ruff", "ruff + mypy"],
                         ["Scala", "Metals", "Metals", "Metals"],
                         ["Bash", "bashls", "shfmt", "shellcheck"],
@@ -345,26 +345,26 @@ MODULE = {
                         ["Lua", "lua_ls", "stylua", "—"],
                         ["Docker", "dockerls", "—", "—"],
                     ]),
-                    ("LSP keys at a glance", "The nine you reach for first.", ["Keys", "Action"], [
-                        ["`gd`", "Go to definition"],
+                    ("Which LSP keys do I use most?", "The nine you reach for first.", ["Keys", "Action"], [
+                        ["`gd`", "Jump to the definition"],
                         ["`gr` / `grr`", "Find every use: references"],
-                        ["`gri`", "Go to the implementation"],
+                        ["`gri`", "Jump to the implementation"],
                         ["`grn`", "Rename a symbol (built in)"],
                         ["`gra`", "Fix or refactor: code action"],
                         ["`K`", "Show docs under the cursor: hover"],
-                        ["`]d/[d`", "Jump to the next / previous diagnostic"],
-                        ["`<Space>xx`", "Open the diagnostics panel: Trouble"],
-                        ["`<Space>cf`", "Format the buffer"],
+                        ["`]d/[d`", "Jump to the next / previous error or warning"],
+                        ["`<Space>xx`", "Open the errors and warnings panel: Trouble"],
+                        ["`<Space>cf`", "Format the file (buffer)"],
                     ]),
-                    ("When LSP does not work", "Check the server first.", ["Problem", "Run"], [
-                        ["LSP not working", "`:checkhealth lsp`, `:Mason`, `:LspInfo`"],
-                        ["Scala Metals broken", "`rm -rf .metals/ .bloop/ metals.sbt`, reopen the file, accept Import build"],
+                    ("What do I do when LSP does not work?", "Check the server first.", ["Problem", "Run"], [
+                        ["LSP is not working", "`:checkhealth lsp`, `:Mason`, `:LspInfo`"],
+                        ["Scala Metals is broken", "`rm -rf .metals/ .bloop/ metals.sbt`, reopen the file, accept Import build"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Find who uses a function",
-                "frame": "You want to rename `calc_totl` and need to know what it touches.",
+                "h2": "Find every place a function is used",
+                "frame": "Find what depends on `calc_totl` before you rename it.",
                 "open": "nvim ~/tw/orders.py",
                 "steps": [
                     (("line 19, on `calc_totl`", "`19G` `fc`"), "`gd`", "Jumps to `def calc_totl` on line 6."),
@@ -373,24 +373,24 @@ MODULE = {
                     (None, "`Enter` on the line 12 hit, then `Ctrl-o`", "Opens it, then returns."),
                 ],
                 "after": "orders.py:6:5    def calc_totl(price, qty):\norders.py:12:21  print(code, calc_totl(PRICES[code], 2))\norders.py:19:9   total = calc_totl(price, qty)",
-                "meaning": "The list comes from the language server, so it holds real references and no text matches.",
+                "meaning": "Find real uses only: the list comes from the language server, so it holds real references and no text matches.",
             },
             "practice": {
-                "h2": "Practice: LSP",
+                "h2": "Check how to jump to a definition and find errors",
                 "qs": [
-                    ("Mechanism", "Why is `gr` better than grepping a name?",
+                    ("Mechanism", "Why is `gr` better than grepping for a function name?",
                      "What does the server understand that grep does not?",
                      ["Grep matches text.", "The server knows scope and symbols."],
                      "`gr` shows only real references to that symbol."),
-                    ("Keystrokes", "Jump to a definition, then return.",
+                    ("Keystrokes", "How do I jump to a definition and then come back?",
                      "Two keys out, one key back.",
                      ["Press `gd`.", "Press `Ctrl-o`."],
                      "`gd`, then `Ctrl-o` (or `Ctrl-t`)."),
-                    ("Application", "List every diagnostic reported by Neovim (open buffers).",
+                    ("Application", "How do I list every error and warning in the open files?",
                      "It is a picker under the search prefix.",
                      ["Press `<Space>sd`."],
                      "`<Space>sd`."),
-                    ("Common mistake", "No diagnostics show at all. What do you try?",
+                    ("Common mistake", "Why do no errors or warnings show at all? What do I try?",
                      "Is the linter wired up?",
                      ["The environment may lack ruff or basedpyright.", "Run `ruff check src/orders.py` in a terminal."],
                      "Run `ruff check` from a terminal."),
@@ -399,111 +399,142 @@ MODULE = {
         },
         # ============================================================ page 2
         {
-            "h1": "Git inside Neovim",
-            "subtitle": "Stage hunks, commit from LazyGit and review changes in Diffview.",
+            "h1": "Stage, commit and review git changes in Neovim",
+            "subtitle": "Stage one changed block, discard a change, commit with LazyGit, see who changed a line, review a diff",
             "idea": (
-                "Review and stage changes where you edit, one hunk at a time.",
+                "Stage or discard one changed block (hunk) at a time, without leaving the editor.",
                 [
-                    ("Next hunk", "]h", "Jump to the next changed block."),
-                    ("Stage hunk", "<Space>ghs", "Stage only that block."),
-                    ("LazyGit", "<Space>gg", "The full git UI inside Neovim."),
-                    ("Diffview", "<Space>gv", "A side-by-side view of the working tree."),
+                    ("Jump to the next changed block", "]h", "Go to the next hunk."),
+                    ("Stage only one changed block", "<Space>ghs", "Stage only that block."),
+                    ("Open the full git screen", "<Space>gg", "LazyGit, inside Neovim."),
+                    ("See a side-by-side diff of your changes", "<Space>gv", "Diffview of the working tree."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "You stage whole files with `git add`, then discover half the change was a leftover experiment.",
+                "fail": "How do I stage only part of a file? `git add` stages the whole file, and half the change may be a leftover experiment.",
                 "fix": "Stage and discard hunk by hunk with gitsigns, and commit from LazyGit.",
             },
             "drills": [
                 {
-                    "h2": "Gitsigns: inline changes",
+                    "h2": "See which lines changed and stage one block (gitsigns)",
                     "intro": "Changed lines are marked in the gutter. These keys act on the block under the cursor.",
                     "blocks": [
-                        K("Gitsigns hunk keys", GITSIGNS),
-                        {"type": "text", "body": "Inline blame is already on: pause on a line for 300 ms and its author, relative time and commit summary appear at the end of the line."},
+                        K("Stage, discard or preview a changed block", GITSIGNS),
+                        {"type": "text", "body": "See who changed a line: inline blame is already on. Pause on a line for 300 ms and its author, relative time and commit summary appear at the end of the line."},
                     ],
                 },
                 {
-                    "h2": "Stage one hunk, discard another",
+                    "h2": "Stage one change and discard another",
                     "intro": "Open a terminal with `<Space>ft` in the `nvim-drills` root and reset the repo to a dirty state.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Make two hunks and an untracked file", "code": "./scripts/reset-dirty.sh",
+                        {"type": "cmd", "where": "shell", "title": "Create two changes and a new file to practice on", "code": "./scripts/reset-dirty.sh",
                          "expect": "Two unstaged hunks and one untracked file: `src/calculator.py` (new `average()`), `src/orders.py` (new TODO in `calc`) and `src/scratch.py`. Safe to re-run any time."},
-                        K("Stage one, discard the other", [
+                        K("Stage one changed block and discard the other", [
                             ("]h", "In `src/calculator.py`, jump to the new hunk"),
-                            ("<Space>ghp", "Preview the hunk diff inline"),
+                            ("<Space>ghp", "Preview what changed in this hunk, inline"),
                             ("<Space>ghs", "Stage it (you are keeping `average()`)"),
                             ("]h", "In `src/orders.py`, jump to its hunk"),
                             ("<Space>ghr", "Discard it (the TODO is not worth keeping)"),
                         ], **{"try": "Open `src/calculator.py` and press the keys in order, then do the same in `src/orders.py`.",
                               "expect": "`:DiffviewOpen` shows `orders.py` clean, with no diff."}),
-                        {"type": "cmd", "where": "shell", "title": "Check the status", "code": "git status --short",
+                        {"type": "cmd", "where": "shell", "title": "Check what is staged (git status)", "code": "git status --short",
                          "expect": "`M  src/calculator.py` (staged) and `?? src/scratch.py` (still untracked), but no entry for `orders.py`."},
                     ],
                 },
                 {
-                    "h2": "LazyGit: the full git UI",
-                    "intro": "A complete git interface in a float. Press `?` inside it for every key.",
+                    "h2": "Commit and manage git from one screen (LazyGit)",
+                    "intro": "Open a complete git interface in a float. Press `?` inside it for every key.",
                     "blocks": [
                         K("Open LazyGit", LAZYGIT_OPEN),
-                        K("Inside LazyGit", LAZYGIT_KEYS, where="lazygit"),
-                        K("Stage, commit and verify", [
+                        K("Stage, commit, push and pull in LazyGit", LAZYGIT_KEYS, where="lazygit"),
+                        K("Stage a new file and commit it", [
                             ("<Space>gg", "Open LazyGit"),
                             ("Space", "On `src/scratch.py` in the files panel: stage it"),
                             ("c", "Commit the staged files: type a message such as Add average() and a scratch file"),
                             ("q", "Quit LazyGit and go back to Neovim"),
                         ]),
-                        {"type": "cmd", "where": "shell", "title": "Verify the commit", "code": "git log --oneline -1",
+                        {"type": "cmd", "where": "shell", "title": "Check that your commit is in the log", "code": "git log --oneline -1",
                          "expect": "Your new commit on top of `Add messy.py for reformat/auto-indent drills`."},
                     ],
                 },
                 {
-                    "h2": "Snacks git pickers",
+                    "h2": "Search the git log, history, status and diffs",
                     "intro": "Fuzzy lists for logs, history, status and diffs.",
                     "blocks": [
-                        K("Git pickers", SNACKS_GIT),
-                        {"type": "text", "body": "The GitHub issue and pull-request pickers need the GitHub CLI and access to the repository."},
+                        K("Search git history and status in a picker", SNACKS_GIT),
+                        {"type": "text", "body": "To list GitHub issues and pull requests, you need the GitHub CLI and access to the repository."},
                     ],
                 },
                 {
-                    "h2": "Diffview: side-by-side diffs and history",
-                    "intro": "Your Diffview setup uses its own mappings, which do not overlap with the Snacks diff pickers.",
+                    "h2": "See a side-by-side diff or a file's history (Diffview)",
+                    "intro": "Diffview uses its own keys, which do not overlap with the Snacks diff pickers.",
                     "blocks": [
                         K("Open Diffview", DIFFVIEW_OPEN),
-                        {"type": "cmd", "where": "nvim", "title": "Or open either view by command", "code": ":DiffviewOpen\n:DiffviewFileHistory %",
+                        {"type": "cmd", "where": "nvim", "title": "Open either view with a command", "code": ":DiffviewOpen\n:DiffviewFileHistory %",
                          "expect": "The first opens the working-tree diff. The second opens the history of the current file."},
-                        K("Essential keys inside Diffview", DIFFVIEW_KEYS),
-                        {"type": "text", "body": "Safety: never press `X` in Diffview. It restores the selected entry to the left-side state and can remove an untracked file. This conflicts with the no-delete rule."},
-                        {"type": "text", "body": "Want a clean slate later? Run `./scripts/reset-dirty.sh` from the `nvim-drills` root: the purpose-built reset path."},
+                        K("Move between files and fix merge conflicts in Diffview", DIFFVIEW_KEYS),
+                        {"type": "text", "body": "Why you should never press `X` in Diffview: it restores the selected entry to the left-side state and can remove an untracked file. This conflicts with the no-delete rule."},
+                        {"type": "text", "body": "How do I get a clean slate later? Run `./scripts/reset-dirty.sh` from the `nvim-drills` root: the purpose-built reset path."},
+                    ],
+                },
+                {
+                    "h2": "Merge a branch into main and squash your last commits",
+                    "intro": "Two git jobs people search for by name. The demos run in a throwaway repo, not in `nvim-drills`.",
+                    "blocks": [
+                        {"type": "cmd", "where": "shell", "title": "Merge a branch into main (git merge)", "code": C('''
+cd "$(mktemp -d)"
+git init -q -b main
+git config user.name demo && git config user.email demo@example.com
+echo one > app.txt && git add app.txt && git commit -qm "first commit"
+git switch -q -c feature
+echo two >> app.txt && git commit -qam "add feature"
+git switch -q main
+git merge feature
+git log --oneline
+'''),
+                         "expect": "`Updating <hash>..<hash>`, `Fast-forward`, ` app.txt | 1 +` and ` 1 file changed, 1 insertion(+)`. Then `git log --oneline` prints `<hash> add feature` and `<hash> first commit`. The hashes differ. It is a fast-forward because main had no new commits; when main has moved on, git makes a merge commit and opens an editor for its message."},
+                        {"type": "cmd", "where": "shell", "title": "Squash my last 3 commits into one (git reset --soft)", "code": C('''
+cd "$(mktemp -d)"
+git init -q -b main
+git config user.name demo && git config user.email demo@example.com
+echo base > app.txt && git add app.txt && git commit -qm "base"
+for n in 1 2 3; do echo "change $n" >> app.txt; git commit -qam "wip $n"; done
+git log --oneline
+git reset --soft HEAD~3
+git commit -qm "add the feature"
+git log --oneline
+'''),
+                         "expect": "The first `git log --oneline` prints four lines: `wip 3`, `wip 2`, `wip 1`, `base`, each after a hash. The second prints two: `add the feature` and `base`. The hashes differ. `reset --soft HEAD~3` moves the branch back three commits and keeps all their changes staged, so one `git commit` makes them a single commit."},
+                        {"type": "text", "body": "Squash the last 3 commits another way: `git rebase -i HEAD~3`, then change `pick` to `squash` (or `s`) on the second and third lines. Squash while you merge a branch: `git merge --squash feature`, then `git commit`. Never squash commits you have already pushed and shared."},
                     ],
                 },
             ],
             "rules": {
-                "h2": "Git keys at a glance",
+                "h2": "Which git keys do I use most?",
                 "cards": [
-                    ("Git in Neovim", "The seven you use daily.", ["Keys", "Action"], [
+                    ("Which git keys do I use every day?", "The seven you use daily.", ["Keys", "Action"], [
                         ["`<Space>gg`", "Open LazyGit"],
                         ["`<Space>gd`", "Show the git diff, hunk by hunk (Snacks)"],
                         ["`<Space>gD`", "Show the git diff against origin"],
                         ["`<Space>gs`", "Show git status"],
                         ["`]h/[h`", "Jump to the next / previous hunk"],
                         ["`<Space>ghs`", "Stage this hunk"],
-                        ["`<Space>ghb`", "Show blame for this line"],
+                        ["`<Space>ghb`", "See who changed this line: blame"],
                     ]),
-                    ("Hunk, file or commit?", "Pick the smallest unit that does the job.", ["I want to", "Use"], [
+                    ("Do I stage one block, a whole file, or make a commit?", "Pick the smallest unit that does the job.", ["I want to", "Use"], [
                         ["Stage or discard one block", "`<Space>ghs` or `<Space>ghr`"],
                         ["Stage a whole file", "`s` in Diffview, or `Space` in LazyGit"],
                         ["Commit", "`c` in LazyGit"],
                     ]),
-                    ("Reset the practice repo", "Run it from the `nvim-drills` root.", ["Step", "Command"], [
+                    ("How do I reset the practice repo?", "Run it from the `nvim-drills` root.", ["Step", "Command"], [
                         ["Back to the dirty state", "`./scripts/reset-dirty.sh`"],
                         ["Check what you have", "`git status --short`"],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Keep one change, drop another",
+                "h2": "Keep one change and discard another before you commit",
                 "frame": "In the `~/tw` repo, one note is worth keeping, one comment is a leftover and one file is new.",
                 "open": "cd ~/tw\necho 'buy glue' >> todo.txt\necho '# TODO tidy' >> orders.py\necho draft > scratch.txt\nnvim todo.txt orders.py",
                 "steps": [
@@ -513,24 +544,24 @@ MODULE = {
                     (None, "`q`", "Back in Neovim."),
                 ],
                 "after": "Add glue\n\n scratch.txt | 1 +\n todo.txt    | 1 +\n 2 files changed, 2 insertions(+)",
-                "meaning": "The commit holds exactly what you chose, and the discarded hunk is gone.",
+                "meaning": "Commit only the changes you chose: the commit holds exactly what you chose, and the discarded hunk is gone.",
             },
             "practice": {
-                "h2": "Practice: git in Neovim",
+                "h2": "Check how to stage, preview and review changes",
                 "qs": [
-                    ("Mechanism", "What is a hunk?",
+                    ("Mechanism", "What is a hunk (a changed block)?",
                      "Think of one block in a diff.",
                      ["A diff splits a file into changed blocks.", "Each block is a hunk."],
                      "One block of changed lines."),
-                    ("Keystrokes", "Preview a hunk, then stage it.",
+                    ("Keystrokes", "How do I preview a hunk and then stage it?",
                      "Both live under `<Space>gh`.",
                      ["Press `<Space>ghp`.", "Press `<Space>ghs`."],
                      "`<Space>ghp`, then `<Space>ghs`."),
-                    ("Application", "Open the history of the file you are editing.",
+                    ("Application", "How do I open the history of the file I am editing?",
                      "Diffview has a capital-V map.",
                      ["Press `<Space>gV`, or run `:DiffviewFileHistory %`."],
                      "`<Space>gV`."),
-                    ("Common mistake", "Why must you never press `X` in Diffview?",
+                    ("Common mistake", "Why must I never press `X` in Diffview?",
                      "What does it restore?",
                      ["`X` restores the entry to the left-side state.", "It can remove an untracked file."],
                      "It can delete an untracked file."),
@@ -539,102 +570,102 @@ MODULE = {
         },
         # ============================================================ page 3
         {
-            "h1": "Refactor, files and project search",
-            "subtitle": "Rename across the project, manage files, replace everywhere and search with pickers.",
+            "h1": "Rename, replace and search across the whole project",
+            "subtitle": "Rename a function everywhere, replace text in every file, create or delete a file, find a file by name, search text in every file",
             "idea": (
-                "Change a name once and let the tools update every use.",
+                "Change a name once and every use updates.",
                 [
-                    ("Rename symbol", "<Space>cr", "Updates every reference in the project."),
-                    ("Replace everywhere", "<Space>sr", "A preview panel for project-wide replace."),
-                    ("Grep", "<Space>sg", "Search file contents."),
-                    ("To quickfix", "Ctrl-q", "Send every picker result to a list."),
+                    ("Rename a function or variable everywhere", "<Space>cr", "Updates every reference in the project."),
+                    ("Replace text in every file", "<Space>sr", "A preview panel for project-wide replace."),
+                    ("Search text in every file", "<Space>sg", "Search file contents."),
+                    ("Send every search result to a list", "Ctrl-q", "Put every picker result in the quickfix list."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "You rename a function with find-and-replace and also change a variable, a comment and a file name that merely look alike.",
+                "fail": "How do I rename a function without also changing a variable, a comment and a file name that merely look alike? Find-and-replace changes them all.",
                 "fix": "Use the language server to rename a symbol, and grug-far to preview every text match before it changes.",
             },
             "drills": [
                 {
-                    "h2": "LSP actions: rename a symbol",
+                    "h2": "Rename a function or variable everywhere",
                     "intro": "Rename, fix and format from one prefix.",
                     "blocks": [
-                        K("Code actions", LSP_ACTIONS),
-                        {"type": "text", "body": "Inlay hints (inline type annotations) toggle under `<Space>u`, the UI toggles menu. Verify the exact subkey in the `<Space>` which-key menu."},
-                        K("Rename calc project-wide", [
+                        K("Rename, fix and format code", LSP_ACTIONS),
+                        {"type": "text", "body": "Show or hide inlay hints (inline type annotations) under `<Space>u`, the UI toggles menu. Verify the exact subkey in the `<Space>` which-key menu."},
+                        K("Rename calc in every file", [
                             ("<Space>cr", "Rename the symbol: on `calc` in `def calc(o):`, type `calculate_total`, then Enter"),
                             ("dd", "Delete the stale `# TODO: rename this` line above it"),
                             ("gr", "Find every use of `calculate_total`: check the references"),
                         ], **{"try": "Put the cursor on `calc` at its definition and press the keys in order.",
                               "expect": "`gr` shows references in exactly 3 files (`orders.py`, `report.py`, `tests/test_orders.py`), the same 3 as before, just renamed."}),
-                        {"type": "text", "body": "Do not verify with a plain `<Space>sg calc` grep. It also matches the local variable `calc = Calculator()` in `tests/test_calculator.py`. `gr` is scope-aware."},
-                        K("Clean up the dead imports", [
+                        {"type": "text", "body": "Why not check the rename with a plain `<Space>sg calc` grep? It also matches the local variable `calc = Calculator()` in `tests/test_calculator.py`. `gr` is scope-aware."},
+                        K("Delete the unused imports", [
                             ("gg", "Go to the top of orders.py"),
                             ("dd", "Delete line 2, `import json`"),
                             ("dd", "Delete the new line 2, `import sys`"),
                             ("<Space>sd", "List every diagnostic reported by Neovim (open buffers): picker"),
                         ], **{"try": "Press the keys in order."
                               , "expect": "`<Space>sd` is now empty (0 diagnostics)."}),
-                        {"type": "cmd", "where": "shell", "title": "Behavior is unchanged", "code": "python -m src.report",
+                        {"type": "cmd", "where": "shell", "title": "Check the program gives the same output", "code": "python -m src.report",
                          "expect": "It still runs and prints the same totals as before: the rename and the import cleanup changed nothing."},
                     ],
                 },
                 {
-                    "h2": "File management",
-                    "intro": "LazyVim does not ship Oil.nvim. File management is the Snacks explorer, opened with `<Space>e` or `\\`.",
+                    "h2": "Create, rename and delete a file or folder",
+                    "intro": "LazyVim does not ship Oil.nvim. To create, rename or delete (remove) a file, use the Snacks explorer, opened with `<Space>e` or `\\`.",
                     "blocks": [
-                        K("Explorers", EXPLORER),
-                        K("Create and delete a scratch file", [
+                        K("Open the file explorer", EXPLORER),
+                        K("Create a file, then delete it", [
                             ("<Space>e", "Open the Snacks explorer"),
                             ("a", "Add a file in `src/`: type `notes.md`, Enter"),
                             ("d", "Delete `notes.md`: press it on the file and confirm"),
                             ("<Space>sf notes", "Find the file by name"),
                         ], **{"try": "Press the keys in order.", "expect": "`<Space>sf notes` finds nothing: the file is gone."}),
-                        {"type": "text", "body": "The snacks explorer gives you picker-style navigation plus add, rename and delete on the highlighted entry. For bulk renames, use a shell `:!mv` command."},
-                        K("Explorer sidebar", NEOTREE_OPEN),
-                        K("Inside the explorer", NEOTREE_KEYS),
+                        {"type": "text", "body": "The Snacks explorer gives you picker-style navigation plus add, rename and delete on the highlighted entry. To rename many files at once, use a shell `:!mv` command."},
+                        K("Open the explorer as a sidebar", NEOTREE_OPEN),
+                        K("Create, rename, copy, move and delete in the explorer", NEOTREE_KEYS),
                     ],
                 },
                 {
-                    "h2": "Search and replace across the project",
+                    "h2": "Replace text in every file (grug-far)",
                     "intro": "LazyVim uses grug-far, not Spectre.",
                     "blocks": [
-                        K("grug-far", GRUG),
-                        K("Rename a constant across two files", [
+                        K("Open search and replace for the whole project", GRUG),
+                        K("Replace a constant name in two files", [
                             ("<Space>sr", "Replace text across files: on `TAX_RATE`, opens grug-far pre-filled with it"),
                             ("SALES_TAX_RATE", "Type it in the replace field"),
                             ("sync", "Apply the replacement with the panel's sync action"),
                         ], **{"try": "Check the preview first: 2 matches in `orders.py` and 3 in `report.py`, 5 in total.",
                               "expect": "`<Space>sg TAX_RATE` gives 0 hits and `<Space>sg SALES_TAX_RATE` gives 5 hits across 2 files."}),
-                        K("Leave grug-far", GRUG_EXIT),
-                        {"type": "text", "body": "In grug-far you preview all matches grouped by file and can edit the buffer to fine-tune the replacement. Plain `:%s/old/new/g` (current file) and `:cdo s/old/new/g` (over a quickfix list) still work for ad-hoc replaces."},
+                        K("Close the replace panel", GRUG_EXIT),
+                        {"type": "text", "body": "To check a replace before it runs: grug-far previews all matches grouped by file, and you can edit the buffer to fine-tune the replacement. Plain `:%s/old/new/g` (current file) and `:cdo s/old/new/g` (over a quickfix list) still work for quick replaces."},
                     ],
                 },
                 {
-                    "h2": "Terminals",
+                    "h2": "Open a terminal inside Neovim",
                     "intro": "`Ctrl-\\` and `Ctrl-/` toggle the last terminal you used. The `<Space>tf`, `<Space>tv` and `<Space>th` keys open a float, a right and a bottom terminal. All of them open in `:pwd`.",
                     "blocks": [
-                        K("Toggle a terminal", TERM_FLOAT),
-                        K("Split terminals", TERM_SPLIT),
+                        K("Show or hide a terminal", TERM_FLOAT),
+                        K("Open a terminal in a float, on the right or at the bottom", TERM_SPLIT),
                         {"type": "text", "body": "Each of the three keeps its own terminal. `<Space>t` also holds the test keys (neotest), and `<Space>1`..`<Space>9` are Harpoon file jumps, not terminals."},
-                        K("Leave terminal mode", TERM_EXIT),
-                        {"type": "cmd", "where": "shell", "title": "Run the suite from a floating terminal", "code": "pytest",
+                        K("Get out of terminal mode", TERM_EXIT),
+                        {"type": "cmd", "where": "shell", "title": "Run all the tests from a floating terminal", "code": "pytest",
                          "expect": "7 passed, 2 failed: `test_history_tracks_results` and `test_free_shipping_threshold`. A different failure means an earlier exercise went wrong, most likely the rename."},
-                        {"type": "text", "body": "Open the terminal with `<Space>ft`, hide it with `Ctrl-\\ Ctrl-n` then `<Space>ft`, and bring it back with `<Space>ft`. If the venv is not active, use `python3 -m pytest`."},
+                        {"type": "text", "body": "To hide and bring back the terminal: open it with `<Space>ft`, hide it with `Ctrl-\\ Ctrl-n` then `<Space>ft`, and bring it back with `<Space>ft`. If the venv is not active, use `python3 -m pytest`."},
                     ],
                 },
                 {
-                    "h2": "Fuzzy finder (snacks picker)",
+                    "h2": "Find a file or search text with the picker (snacks)",
                     "intro": "LazyVim uses the snacks picker, not Telescope.",
                     "blocks": [
-                        K("Find", FIND),
+                        K("Find a file by name", FIND),
                         {"type": "text", "body": "In the current config the find keys (`<Space><Space>`, `<Space>ff`, `<Space>sf`) and the grep keys (`<Space>/`, `<Space>sg`, `<Space>sw`) search `:pwd`, not the project root."},
-                        K("Grep", GREP),
-                        K("Other pickers", PICKERS),
-                        K("Inside the picker", PICKER_KEYS),
-                        {"type": "text", "body": "These are the snacks defaults. If one does not match, press `?` inside the picker to see its live keymap."},
-                        K("Grep, quickfix, browse", [
+                        K("Search text in every file", GREP),
+                        K("Search help, keymaps, commands and more", PICKERS),
+                        K("Open a result, split the window or send results to a list", PICKER_KEYS),
+                        {"type": "text", "body": "These are the snacks defaults. If a key does not match, press `?` inside the picker to see its live keymap."},
+                        K("Search text, send the results to the quickfix list and browse them", [
                             ("<Space>sg", "Search text in all files: type `TODO`"),
                             ("Ctrl-q", "Send every result to the quickfix list"),
                             (":copen", "Browse the list in a window"),
@@ -646,9 +677,9 @@ MODULE = {
                 },
             ],
             "rules": {
-                "h2": "Files and search at a glance",
+                "h2": "Which keys find files, search text and replace?",
                 "cards": [
-                    ("Files and search", "The keys from the quick-start card.", ["Keys", "Action"], [
+                    ("Which keys find files and search text?", "The keys from the quick-start card.", ["Keys", "Action"], [
                         ["`<Space>sf`", "Find a file by name (fuzzy, in `:pwd`)"],
                         ["`<Space><Space>`", "Find a file by name (same as `<Space>sf`)"],
                         ["`<Space>sg`", "Search text in all files (grep in `:pwd`)"],
@@ -658,7 +689,7 @@ MODULE = {
                         ["`Shift-H/L`", "Go to the previous / next buffer"],
                         ["`<Space>sr`", "Replace text across files (grug-far)"],
                     ]),
-                    ("Rename or replace?", "Symbol rename and text replace are different tools.", ["I want to", "Use"], [
+                    ("Do I rename a symbol or replace text?", "Symbol rename and text replace are different tools.", ["I want to", "Use"], [
                         ["Rename a function or variable", "`<Space>cr`"],
                         ["Replace text across files", "`<Space>sr`"],
                         ["Replace in one file", "`:%s/old/new/g`"],
@@ -666,8 +697,8 @@ MODULE = {
                 ],
             },
             "worked": {
-                "h2": "Rename, then prove it",
-                "frame": "`calc_totl` is a typo and you want it gone everywhere.",
+                "h2": "Rename a function, then check nothing broke",
+                "frame": "Fix the typo `calc_totl` everywhere at once.",
                 "open": "nvim ~/tw/orders.py",
                 "steps": [
                     (("line 6, on `calc_totl`", "`6G` `w`"), "`<Space>cr`, `calc_total`, then `Enter`", "Renames the definition and both calls."),
@@ -676,24 +707,24 @@ MODULE = {
                     (None, "`<Space>cr`, `calc_totl`, then `Enter`", "Renames it back, so `calc_totl` is there for the other pages. Autosave would have saved the rename, so `:e!` would not undo it."),
                 ],
                 "after": "orders.py:6:5    def calc_total(price, qty):\norders.py:12:21  print(code, calc_total(PRICES[code], 2))\norders.py:19:9   total = calc_total(price, qty)\n\npen 3 2.5 rush 8.100000000000001",
-                "meaning": "The server renamed the symbol and nothing else, and the output still matches.",
+                "meaning": "Check a rename this way: the server renamed the symbol and nothing else, and the output still matches.",
             },
             "practice": {
-                "h2": "Practice: refactor and search",
+                "h2": "Check how to rename, replace and search",
                 "qs": [
-                    ("Mechanism", "Why does `gr` beat `<Space>sg calc` after a rename?",
+                    ("Mechanism", "Why is `gr` better than `<Space>sg calc` after a rename?",
                      "One is scope-aware.",
                      ["Grep also matches the variable `calc = Calculator()`.", "`gr` follows the symbol."],
                      "`gr` shows only real references."),
-                    ("Keystrokes", "Send every grep result to quickfix and browse it.",
+                    ("Keystrokes", "How do I send every grep result to quickfix and browse it?",
                      "Picker key, then an ex command.",
                      ["Press `Ctrl-q`.", "Run `:copen`.", "Step with `]q` and `[q`."],
                      "`Ctrl-q`, `:copen`, `]q`."),
-                    ("Application", "Rename `TAX_RATE` to `SALES_TAX_RATE` in two files.",
+                    ("Application", "How do I rename `TAX_RATE` to `SALES_TAX_RATE` in two files?",
                      "Use the project-wide replace panel.",
                      ["Put the cursor on `TAX_RATE` and press `<Space>sr`.", "Type the new name and apply with sync."],
                      "`<Space>sr`, replace, sync."),
-                    ("Common mistake", "Which key opens the float terminal, and which prefix is for tests?",
+                    ("Common mistake", "Which key opens the floating terminal, and which key prefix runs tests?",
                      "Test and terminal keys look alike.",
                      ["`<Space>ft` is the floating terminal.", "`<Space>tf`, `<Space>tv` and `<Space>th` are terminals too. The other `<Space>t` keys run tests (neotest)."],
                      "`<Space>ft` for the float terminal; `<Space>tf`, `<Space>tv` and `<Space>th` toggle terminals; the remaining `<Space>t` keys run tests."),
@@ -702,29 +733,29 @@ MODULE = {
         },
         # ============================================================ page 4
         {
-            "h1": "Tests and the debugger",
-            "subtitle": "Run a test file, read the failure and step through a real bug.",
+            "h1": "Run a test, read why it failed and debug it",
+            "subtitle": "Run a test file, run only the test under the cursor, see why a test failed, set a breakpoint, step through a bug",
             "idea": (
-                "Run tests and debug without leaving the editor.",
+                "Run tests and debug a failing test without leaving the editor.",
                 [
-                    ("Run the file", "<Space>tt", "Run every test in the current file."),
-                    ("Run nearest", "<Space>tr", "Run only the test under the cursor."),
-                    ("Breakpoint", "<Space>db", "Stop on this line."),
-                    ("Debug a test", "<Space>td", "Run the nearest test under the debugger."),
+                    ("Run every test in a file", "<Space>tt", "Run all tests in the current file."),
+                    ("Run only the test under the cursor", "<Space>tr", "Run the nearest test."),
+                    ("Stop the program on a line", "<Space>db", "Set a breakpoint on this line."),
+                    ("Debug a failing test", "<Space>td", "Run the nearest test under the debugger."),
                 ],
                 None,
             ),
             "problem": {
-                "fail": "A test fails and you scatter `print()` calls through the code to see why.",
+                "fail": "How do I find out why a test fails without scattering `print()` calls through the code?",
                 "fix": "Set a breakpoint, debug the test, and watch the variables change as you step.",
             },
             "drills": [
                 {
-                    "h2": "Neotest: run a file, read the failure",
+                    "h2": "Run a test file and read why a test failed",
                     "intro": "Results show inline, and you can jump to failures.",
                     "blocks": [
-                        K("Neotest keys", NEOTEST),
-                        K("Run a file and read a failure", [
+                        K("Run, repeat and stop tests", NEOTEST),
+                        K("Run a test file and see why a test failed", [
                             ("<Space>tt", "Run all tests in this file: in `tests/test_calculator.py`"),
                             ("<Space>to", "Show the test output: on the red test, see actual vs. expected"),
                             ("<Space>ts", "Open or close the test summary panel"),
@@ -733,12 +764,12 @@ MODULE = {
                     ],
                 },
                 {
-                    "h2": "DAP: debug the free-shipping bug",
-                    "intro": "`test_free_shipping_threshold` fails, and `qualifies_for_free_shipping` carries a `# FIXME: off-by-one` comment. Find out why, live.",
+                    "h2": "Debug a failing test step by step (DAP)",
+                    "intro": "Why does `test_free_shipping_threshold` fail? `qualifies_for_free_shipping` carries a `# FIXME: off-by-one` comment. Find out why, live.",
                     "blocks": [
-                        K("Debugger controls", DAP),
-                        K("Test debugging", DAP_TEST),
-                        K("Debug it for real", [
+                        K("Set breakpoints and step through code", DAP),
+                        K("Debug a test", DAP_TEST),
+                        K("Find the bug in the free-shipping test", [
                             ("<Space>db", "Set a breakpoint: in `orders.py`, on `for i in range(len(items) - 1):`"),
                             ("<Space>td", "Debug the test: in `test_free_shipping_threshold`"),
                             ("<Space>du", "Open the debugger UI: watch `items` and `total_qty`"),
@@ -747,40 +778,40 @@ MODULE = {
                             ("<Space>tr", "Run the nearest test again, after the fix"),
                         ], **{"try": "The loop body runs only once (`i=0`): `range(len(items) - 1)` is `range(1)` for 2 items, so `total_qty` ends at 3. Change it to `range(len(items))` and delete the `# FIXME:` comment.",
                               "expect": "The test turns green."}),
-                        {"type": "cmd", "where": "shell", "title": "Count the failures", "code": "pytest",
+                        {"type": "cmd", "where": "shell", "title": "Check how many tests still fail", "code": "pytest",
                          "expect": "Exactly 1 failure (`test_history_tracks_results`, still intentional), down from 2."},
-                        {"type": "text", "body": "Stop the debugger with `<Space>dt` (terminate) or close the UI with `<Space>du`."},
+                        {"type": "text", "body": "To stop debugging, press `<Space>dt` (terminate) or close the UI with `<Space>du`."},
                     ],
                 },
                 {
-                    "h2": "Python environments",
+                    "h2": "Make Neovim use your Python virtualenv (.venv)",
                     "intro": "If you set up `.venv` per the practice repo's README, pick it here so the LSP, debugger and tests all use the right interpreter.",
                     "blocks": [
-                        K("venv-selector", VENV),
-                        {"type": "cmd", "where": "shell", "title": "Create the project venv", "code": "python3 -m venv .venv\nsource .venv/bin/activate\npip install -r requirements.txt",
+                        K("Pick the Python virtualenv", VENV),
+                        {"type": "cmd", "where": "shell", "title": "Create a virtualenv for the project", "code": "python3 -m venv .venv\nsource .venv/bin/activate\npip install -r requirements.txt",
                          "expect": "The prompt shows `(.venv)`. Then `<Space>cv` in Neovim lets you pick it."},
                     ],
                 },
             ],
             "rules": {
-                "h2": "The debug loop",
+                "h2": "Which keys do I press to debug a test?",
                 "cards": [
-                    ("Five keys, one loop", "Reproduce, stop, look, step, finish.", ["Step", "Keys"], [
+                    ("Which five keys make one debug loop?", "Reproduce, stop, look, step, finish.", ["Step", "Keys"], [
                         ["Stop on a line", "`<Space>db`"],
                         ["Run the test under the debugger", "`<Space>td`"],
                         ["Look at variables", "`<Space>du`"],
                         ["Step to the next line", "`<Space>dO`"],
                         ["Stop debugging", "`<Space>dt`"],
                     ]),
-                    ("Failures left on purpose", "Two tests fail by design in `nvim-drills`.", ["Test", "Status"], [
+                    ("Why do some tests fail in nvim-drills?", "Two tests fail by design in `nvim-drills`.", ["Test", "Status"], [
                         ["`test_history_tracks_results`", "Intentional. Leave it failing."],
                         ["`test_free_shipping_threshold`", "A real off-by-one bug. Fix it in the debugger drill."],
                     ]),
                 ],
             },
             "worked": {
-                "h2": "Read the values behind a total",
-                "frame": "The total prints `8.100000000000001` and you want to see what feeds it.",
+                "h2": "See the values behind a total while the program runs",
+                "frame": "See what feeds the total that prints `8.100000000000001`.",
                 "open": "nvim ~/tw/orders.py",
                 "steps": [
                     (("line 7", "`7G`"), "`<Space>db`", "A breakpoint marks the `return` line."),
@@ -789,20 +820,20 @@ MODULE = {
                     (None, "`<Space>dt`", "Ends the session."),
                 ],
                 "after": "Locals\n  price = 2.5\n  qty = 3",
-                "meaning": "You saw the cause in the variables, so there was no guessing.",
+                "meaning": "Read the variables to find the cause, so there is no guessing.",
             },
             "practice": {
-                "h2": "Practice: tests and debugging",
+                "h2": "Check how to run tests and debug them",
                 "qs": [
                     ("Mechanism", "Why does the loop in `qualifies_for_free_shipping` run only once?",
                      "How long is `range(1)`?",
                      ["The list has 2 items.", "`range(len(items) - 1)` is `range(1)`."],
                      "The range stops one item short."),
-                    ("Keystrokes", "Run only the test under the cursor, then show its output.",
+                    ("Keystrokes", "How do I run only the test under the cursor, then show its output?",
                      "Both live under `<Space>t`.",
                      ["Press `<Space>tr`.", "Press `<Space>to`."],
                      "`<Space>tr`, then `<Space>to`."),
-                    ("Application", "Make LSP, tests and the debugger use `.venv`.",
+                    ("Application", "How do I make LSP, tests and the debugger use `.venv`?",
                      "A key under `<Space>c`.",
                      ["Press `<Space>cv`.", "Pick `.venv`."],
                      "`<Space>cv`."),
