@@ -725,6 +725,10 @@ cp access.log live.log
 tail -n 2 -f live.log
 '''),
                          "expect": "The last 2 lines of `live.log`, then the command waits. In a second pane run `echo \"10.0.0.9 GET /new 200 1\" >> live.log`: the new line appears at once. Press `Ctrl-c` to stop."},
+                        {"type": "cmd", "where": "shell", "title": "Watch a log live and show only the lines you want (tail -F | grep --line-buffered)", "code": C('''
+tail -n 0 -F live.log | grep --line-buffered -E "404|500"
+'''),
+                         "expect": "Nothing prints and the command waits. In a second pane run `echo \"10.0.0.9 GET /new 200 1\" >> live.log`: nothing appears, because the line has neither `404` nor `500`. Then run `echo \"10.0.0.9 GET /oops 500 0\" >> live.log`: `10.0.0.9 GET /oops 500 0` appears within a second or two. Add one line at a time. Press `Ctrl-c` to stop. `-n 0` skips the old lines. `-F` keeps following when the file is replaced, as a log rotation does. Straight to the screen, grep prints each line at once. `--line-buffered` keeps it that way when you send grep's output on to a file or another command (`| tee seen.log`), where grep would otherwise hold lines back."},
                     ],
                 },
                 {

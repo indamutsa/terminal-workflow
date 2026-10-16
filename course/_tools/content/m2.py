@@ -540,6 +540,17 @@ dd
                         {"type": "cmd", "where": "shell", "title": "Run the tests (pytest) and read the result", "code": "pytest",
                          "expect": "The summary ends with `2 failed, 7 passed`. The failures are `tests/test_calculator.py::test_history_tracks_results` and `tests/test_orders.py::test_free_shipping_threshold`."},
                         {"type": "text", "body": "Run pytest inside Neovim: open the terminal first (`Ctrl-\\`). If `pytest` is not the one on your PATH, run `python3 -m pytest`. Then `Ctrl-\\ Ctrl-n` to leave terminal mode and press the toggle again to close it. The pass count can drift if you left a file edited: press `u` until it is back to the original, give autosave 3 seconds, and re-run."},
+                        {"type": "keys", "where": "nvim", "title": "Follow a log file inside Neovim (watch new lines in a split)", "rows": [
+                            (":split | terminal tail -F ~/tw/app.log", "Watch the log in a bottom split; new lines appear as they are written"),
+                            (":split | terminal tail -F ~/tw/app.log | grep -E \"OK|SUCCESS|FAIL\"", "Watch only the lines with OK, SUCCESS or FAIL"),
+                            ("Ctrl-\\ Ctrl-n", "Leave terminal mode to scroll or copy; `i` goes back to live"),
+                        ], "try": "In another tmux pane run `echo \"backup start\" >> ~/tw/app.log`. In Neovim run `:split | terminal tail -F ~/tw/app.log` and press `i`. In the tmux pane run `echo \"backup OK\" >> ~/tw/app.log`.",
+                         "expect": "The bottom split shows `backup start`, then `backup OK` as soon as you write it. Run the second row instead and only lines with `OK`, `SUCCESS` or `FAIL` show. The whole line after `:split | terminal` goes to the shell, including its own `|`. Close the split with `Ctrl-\\ Ctrl-n`, then `Ctrl-w q`."},
+                        {"type": "keys", "where": "nvim", "title": "Paste a command's output into the file (:r !cmd)", "rows": [
+                            (":r !date", "Insert the output of date below the cursor"),
+                            (":r !grep -E \"OK|SUCCESS|FAIL\" ~/tw/app.log | tail -n 5", "Insert the last 5 lines with OK, SUCCESS or FAIL"),
+                        ], "try": "Run `:enew` for an empty buffer. Run `:r !date`, then `:r !grep -E \"OK|SUCCESS|FAIL\" ~/tw/app.log | tail -n 5`.",
+                         "expect": "The date line appears, then the last 5 lines of `~/tw/app.log` that contain `OK`, `SUCCESS` or `FAIL`, such as `backup OK`. In `:r !` commands `%` and `#` stand for file names: type `\\%` for a literal percent sign."},
                     ],
                 },
                 {
