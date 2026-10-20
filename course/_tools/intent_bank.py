@@ -244,12 +244,69 @@ EDITING = [
     ("stage one change and drop the other", (5, "module-2-d2-b2")),
     ("open lazygit", (5, "module-2-d3-b1")),
     ("commit my changes", (5, "module-2-d3-b2")),
-    ("who changed this line", (5, "module-2-d4-b1")),
     ("replace text across several files", (5, "module-3-d3-b1")),
     ("run the tests", (5, "module-4-d1-b1")),
     ("merge a branch into main", (5, "module-2-d6-b1")),
     ("squash my last 3 commits", (5, "module-2-d6-b2")),
-    ("resolve a merge conflict", (5, "module-2-d5-b3")),
+    ("resolve a merge conflict", [(5, "module-2-d5-b3"), (12, "module-3-d3-b3"), (13, "module-4-d3-b3")]),
+]
+
+GIT = [
+    # Save, undo, branch and sync (m12); keep the prewritten query wording.
+    ("undo my last commit", (12, "module-2-d3-b1")),
+    ("undo last commit but keep changes", [(12, "module-2-d3-b2"), (12, "module-2-d3-b3")]),
+    ("unstage a file", (12, "module-2-d1-b2")),
+    ("discard changes in a file", (12, "module-1-d2-b4")),
+    ("see what i changed", [(12, "module-1-d2-b1"), (12, "module-1-d2-b2")]),
+    ("commit only part of a file", (12, "module-1-d3-b4")),
+    ("change the last commit message", (12, "module-2-d2-b1")),
+    ("add a forgotten file to the last commit", (12, "module-2-d2-b3")),
+    ("get back a commit after reset", (12, "module-2-d4-b1")),
+    ("recover deleted branch", (12, "module-3-d5-b3")),
+    ("revert a commit that is already pushed", (12, "module-2-d4-b2")),
+    ("save my changes for later without committing", (12, "module-2-d5-b1")),
+    ("bring back stashed changes", (12, "module-2-d5-b1")),
+    ("create a new branch and switch to it", (12, "module-3-d1-b1")),
+    ("list all branches including remote", (12, "module-4-d2-b1")),
+    ("merge branch into main", (12, "module-3-d2-b1")),
+    ("fix merge conflict", (12, "module-3-d3-b3")),
+    ("rebase my branch on main", (12, "module-3-d4-b2")),
+    ("copy one commit to another branch", (12, "module-3-d5-b1")),
+    ("delete a branch after merge", (12, "module-3-d2-b2")),
+    ("clone a repo", [(12, "module-4-d2-b1"), (12, "module-4-d3-b1")]),
+    ("see which remote i push to", [(12, "module-4-d1-b1"), (12, "module-4-d3-b1")]),
+    ("download changes without merging", [(12, "module-4-d3-b1"), (12, "module-4-d3-b2")]),
+    ("pull without a merge commit", [(12, "module-4-d3-b1"), (12, "module-4-d3-b3"), (12, "module-4-d3-b5")]),
+    ("push a new branch for the first time", [(12, "module-4-d1-b1"), (12, "module-4-d3-b1")]),
+    ("tag a release", (12, "module-4-d4-b1")),
+    ("who changed this line", [(12, "module-4-d5-b1"), (5, "module-2-d4-b1")]),
+    ("show history as a graph", [(12, "module-3-d2-b1"), (12, "module-3-d4-b1"), (12, "module-3-d4-b2")]),
+    ("show what a commit changed", (12, "module-1-d4-b2")),
+    ("go back to the previous branch", (12, "module-3-d1-b3")),
+]
+
+LAZYGIT = [
+    # Panels, staging, history and sync (m13); keep the prewritten query wording.
+    ("open lazygit", [(13, "module-1-d1-b4"), (5, "module-2-d3-b1")]),
+    ("lazygit keys", (13, "module-1-d3-b1")),
+    ("stage one line in lazygit", (13, "module-2-d2-b3")),
+    ("stage a hunk in lazygit", (13, "module-2-d2-b1")),
+    ("commit in lazygit", (13, "module-2-d1-b1")),
+    ("amend commit lazygit", (13, "module-2-d3-b1")),
+    ("discard changes lazygit", (13, "module-2-d4-b1")),
+    ("create branch in lazygit", (13, "module-3-d1-b1")),
+    ("checkout branch lazygit", (13, "module-3-d1-b3")),
+    ("squash commits in lazygit", (13, "module-3-worked")),
+    ("reword a commit message in lazygit", [(13, "module-2-d3-b3"), (13, "module-3-d2-b3")]),
+    ("drop a commit lazygit", [(13, "module-3-d2-b1"), (13, "module-3-r2")]),
+    ("cherry pick in lazygit", (13, "module-3-d5-b2")),
+    ("stash in lazygit", [(13, "module-4-d1-b2"), (13, "module-4-worked")]),
+    ("undo in lazygit", (13, "module-4-d2-b3")),
+    ("push from lazygit", [(13, "module-4-d4-b2"), (13, "module-4-d4-b9")]),
+    ("resolve conflict in lazygit", (13, "module-4-d3-b3")),
+    ("interactive rebase lazygit", (13, "module-3-d2-b1")),
+    ("switch panels in lazygit", (13, "module-1-d2-b1")),
+    ("open lazygit from neovim", (13, "module-1-d4-b1")),
 ]
 
 CHEAT = [
@@ -265,12 +322,14 @@ CHEAT = [
     ("see which dev tools are missing", ("cheat", "shell", "devh --check")),
 ]
 
-# Reporting groups, mirroring the target mix: find/text, bash, tmux, editing/git/worktrees, fzf helpers, cheat sheet.
+# Reporting groups, mirroring the target mix: find/text, bash, tmux, editing/git/worktrees, git, lazygit, fzf helpers, cheat sheet.
 AREAS = {
     "find-text": FIND_TEXT,
     "bash": BASH,
     "tmux": TMUX,
     "editing-git": EDITING,
+    "git": GIT,
+    "lazygit": LAZYGIT,
     "fzf-helpers": FZF,
     "cheat-sheet": CHEAT,
 }

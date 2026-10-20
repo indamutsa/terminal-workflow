@@ -6,7 +6,7 @@ from content.common import MODULE_META, module_href
 
 TIERS = {
     1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Intermediate", 5: "Advanced", 6: "Advanced", 7: "Expert", 8: "Reference",
-    9: "Beginner → Advanced", 10: "Beginner", 11: "Expert",
+    9: "Beginner → Advanced", 10: "Beginner", 11: "Expert", 12: "Beginner → Intermediate", 13: "Intermediate",
 }
 
 HERO_SUBTITLE = "Find files, search text, write Bash scripts, and work faster in tmux and Neovim."
@@ -15,6 +15,7 @@ HERO_SUBTITLE = "Find files, search text, write Bash scripts, and work faster in
 LEARNING_PATH = [
     ("Learn Bash basics", (10,), "Save values, check conditions, loop over files and read script input."),
     ("Do everyday tasks", (9,), "Find files, search logs and turn text into answers."),
+    ("Save and share your work", (12, 13), "Commit, undo, branch and push with git and LazyGit."),
     ("Set up your workspace", (1, 2, 3), "Keep your work running after you close the terminal. Edit without the mouse."),
     ("Automate your work", (11, 4), "Write scripts that stop on errors. Work on several branches at once."),
     ("Work like an expert", (5, 6, 7), "Jump around code, tune your tools and repeat edits."),
@@ -23,6 +24,7 @@ LEARNING_PATH = [
 GROUP_INTROS = {
     "Linux & Bash": "Find files, search text and write Bash scripts.",
     "tmux & Neovim": "Keep sessions running. Edit without the mouse.",
+    "Git": "Save your work, undo mistakes and share branches.",
 }
 
 START = {

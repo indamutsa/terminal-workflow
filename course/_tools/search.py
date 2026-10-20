@@ -43,6 +43,7 @@ SYNONYMS: list[list[str]] = [
     ["comment", "uncomment"],
     ["indent", "outdent", "unindent"],
     ["branch", "checkout"],
+    ["checkout", "check out"],
     ["stage", "add"],
     ["push", "upload"],
     ["pull", "fetch", "update"],

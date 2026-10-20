@@ -456,6 +456,7 @@ MODULE = {
                         ]),
                         {"type": "cmd", "where": "shell", "title": "Check that your commit is in the log", "code": "git log --oneline -1",
                          "expect": "Your new commit on top of `Add messy.py for reformat/auto-indent drills`."},
+                        {"type": "text", "body": "Stage one line, squash commits, cherry-pick or undo in LazyGit: Module 13 has every key. Module 12 does the same jobs, except squash, with plain git commands."},
                     ],
                 },
                 {

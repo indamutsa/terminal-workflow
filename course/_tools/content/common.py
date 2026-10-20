@@ -12,6 +12,8 @@ MODULE_META = [
     {"n": 9, "folder": "m9-find-text", "title": "Find files, search text and change output", "group": "Linux & Bash"},
     {"n": 10, "folder": "m10-bash-basics", "title": "Write Bash scripts with variables, loops and flags", "group": "Linux & Bash"},
     {"n": 11, "folder": "m11-bash-expert", "title": "Write safer Bash scripts and reuse functions", "group": "Linux & Bash"},
+    {"n": 12, "folder": "m12-git", "title": "Save, undo, branch and sync with git in the terminal", "group": "Git"},
+    {"n": 13, "folder": "m13-lazygit", "title": "Commit, branch and undo with LazyGit", "group": "Git"},
 ]
 
 # (id, label, forms, definition) — shared by every module; a module's own glossary wins on a clash.
