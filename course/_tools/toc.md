@@ -20,6 +20,8 @@ Navigation is generated, not written: `kit.topbar` and `kit.sidebar` (called fro
 | 9 Find and text tools | `m9-find-text` | Find files; Search inside files; Slice, sort and count; Transform | Linux & Bash |
 | 10 Bash basics | `m10-bash-basics` | Variables, quoting and exit codes; Decisions; Loops; Script input | Linux & Bash |
 | 11 Bash expert | `m11-bash-expert` | Functions, strings and arrays; Safe scripts; Redirection, here-docs and process substitution; Ready-made scripts | Linux & Bash |
+| 12 Git in the terminal | `m12-git` | Save my work; Undo a mistake; Work with branches; Sync with GitHub | Git |
+| 13 LazyGit | `m13-lazygit` | Open and find your way; Stage and commit; Branches and history; Stash, undo and sync | Git |
 
 
 ## Schema

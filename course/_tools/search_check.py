@@ -42,7 +42,7 @@ QUERIES = [
     ("copy file path", "Copy a file's path"),
     ("command line history", "q: Open the command-line window"),
     ("command history", "Search your command history"),
-    ("stage file", "Stage or unstage the highlighted file"),
+    ("stage file", ["Stage or unstage the highlighted file", {"key": "Space", "description": "Stage the file"}]),
     ("commit", {"key": "c", "description": "Commit the staged files"}),
     ("push", {"key": "P", "description": "Push commits to the remote"}),
     ("stash", {"key": "s", "description": "Stash all changes (in the files panel)"}),
@@ -54,7 +54,7 @@ QUERIES = [
     ("resize pane", "Resize the pane"),
     ("next buffer", "Next buffer"),
     ("close buffer", ":bd Close the buffer"),
-    ("pull", {"key": "p", "description": "Pull commits from the remote"}),
+    ("pull", [{"key": "p", "description": "Pull commits from the remote"}, {"key": "p", "description": "Pull the current branch"}]),
     ("copy line", "Copy a line"),
     ("switching panes", "Move to the pane on the left"),
     ("fullscreen pane", "Make the pane fill the screen (press again to unzoom)"),
@@ -62,12 +62,12 @@ QUERIES = [
     ("yank file path", "Copy a file's path"),
     ("toggle comment line", "Toggle a comment on this line"),
     ("rename session", "Rename the session"),
-    ("undo last commit", "Undo last commit"),
+    ("undo last commit", ["Undo last commit", {"module": 12, "snippet": "Undo my last commit but keep the changes staged (git reset --soft)"}]),
     ("kill other panes", "Kill other panes"),
     ("accept suggestion", "Accept the suggestion"),
     ("new line in shell", "Start a new line in the shell"),
     ("stash changes", "Stash changes"),
-    ("amend commit", "Add the staged changes to the last commit (amend)"),
+    ("amend commit", ["Add the staged changes to the last commit (amend)", {"module": 12, "snippet": "Fix a typo in my last commit message (git commit --amend)"}]),
     ("copy file content", "Copy file content"),
     ("delete file", "Delete files you pick"),
     ("folder size", "Folder size"),
@@ -239,13 +239,13 @@ for (const [query, key, description] of [
 }
 const results = [...queries.map(([query, expected]) => {
   const result = engine.search(query, "", top);
-  return { query, expected, total: result.total, ok: result.items.some((it) => {
+  return { query, expected, total: result.total, ok: result.items.some((it) => (Array.isArray(expected) ? expected : [expected]).some((expected) => {
     if (typeof expected === "string") return core.norm(it[4] + " " + it[5]).includes(core.norm(expected));
     if (expected.module) return data.files[it[1]].startsWith(`m${expected.module}-`) &&
       core.norm(it[4] + " " + it[5]).includes(core.norm(expected.snippet));
     const [key, description] = it[5].split(/ {2,}/, 2);
     return it[0] === "k" && key === expected.key && description && description.startsWith(expected.description);
-  }),
+  })),
     top: result.items.map((it) => it[4] + " | " + it[5]) };
 }), ...missing.map((query) => ({ query, missing: true, total: engine.search(query).total }))];
 process.stdout.write(JSON.stringify({ results, checks, synonyms: data.syn.length }));

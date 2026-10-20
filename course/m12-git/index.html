@@ -1,0 +1,2172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Save, undo, branch and sync with git in the terminal — Terminal Workflow</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <style>
+/* Terminal Workflow course styles. Base from the SQL course.
+   Fonts are local files so the course runs offline. */
+@font-face{font-family:"Kalam";font-weight:400;font-display:swap;src:url("../_shared/fonts/kalam-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Kalam";font-weight:700;font-display:swap;src:url("../_shared/fonts/kalam-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:400;font-display:swap;src:url("../_shared/fonts/inter-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("../_shared/fonts/inter-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("../_shared/fonts/inter-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:700;font-display:swap;src:url("../_shared/fonts/inter-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:600;font-display:swap;src:url("../_shared/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2")}
+:root {
+  --board: #1c2b24;
+  --alt: #17231d;
+  --raised: #213328;
+  --chalk: #ede6d6;
+  --dim: #9faea3;
+  --gold: #e8c468;
+  --gold-dim: #b99a54;
+  --blue: #7fa8c9;
+  --coral: #e2897d;
+  --mint: #8fc9a8;
+  --line: rgba(237, 230, 214, 0.14);
+  --soft: rgba(237, 230, 214, 0.07);
+  --r: 10px;
+  --display: "Kalam", cursive;
+  --body: "Inter", -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: var(--chalk);
+  background:
+    radial-gradient(
+      ellipse at 10% 0,
+      rgba(127, 168, 201, 0.07),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 100%,
+      rgba(232, 196, 104, 0.06),
+      transparent 48%
+    ),
+    var(--board);
+  font: 15px/1.62 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+a {
+  color: var(--blue);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+::selection {
+  color: var(--board);
+  background: var(--gold);
+}
+main,
+footer,
+.tabbar-inner,
+.group-nav {
+  width: min(780px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.lesson {
+  display: none;
+}
+.lesson.active {
+  display: block;
+  animation: rise 0.35s ease both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+.lesson-header {
+  padding: 46px 0 26px;
+  text-align: center;
+}
+.eyebrow,
+.section-label,
+.label {
+  color: var(--blue);
+  font: 600 11px/1.3 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  color: var(--gold);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.18;
+}
+h1 {
+  margin: 10px 0 8px;
+  font-size: clamp(30px, 6vw, 43px);
+}
+h2 {
+  margin: 4px 0 9px;
+  font-size: 26px;
+}
+h3 {
+  margin: 16px 0 6px;
+  font-size: 20px;
+}
+p {
+  margin: 8px 0;
+}
+.subtitle,
+.section-intro,
+.lede {
+  color: var(--dim);
+}
+.subtitle {
+  max-width: 560px;
+  margin-inline: auto;
+}
+.rule {
+  width: 120px;
+  height: 2px;
+  margin: 24px auto 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--dim) 0 6px,
+    transparent 6px 12px
+  );
+}
+.block {
+  margin-top: 44px;
+}
+.one-idea,
+.word-problem {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--raised);
+}
+.one-idea {
+  text-align: center;
+}
+.one-idea .tag,
+.word-problem .tag {
+  color: var(--gold);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.one-idea > p {
+  margin-top: 12px;
+  font-size: 17px;
+}
+.one-idea em {
+  color: var(--gold);
+  font-style: normal;
+  border-bottom: 2px dashed var(--gold-dim);
+}
+.one-idea .kitchen-links {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.one-idea .kitchen-links li {
+  margin-top: 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+.one-idea .kitchen-links li:first-child {
+  margin-top: 0;
+}
+.one-idea .kitchen-links strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+.one-idea .kitchen-links .kl-nowrap {
+  white-space: nowrap;
+}
+.term-definition {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+  font-size: 13px;
+  text-align: left;
+}
+.term-definition strong,
+.rule-body strong,
+.solution-body strong {
+  color: var(--chalk);
+}
+.explorer {
+  margin-top: 16px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.control label,
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--dim);
+  font: 12px var(--mono);
+}
+output,
+.val {
+  color: var(--gold);
+  font-weight: 600;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+.button-row,
+.arch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.btn,
+.toggle-btn {
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.btn:hover,
+.btn[aria-pressed="true"],
+.toggle-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.stage,
+.arch-stage {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.stage svg,
+.arch-stage svg {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+}
+.wire {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 4;
+}
+.node {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.node.hot {
+  fill: rgba(232, 196, 104, 0.16);
+  stroke: var(--gold);
+}
+.node.off {
+  fill: rgba(226, 137, 125, 0.08);
+  stroke: var(--coral);
+}
+.svg-label {
+  fill: var(--chalk);
+  font: 600 12px var(--mono);
+  text-anchor: middle;
+}
+.svg-small {
+  fill: var(--dim);
+  font: 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-node {
+  opacity: 0.14;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  transform: translateY(4px);
+}
+.arch-node.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.arch-node rect {
+  fill: var(--raised);
+  stroke: var(--blue);
+  stroke-width: 1.5;
+}
+.arch-node.is-current rect {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.arch-node text {
+  fill: var(--chalk);
+  font: 600 10px var(--mono);
+  text-anchor: middle;
+}
+.arch-link {
+  opacity: 0.12;
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.arch-link.is-visible {
+  opacity: 0.85;
+}
+.readout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: var(--board);
+}
+.fact {
+  min-width: 0;
+}
+.fact.wide {
+  grid-column: 1/-1;
+}
+.tiny {
+  display: block;
+  color: var(--dim);
+  font: 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fact p {
+  overflow-wrap: anywhere;
+}
+.rule-card,
+.practice-card {
+  margin-bottom: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--alt);
+}
+.rule-card summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.rule-card summary::-webkit-details-marker,
+.hint summary::-webkit-details-marker,
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+.num,
+.q-num {
+  color: var(--gold-dim);
+  font: 600 12px var(--mono);
+}
+.chevron::after {
+  content: "⌄";
+  color: var(--dim);
+}
+.rule-body {
+  padding: 15px 18px 18px;
+  border-top: 1px solid var(--soft);
+  color: var(--dim);
+}
+.rule-body p:first-child {
+  margin-top: 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid var(--soft);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  text-transform: uppercase;
+}
+code {
+  color: var(--gold);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+.word-problem {
+  margin-top: 14px;
+}
+.worked-steps {
+  padding-left: 22px;
+}
+.worked-steps li + li,
+.solution-steps li + li {
+  margin-top: 7px;
+}
+.result-box,
+.interview-answer {
+  margin-top: 13px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  background: rgba(232, 196, 104, 0.06);
+}
+.review-mistakes li::marker {
+  color: var(--coral);
+}
+.practice-card {
+  position: relative;
+  padding: 16px 18px;
+}
+.q-num {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+}
+.q-kind {
+  color: var(--blue);
+  font: 600 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.q-text {
+  padding-right: 40px;
+}
+.hint,
+.solution {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+}
+.hint summary,
+.solution summary {
+  color: var(--blue);
+  cursor: pointer;
+  font: 600 12px var(--mono);
+  list-style: none;
+}
+.solution summary {
+  color: var(--mint);
+}
+.hint p,
+.solution-body {
+  color: var(--dim);
+  font-size: 13.5px;
+}
+.solution-steps {
+  padding-left: 22px;
+}
+.solution-final {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--mint);
+  background: rgba(143, 201, 168, 0.08);
+}
+.tabbar {
+  margin-top: 52px;
+  padding: 14px 0;
+  border-block: 1px solid var(--line);
+  background: var(--alt);
+}
+.tabbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+}
+.tab,
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px var(--mono);
+}
+.tab.active {
+  color: var(--board);
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.nav-arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.progress-mini {
+  min-width: 94px;
+  color: var(--dim);
+  font: 11px var(--mono);
+  text-align: right;
+}
+.group-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+}
+footer {
+  padding: 35px 0 70px;
+  color: var(--dim);
+  text-align: center;
+}
+.no-js-note {
+  padding: 10px 24px;
+  color: var(--coral);
+  text-align: center;
+}
+@media (max-width: 650px) {
+  main,
+  footer,
+  .tabbar-inner,
+  .group-nav {
+    width: min(100% - 28px, 780px);
+  }
+  .controls,
+  .readout {
+    grid-template-columns: 1fr;
+  }
+  .fact.wide {
+    grid-column: auto;
+  }
+  .stage svg,
+  .arch-stage svg {
+    min-width: 540px;
+  }
+  .explorer {
+    padding: 17px 14px;
+  }
+  .progress-mini {
+    min-width: 73px;
+    font-size: 10px;
+  }
+  .group-nav {
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabs.sq-tabs{justify-content:flex-start}
+    /* contextual glossary v1 */
+.glossary-term {
+  position: relative;
+  display: inline;
+  margin: 0;
+  padding: 0 1px;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 196, 104, 0.72);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='%23E8C468' stroke='%231C2B24' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-family='Arial' font-size='16' font-weight='700' fill='%231C2B24'%3E%3F%3C/text%3E%3C/svg%3E")
+      14 14,
+    help;
+  text-decoration: none;
+  transition:
+    color 0.16s,
+    background 0.16s,
+    border-color 0.16s;
+}
+.glossary-term:hover,
+.glossary-term:focus-visible,
+.glossary-term[aria-expanded="true"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: rgba(232, 196, 104, 0.08);
+  outline: none;
+}
+.glossary-term:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--board),
+    0 0 0 4px var(--gold);
+}
+.glossary-term::after {
+  content: "?";
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--board);
+  font: 700 11px/1 var(--mono);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px) scale(0.72);
+  transition:
+    opacity 0.14s,
+    transform 0.14s;
+}
+.glossary-term:hover::after,
+.glossary-term:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.glossary-popover {
+  --pointer-x: 50%;
+  position: fixed;
+  z-index: 1000;
+  width: min(430px, calc(100vw - 24px));
+  padding: 16px 42px 15px 17px;
+  border: 1px solid rgba(232, 196, 104, 0.48);
+  border-radius: 11px;
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(0, 0, 0, 0.08)
+    ),
+    var(--raised);
+  color: var(--chalk);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(28, 43, 36, 0.85);
+  animation: glossary-arrive 0.16s ease both;
+}
+.glossary-popover[hidden] {
+  display: none;
+}
+.glossary-popover::after {
+  content: "";
+  position: absolute;
+  left: var(--pointer-x);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid rgba(232, 196, 104, 0.48);
+  border-bottom: 1px solid rgba(232, 196, 104, 0.48);
+  background: var(--raised);
+  transform: translateX(-50%) rotate(-45deg);
+}
+.glossary-popover.below::after {
+  top: -6px;
+  bottom: auto;
+  transform: translateX(-50%) rotate(135deg);
+}
+.glossary-popover strong {
+  display: inline;
+  color: var(--gold);
+  font: 600 15px/1.4 var(--body);
+}
+.glossary-popover strong::after {
+  content: " —";
+  color: var(--dim);
+}
+.glossary-popover p {
+  display: inline;
+  margin: 0;
+  color: #c8d0ca;
+  font-size: 14px;
+  line-height: 1.58;
+}
+.glossary-meta {
+  display: block;
+  margin-top: 10px;
+  color: var(--dim);
+  font: 10px/1.4 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.glossary-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font: 18px/1 var(--body);
+}
+.glossary-close:hover,
+.glossary-close:focus-visible {
+  background: rgba(232, 196, 104, 0.1);
+  color: var(--gold);
+}
+@keyframes glossary-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (max-width: 650px) {
+  .glossary-popover {
+    padding: 15px 40px 14px 15px;
+  }
+  .glossary-popover p {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glossary-popover,
+  .glossary-term::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+
+.sq-code{margin:10px 0;padding:12px 14px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#121c17;color:var(--chalk);font:500 13px/1.55 var(--mono);white-space:pre}
+.sq-code code{padding:0;border:0;background:none;color:inherit;font:inherit}
+.sq-code .hl-c{color:var(--dim);font-style:italic}
+.sq-code .hl-s{color:var(--mint)}
+.sq-code .hl-k{color:var(--blue)}
+.sq-code .hl-cmd{color:var(--gold)}
+.sq-code .hl-f{color:var(--gold-dim)}
+.sq-code .hl-n,.sq-code .hl-v{color:var(--coral)}
+.sq-code .hl-fn,.sq-code .hl-ex{color:var(--blue);font-weight:600}
+.rule-body table{display:block;overflow-x:auto;max-width:100%}
+
+/* Terminal Workflow additions */
+.tw-codebox{margin:14px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--alt);overflow:hidden}
+.tw-code-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.tw-where{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.tw-code-title{flex:1;min-width:0;overflow-wrap:anywhere;color:var(--chalk);font-weight:500}
+.tw-copy{min-height:32px;padding:4px 12px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;font:600 12px var(--mono)}
+.tw-copy:hover{background:rgba(232,196,104,.12)}
+.tw-codebox .sq-code{margin:0;border:0;border-radius:0}
+.tw-expect,.tw-try{margin:0;padding:10px 12px;border-top:1px solid var(--line);color:var(--chalk);font-size:14px}
+.tw-expect-label{display:inline-block;margin-right:8px;color:var(--mint);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-try .tw-expect-label{color:var(--gold)}
+.tw-scroll{overflow-x:auto;max-width:100%}
+.tw-keytable{width:100%;border-collapse:collapse}
+.tw-keytable td{padding:7px 12px;border-top:1px solid var(--soft);vertical-align:top}
+.tw-keytable tr:first-child td{border-top:0}
+.tw-keytable td:first-child{white-space:nowrap}
+.tw-key{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--raised);color:var(--chalk);font:500 12.5px var(--mono)}
+.tw-text{margin:12px 0;color:var(--chalk)}
+[id^="module-"]{scroll-margin-top:76px}
+.tw-hit{outline:2px solid var(--gold);outline-offset:4px}
+.tw-search-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-search-btn:hover{border-color:var(--gold)}
+.tw-search-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-search[hidden]{display:none}
+.tw-search{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55)}
+.tw-search-panel{display:flex;flex-direction:column;width:min(680px,calc(100% - 24px));max-height:80vh;margin:8vh auto 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--board)}
+.tw-q{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);font-size:16px}
+.tw-results{flex:1;margin:10px 0 0;padding:0;overflow-y:auto;list-style:none}
+.tw-results [role=option]{padding:8px 10px;border:1px solid transparent;border-radius:8px;cursor:pointer}
+.tw-results [role=option][aria-selected=true]{border-color:var(--gold);background:var(--soft)}
+.tw-results mark{background:rgba(232,196,104,.25);color:inherit}
+.tw-r-meta{overflow:hidden;color:var(--dim);font:11px var(--mono);text-overflow:ellipsis;white-space:nowrap}
+.tw-r-kind{margin-right:8px;color:var(--blue);font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-r-title{font-weight:600}
+.tw-r-text{color:var(--dim);font-size:13px;overflow-wrap:anywhere}
+.tw-search-foot{margin:8px 0 0;color:var(--dim);font:11px var(--mono)}
+@media (max-width:480px){.tw-search-btn kbd{display:none}}
+body.tw-search-open{overflow:hidden}
+
+/* Cheat sheet */
+.tw-cheat-btn{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.tw-cheat-btn:hover{border-color:var(--gold)}
+.tw-cheat-btn kbd{margin-left:6px;padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:inherit}
+.tw-cheat-short{display:none}
+.tw-cheat[hidden]{display:none}
+.tw-cheat{position:fixed;inset:0 0 0 auto;z-index:45;display:flex;flex-direction:column;gap:10px;width:min(440px,100%);padding:12px;border-left:1px solid var(--line);background:var(--board);box-shadow:-12px 0 32px rgba(0,0,0,.35)}
+.tw-cheat-head{display:flex;align-items:center;justify-content:space-between}
+.tw-cheat-title{margin:0;font-size:16px}
+.tw-cheat-close{width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font-size:20px;line-height:1}
+.tw-cheat-close:hover{border-color:var(--gold)}
+.tw-cheat-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tw-cheat-tab{padding:3px 9px;border:1px solid var(--line);border-radius:999px;background:var(--alt);color:var(--dim);cursor:pointer;font:500 12px var(--mono)}
+.tw-cheat-tab:hover{border-color:var(--gold);color:var(--chalk)}
+.tw-cheat-tab[aria-pressed=true]{border-color:var(--gold);background:var(--soft);color:var(--gold)}
+.tw-cheat-body{flex:1;min-height:0;overflow-y:auto}
+.tw-cheat-body .tw-keytable td{padding:6px 8px;font-size:13px}
+.tw-cheat-body .tw-keytable td:first-child{white-space:normal;overflow-wrap:anywhere}
+.tw-cheat-body .tw-key{white-space:pre-wrap;overflow-wrap:anywhere}
+.tw-cheat-group{margin:14px 0 4px;color:var(--mint);font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tw-cheat-empty{color:var(--dim);font-size:13px}
+@media (min-width:1100px){
+  body.tw-cheat-open{padding-right:440px}
+}
+@media (max-width:480px){
+  .tw-cheat-btn kbd,.tw-cheat-long{display:none}
+  .tw-cheat-short{display:inline}
+}
+
+/* Course map: the same palette, with a wider reading and browsing surface. */
+.course-map main,.course-map footer{width:min(1100px,calc(100% - 48px))}
+.course-map h1,.course-map h2{text-wrap:balance}
+.course-map h3{font-family:var(--body);text-wrap:balance}
+.course-map h2{font-size:28px}
+.course-map a{text-underline-offset:4px}
+.cm-hero{padding:64px 0 52px}
+.cm-hero h1{margin:0 0 14px;font-size:clamp(34px,4.2vw,50px);line-height:1.12}
+.cm-hero .subtitle{max-width:none;margin:0;font-size:16px}
+.cm-search{display:flex;cursor:pointer;border:1px solid var(--line);align-items:center;justify-content:space-between;gap:16px;width:min(680px,100%);margin-top:30px;padding:16px 20px;min-height:58px;border-radius:var(--r);background:var(--raised);color:var(--chalk);font:400 16px var(--body);text-align:left}
+.cm-search:hover{border-color:var(--gold)}
+.cm-search kbd{padding:0 5px;border:1px solid var(--line);border-radius:4px;color:var(--gold);font:400 14px var(--mono)}
+.cm-search-hint{margin:10px 0 0;color:var(--dim);font-size:12px}
+.cm-jumps{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px;font-size:13px}
+.cm-jumps a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-jumps a:hover{color:var(--gold)}
+.cm-group{padding:32px 0 12px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-group+.cm-group{margin-top:44px}
+.cm-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:24px}
+.cm-group-head h2{margin:0 0 8px}
+.cm-group-head p{margin:0;color:var(--dim);font-size:14px}
+.cm-group-head>span{flex-shrink:0;color:var(--dim);font-size:12px}
+.cm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cm-card{display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised);transition:border-color .18s}
+.cm-card:hover,.cm-card:focus-within{border-color:var(--gold)}
+.cm-num{color:var(--mint);font-size:12px;font-weight:500}
+.cm-card h3{margin:12px 0 10px;font-size:22px;letter-spacing:-.025em}
+.cm-card h3 a{color:var(--chalk);text-decoration:none}
+.cm-card p{margin:0 0 18px;color:var(--dim);font-size:13px}
+.cm-card ol{margin:0 0 22px;padding-left:20px;font-size:13px}
+.cm-card li+li{margin-top:8px}
+.cm-card ol a{color:var(--chalk);text-decoration-color:var(--line)}
+.cm-card ol a:hover{color:var(--gold)}
+.cm-open{align-self:flex-start;margin-top:auto;color:var(--gold);font-size:12px;font-weight:600;text-decoration:none}
+.cm-learning{display:grid;grid-template-columns:1fr 2fr;gap:48px;margin-top:64px;padding-top:36px;border-top:1px solid var(--line);scroll-margin-top:72px}
+.cm-learning h2{margin-top:0}
+.cm-path{margin:0;padding-left:20px}
+.cm-path li{padding:0 0 22px 8px}
+.cm-path li::marker{color:var(--gold);font:500 13px var(--mono)}
+.cm-path strong{display:block;margin-bottom:4px;font-size:16px}
+.cm-path a{font-size:12px}
+.cm-path p{margin:6px 0 0;color:var(--dim);font-size:13px}
+.cm-reference{font-size:13px;color:var(--dim)}
+.cm-start{max-width:780px;margin-top:48px;padding-top:36px;border-top:1px solid var(--line)}
+@media (min-width:1000px){.cm-group:first-of-type .cm-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:650px){
+  .course-map main,.course-map footer{width:calc(100% - 40px)}
+  .cm-hero{padding:40px 0 36px}
+  .cm-hero .subtitle{font-size:14px}
+  .cm-search{padding:14px;font-size:14px}
+  .cm-search-hint{max-width:32ch}
+  .cm-jumps{gap:12px 20px}
+  .cm-group-head{display:block}
+  .cm-group-head>span{display:block;margin-top:10px}
+  .cm-grid{grid-template-columns:minmax(0,1fr)}
+  .cm-card{padding:22px}
+  .cm-learning{grid-template-columns:minmax(0,1fr);gap:24px}
+}
+.ws-steps em{color:var(--dim);font:600 11px var(--mono);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+.ws-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.ws-pair.ws-one{grid-template-columns:minmax(0,1fr)}
+.ws-label{color:var(--blue);font:600 11px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.ws-pane .sq-code{margin:4px 0 0}
+@media (max-width:640px){.ws-pair{grid-template-columns:minmax(0,1fr)}}
+
+/* Top bar and course menu. Below 1000px (and on the course map) the menu is a slide-in panel. */
+:root{--bar:56px;--side:288px}
+.tw-topbar{position:sticky;top:0;z-index:40;height:var(--bar);border-bottom:1px solid var(--line);background:rgba(23,35,29,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.tw-topbar-in{display:flex;align-items:center;gap:8px;height:100%;padding:0 16px}
+.tw-home{display:inline-flex;flex:0 1 auto;align-items:center;gap:9px;min-width:0;min-height:36px;padding:0 10px 0 8px;border-radius:8px;color:var(--chalk);text-decoration:none;font:700 18px/1 var(--display)}
+.tw-home span{overflow:hidden;padding-top:4px;text-overflow:ellipsis;white-space:nowrap}
+.tw-home svg{flex:none;color:var(--gold)}
+.tw-home:hover{background:var(--soft)}
+.tw-menu-btn{display:none;flex:none;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--alt);color:var(--chalk);cursor:pointer;font:500 13px var(--mono)}
+.js .tw-menu-btn{display:inline-flex}
+.tw-menu-btn:hover,.tw-menu-btn[aria-expanded=true]{border-color:var(--gold)}
+.tw-topbar-end{display:flex;flex:none;align-items:center;gap:8px;margin-left:auto}
+.tw-side{position:fixed;z-index:39;top:var(--bar);bottom:0;left:0;width:min(var(--side),calc(100% - 44px));padding:18px 12px 40px;overflow:hidden auto;overscroll-behavior:contain;border-right:1px solid var(--line);background:var(--alt);box-shadow:12px 0 32px rgba(0,0,0,.35);transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility 0s linear .22s}
+.tw-backdrop{position:fixed;z-index:38;inset:var(--bar) 0 0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s}
+body.tw-side-open{overflow:hidden}
+body.tw-side-open .tw-side{transform:none;visibility:visible;transition-delay:0s}
+body.tw-side-open .tw-backdrop{opacity:1;visibility:visible;transition-delay:0s}
+.tw-side h2{margin:0 0 6px;padding:0 10px;color:var(--gold);font:700 17px/1.3 var(--display)}
+.tw-side-group+.tw-side-group{margin-top:22px}
+.tw-side ul,.tw-side ol{margin:0;padding:0;list-style:none}
+.tw-side :focus-visible{outline-offset:-2px}
+.tw-side-mod summary{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;border-radius:8px;color:var(--chalk);cursor:pointer;font-size:14px;font-weight:500;line-height:1.3;list-style:none}
+.tw-side-mod summary::-webkit-details-marker{display:none}
+.tw-side-mod summary::after{content:"";flex:none;width:7px;height:7px;margin:0 3px 0 auto;border-right:1.5px solid var(--dim);border-bottom:1.5px solid var(--dim);transform:rotate(-45deg);transition:transform .15s}
+.tw-side-mod[open]>summary::after{transform:rotate(45deg)}
+.tw-side-mod summary:hover{background:var(--soft)}
+.tw-side-num{display:grid;flex:none;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;color:var(--mint);font:600 11px var(--mono)}
+.tw-side-mod[data-current]>summary .tw-side-num{border-color:var(--gold);background:var(--gold);color:var(--board)}
+.tw-side .tw-side-pages{margin:2px 0 8px 22px;border-left:1px solid var(--line)}
+.tw-side-pages a{display:block;margin-left:-1px;padding:6px 10px 6px 14px;border-left:2px solid transparent;border-radius:0 6px 6px 0;color:var(--dim);font-size:13px;line-height:1.4;text-decoration:none}
+.tw-side-pages a:hover{background:var(--soft);color:var(--chalk)}
+.tw-side-pages a[aria-current=page]{border-left-color:var(--gold);background:var(--soft);color:var(--gold);font-weight:600}
+.cm-hero .eyebrow{margin-bottom:14px}
+html:not(.js) body:not(.has-side) .tw-side{display:none}
+@media (min-width:1000px){
+  body.has-side .tw-side{width:var(--side);box-shadow:none;transform:none;visibility:visible;transition:none}
+  body.has-side .tw-backdrop,body.has-side .tw-menu-btn{display:none}
+  body.has-side .tw-page{padding-left:var(--side)}
+}
+@media (max-width:999.98px){
+  html:not(.js) body.has-side .tw-side{position:static;width:auto;border:0;border-bottom:1px solid var(--line);box-shadow:none;transform:none;visibility:visible}
+}
+@media (max-width:480px){
+  .tw-topbar-in{gap:6px;padding:0 10px}
+  .tw-topbar-end{gap:6px}
+  .tw-home{gap:7px;padding:0 6px 0 4px;font-size:16px}
+  .tw-menu-label{display:none}
+  .tw-menu-btn,.tw-search-btn,.tw-cheat-btn{padding:6px 8px;font-size:12px}
+}
+@media (max-width:359.98px){.tw-home span{display:none}}
+@media print{
+  .tw-topbar,.tw-side,.tw-backdrop{display:none!important}
+  body.has-side .tw-page{padding-left:0}
+  body.tw-side-open,body.tw-cheat-open{overflow:visible;padding-right:0}
+}
+
+    </style>
+  </head>
+  <body class="has-side" data-root="../" data-file="m12-git/index.html">
+    <header class="tw-topbar"><div class="tw-topbar-in"><a class="tw-home" href="../" aria-label="Terminal Workflow home"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg><span>Terminal Workflow</span></a><button class="tw-menu-btn" type="button" aria-controls="tw-side" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="tw-menu-label">Menu</span></button><div class="tw-topbar-end"><button class="tw-search-btn" type="button" data-tw-search aria-haspopup="dialog" aria-controls="tw-search">Search <kbd>/</kbd></button><button class="tw-cheat-btn" type="button" aria-controls="tw-cheat" aria-expanded="false"><span class="tw-cheat-long">Cheat sheet</span><span class="tw-cheat-short">Cheats</span> <kbd>?</kbd></button></div></div></header>
+    <nav class="tw-side" id="tw-side" aria-label="Course modules"><section class="tw-side-group"><h2>Git</h2><ul><li><details class="tw-side-mod" open data-current><summary><span class="tw-side-num">12</span><span class="tw-side-title">Save, undo, branch and sync with git in the terminal</span></summary><ol class="tw-side-pages"><li><a href="#module-1" data-page="1" aria-current="page">Save my work with git: stage, commit and see what changed</a></li><li><a href="#module-2" data-page="2">Undo a mistake in git: unstage, amend, undo a commit, get it back</a></li><li><a href="#module-3" data-page="3">Create, switch and merge a git branch and fix a merge conflict</a></li><li><a href="#module-4" data-page="4">Push to GitHub, pull changes and fix a rejected git push</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">13</span><span class="tw-side-title">Commit, branch and undo with LazyGit</span></summary><ol class="tw-side-pages"><li><a href="../m13-lazygit/#module-1">Open lazygit and find the files, branches and commits panels</a></li><li><a href="../m13-lazygit/#module-2">Stage files or single lines and commit in lazygit</a></li><li><a href="../m13-lazygit/#module-3">Create a branch, squash commits, rebase and merge in lazygit</a></li><li><a href="../m13-lazygit/#module-4">Stash, undo, push, pull and fix a merge conflict in lazygit</a></li></ol></details></li></ul></section><section class="tw-side-group"><h2>Linux &amp; Bash</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">9</span><span class="tw-side-title">Find files, search text and change output</span></summary><ol class="tw-side-pages"><li><a href="../m9-find-text/#module-1">Find files by name, size or date on your Mac</a></li><li><a href="../m9-find-text/#module-2">Search for a word in every file (rg and grep)</a></li><li><a href="../m9-find-text/#module-3">Get columns, sort lines and count repeated values</a></li><li><a href="../m9-find-text/#module-4">Replace text, total columns and read JSON</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">10</span><span class="tw-side-title">Write Bash scripts with variables, loops and flags</span></summary><ol class="tw-side-pages"><li><a href="../m10-bash-basics/#module-1">Run a bash script, save values and check if a command worked</a></li><li><a href="../m10-bash-basics/#module-2">Check a file, a number or text, then choose what to run</a></li><li><a href="../m10-bash-basics/#module-3">Loop over files, numbers and lines in bash</a></li><li><a href="../m10-bash-basics/#module-4">Make a script read arguments, flags and typed answers</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">11</span><span class="tw-side-title">Write safer Bash scripts and reuse functions</span></summary><ol class="tw-side-pages"><li><a href="../m11-bash-expert/#module-1">Write Bash functions, cut up strings and keep lists in arrays</a></li><li><a href="../m11-bash-expert/#module-2">Make a Bash script stop on errors and clean up after itself</a></li><li><a href="../m11-bash-expert/#module-3">Redirect output, type multi-line text and compare command output</a></li><li><a href="../m11-bash-expert/#module-4">Copy ready-made Bash scripts for backup, rename, retry and confirm</a></li></ol></details></li></ul></section><section class="tw-side-group"><h2>tmux &amp; Neovim</h2><ul><li><details class="tw-side-mod"><summary><span class="tw-side-num">1</span><span class="tw-side-title">Keep your work running with tmux and fzf</span></summary><ol class="tw-side-pages"><li><a href="../m1-tmux/#module-1">Keep your work running after you close the terminal</a></li><li><a href="../m1-tmux/#module-2">Split your terminal into windows and panes</a></li><li><a href="../m1-tmux/#module-3">Copy text, edit the command line fast and find files with fzf</a></li><li><a href="../m1-tmux/#module-4">Change tmux colors and keys, add plugins and restore after a reboot</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">2</span><span class="tw-side-title">Edit files in the terminal with Neovim</span></summary><ol class="tw-side-pages"><li><a href="../m2-nvim-essentials/#module-1">Open, edit, save and quit Neovim</a></li><li><a href="../m2-nvim-essentials/#module-2">Move around a file fast and search in it</a></li><li><a href="../m2-nvim-essentials/#module-3">Delete, copy, paste, comment and undo in Neovim</a></li><li><a href="../m2-nvim-essentials/#module-4">Work on several files, terminals and splits in Neovim</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">3</span><span class="tw-side-title">Change, copy and replace text fast in Neovim</span></summary><ol class="tw-side-pages"><li><a href="../m3-power-editing/#module-1">Delete, change and copy text with a few keys in Neovim</a></li><li><a href="../m3-power-editing/#module-2">Change many lines at once: select, record a macro, replace</a></li><li><a href="../m3-power-editing/#module-3">Fix indentation, copy with registers, bookmark places, edit many files</a></li><li><a href="../m3-power-editing/#module-4">Change every copy of a word or rename a variable (Cmd+D in Neovim)</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">4</span><span class="tw-side-title">Work on several branches at once (worktrees)</span></summary><ol class="tw-side-pages"><li><a href="../m4-worktrees/#module-1">Work on several branches at once without stashing</a></li><li><a href="../m4-worktrees/#module-2">Open each branch in its own tmux window</a></li><li><a href="../m4-worktrees/#module-3">Run an AI coding agent and your editor on the same branch</a></li><li><a href="../m4-worktrees/#module-4">Test, ship and clean up a feature branch</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">5</span><span class="tw-side-title">Jump around code and use git in Neovim</span></summary><ol class="tw-side-pages"><li><a href="../m5-lsp-git/#module-1">Jump to where a function is defined and find its uses</a></li><li><a href="../m5-lsp-git/#module-2">Stage, commit and review git changes in Neovim</a></li><li><a href="../m5-lsp-git/#module-3">Rename, replace and search across the whole project</a></li><li><a href="../m5-lsp-git/#module-4">Run a test, read why it failed and debug it</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">6</span><span class="tw-side-title">Use Neovim plugins and find any key</span></summary><ol class="tw-side-pages"><li><a href="../m6-plugins-keymaps/#module-1">Jump around a file, switch files and select code fast</a></li><li><a href="../m6-plugins-keymaps/#module-2">Restore your session, paste an old yank and find any key</a></li><li><a href="../m6-plugins-keymaps/#module-3">Comment, jump, scroll and fold with the g, [ ] and z keys</a></li><li><a href="../m6-plugins-keymaps/#module-4">Split windows, use the Space menu and run colon commands</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">7</span><span class="tw-side-title">Edit faster in Neovim: repeat, macros, undo</span></summary><ol class="tw-side-pages"><li><a href="../m7-expert/#module-1">Repeat an edit on every match in Neovim</a></li><li><a href="../m7-expert/#module-2">Repeat edits with macros and registers</a></li><li><a href="../m7-expert/#module-3">Change every match in a project: quickfix, marks and :g</a></li><li><a href="../m7-expert/#module-4">Edit many files, columns and lines, and go back in time</a></li></ol></details></li><li><details class="tw-side-mod"><summary><span class="tw-side-num">8</span><span class="tw-side-title">VS Code shortcuts in Neovim (Cmd+P and more)</span></summary><ol class="tw-side-pages"><li><a href="../m8-from-vscode/#module-1">Cmd+P, F12 and other VS Code shortcuts in Neovim</a></li><li><a href="../m8-from-vscode/#module-2">Turn on zen mode, zoom a window and wrap lines in Neovim</a></li><li><a href="../m8-from-vscode/#module-3">Sort lines, compare files and copy a path in Neovim</a></li></ol></details></li></ul></section></nav><div class="tw-backdrop" id="tw-backdrop"></div>
+    <div class="tw-search" id="tw-search" role="dialog" aria-modal="true" aria-label="Search the course" hidden><div class="tw-search-panel"><input id="tw-q" class="tw-q" type="search" role="combobox" aria-expanded="false" aria-controls="tw-results" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search commands, keys and pages" /><ul id="tw-results" class="tw-results" role="listbox" aria-label="Results"></ul><p class="tw-search-foot">↑↓ move · Enter open · Esc close</p></div></div>
+    <aside id="tw-cheat" class="tw-cheat" hidden aria-label="Cheat sheet"><header class="tw-cheat-head"><h2 class="tw-cheat-title">Cheat sheet</h2><button class="tw-cheat-close" type="button" aria-label="Close cheat sheet">×</button></header><input id="tw-cheat-q" class="tw-q" type="search" autocomplete="off" spellcheck="false" aria-label="Filter the cheat sheet" placeholder="Filter keys and actions" /><div id="tw-cheat-tabs" class="tw-cheat-tabs" role="group" aria-label="Sheets"></div><div id="tw-cheat-body" class="tw-cheat-body"></div></aside>
+    <div class="tw-page">
+    <main id="lessonRoot">
+<section class="lesson sq-page active" id="module-1" data-module="1" role="tabpanel" aria-labelledby="tab-1" aria-hidden="false"><header class="lesson-header"><div class="eyebrow">Save, undo, branch and sync with git in the terminal · Page 1 of 4</div><h1>Save my work with git: stage, commit and see what changed</h1><p class="subtitle">Save my work, see what changed before I commit, commit only part of a file, look at my history</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Save a snapshot of your project: look at what changed, choose the changes, commit them with a message.</p><ul class="kitchen-links"><li><strong>See what changed <span class="kl-nowrap">→ git status.</span></strong> Add -s for one short line per file.</li><li><strong>Choose what to save <span class="kl-nowrap">→ git add file.</span></strong> Add -p to pick single changes inside a file.</li><li><strong>Save a snapshot <span class="kl-nowrap">→ git commit -m &quot;message&quot;.</span></strong> Every commit gets a short hash.</li><li><strong>Look at my history <span class="kl-nowrap">→ git log --oneline.</span></strong> Add --graph to see branches.</li></ul></div></div><div class="block"><figure class="tw-codebox tw-cmd" id="module-1-setup"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get the practice files</span><button class="tw-copy" type="button" aria-label="Copy: Get the practice files">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> ~/tw &amp;&amp; <span class="hl-cmd">cd</span> ~/tw &amp;&amp; <span class="hl-cmd">curl</span> <span class="hl-f">-fsSO</span> https://nvim-workflow.vercel.app/practice/orders.py <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/notes.md <span class="hl-f">-O</span> https://nvim-workflow.vercel.app/practice/todo.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>ls</code> shows orders.py, notes.md, todo.txt.</p></figure></div><div class="block" id="module-1-problem"><div class="word-problem"><span class="tag">The problem</span><p>How do I save my work with git? You edit files all day, and you cannot tell which edits are saved, which are only chosen and which are still loose.</p><div class="result-box"><strong>The fix:</strong> Run <code>git status</code> to see it, <code>git add</code> to choose, <code>git commit</code> to save. Each commit is a snapshot you can come back to.</div></div></div><section class="block" id="module-1-d1"><div class="section-label">Type it</div><h2>Start a git repository and make my first commits</h2><p class="section-intro">Build a small practice repo in <code>/tmp/tw-git/shop</code>. Every block on the four pages runs there, in order. Git needs a name and email on each commit: this block sets them for this repo only.</p><figure class="tw-codebox tw-cmd" id="module-1-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create a git repository with three commits to practice on</span><button class="tw-copy" type="button" aria-label="Copy: Create a git repository with three commits to practice on">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">mkdir</span> <span class="hl-f">-p</span> /tmp/tw-git/shop &amp;&amp; <span class="hl-cmd">cd</span> /tmp/tw-git/shop
+<span class="hl-cmd">git</span> init <span class="hl-f">-b</span> main
+<span class="hl-cmd">git</span> config user.name <span class="hl-s">&quot;Sam Park&quot;</span>
+<span class="hl-cmd">git</span> config user.email <span class="hl-s">&quot;sam@example.com&quot;</span>
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;A1 pen 2.50\nA2 book 4.00\nA3 tape 1.25\n&#x27;</span> &gt; orders.txt
+<span class="hl-cmd">printf</span> <span class="hl-s">&#x27;# Shop\n\nOrders for the pen shop.\n&#x27;</span> &gt; README.md
+<span class="hl-cmd">git</span> add orders.txt README.md
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Add orders and readme&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A4 ink 6.00&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add order A4&quot;</span>
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;ship same day before noon&#x27;</span> &gt; notes.txt
+<span class="hl-cmd">git</span> add notes.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Add shipping notes&quot;</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git init</code> prints <code>Initialized empty Git repository in /tmp/tw-git/shop/.git/</code> (macOS shows <code>/private/tmp/tw-git/shop/.git/</code>). Each commit prints a line like <code>[main 1fbfbcc] Add order A4</code>, and the first one also says <code>(root-commit)</code>. The last command lists three commits, newest first: <code>Add shipping notes</code>, <code>Add order A4</code>, <code>Add orders and readme</code>, each after a 7-character hash. Your hashes differ.</p></figure><p class="tw-text">To start over, delete the folder with <code>rm -rf /tmp/tw-git</code> and run the block again. Git says &quot;Please tell me who you are&quot; when no name is set. Set one for every repo with <code>git config --global user.name &quot;Your Name&quot;</code> and <code>git config --global user.email &quot;you@example.com&quot;</code>.</p></section><section class="block" id="module-1-d2"><div class="section-label">Type it</div><h2>See what I changed before I commit (git status, git diff)</h2><p class="section-intro">Look first, then save. <code>git status</code> lists the files. <code>git diff</code> shows the lines.</p><figure class="tw-codebox tw-cmd" id="module-1-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">See which files I changed (git status)</span><button class="tw-copy" type="button" aria-label="Copy: See which files I changed (git status)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A5 glue 3.00&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;draft&#x27;</span> &gt; todo.txt
+<span class="hl-cmd">git</span> status
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git status</code> prints <code>On branch main</code>, then <code>Changes not staged for commit:</code> with <code>modified:   orders.txt</code>, then <code>Untracked files:</code> with <code>todo.txt</code>. <code>git status -s</code> shrinks that to two lines: <code> M orders.txt</code> and <code>?? todo.txt</code>. The space before the <code>M</code> means edited but not staged.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">See what I changed (git diff)</span><button class="tw-copy" type="button" aria-label="Copy: See what I changed (git diff)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> diff</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A header (<code>diff --git a/orders.txt b/orders.txt</code>), then the changed place with a few lines around it. <code>+A5 glue 3.00</code> is the new line; a removed line would start with <code>-</code>. <code>todo.txt</code> is missing because git does not track it yet.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">See what my next commit will save (git diff --staged)</span><button class="tw-copy" type="button" aria-label="Copy: See what my next commit will save (git diff --staged)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> add orders.txt
+<span class="hl-cmd">git</span> diff
+<span class="hl-cmd">git</span> diff <span class="hl-f">--staged</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git diff</code> prints nothing, because the edit is staged now. <code>git diff --staged</code> prints the same <code>+A5 glue 3.00</code> change.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d2-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Discard changes in a file (git restore)</span><button class="tw-copy" type="button" aria-label="Copy: Discard changes in a file (git restore)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;oops&#x27;</span> &gt;&gt; notes.txt
+<span class="hl-cmd">git</span> diff <span class="hl-f">--stat</span>
+<span class="hl-cmd">git</span> restore notes.txt
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git diff --stat</code> prints <code> notes.txt | 1 +</code>. After <code>git restore notes.txt</code>, <code>git status -s</code> lists <code>M  orders.txt</code> (staged, so the <code>M</code> comes first) and <code>?? todo.txt</code>. <code>notes.txt</code> is gone from the list.</p></figure><p class="tw-text"><code>git restore file</code> cannot be undone: the edit was never committed, so git has no copy of it.</p></section><section class="block" id="module-1-d3"><div class="section-label">Type it</div><h2>Commit my changes with a message (git commit)</h2><p class="section-intro">Commit what is staged. Write the message as what the commit does: &quot;Add order A5&quot;, not &quot;changes&quot;.</p><figure class="tw-codebox tw-cmd" id="module-1-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Save my staged changes as a commit (git commit -m)</span><button class="tw-copy" type="button" aria-label="Copy: Save my staged changes as a commit (git commit -m)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Add order A5&quot;</span>
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A line like <code>[main f12d620] Add order A5</code>, then <code>1 file changed, 1 insertion(+)</code>. <code>git status -s</code> now lists only <code>?? todo.txt</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Stop git showing a file I never want to commit (.gitignore)</span><button class="tw-copy" type="button" aria-label="Copy: Stop git showing a file I never want to commit (.gitignore)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">printf</span> <span class="hl-s">&#x27;todo.txt\n*.log\n&#x27;</span> &gt; .gitignore
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;x&#x27;</span> &gt; debug.log
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span>
+<span class="hl-cmd">git</span> add .gitignore
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Ignore todo and log files&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git status -s</code> shows <code>?? .gitignore</code> and no <code>todo.txt</code> or <code>debug.log</code>: git hides both. The commit prints <code>create mode 100644 .gitignore</code>.</p></figure><p class="tw-text">To save every edit to files git already tracks in one step, use <code>git commit -am &quot;message&quot;</code>. It skips new files, so run <code>git add</code> for those first.</p><figure class="tw-codebox tw-cmd" id="module-1-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Commit only part of a file (git add -p)</span><button class="tw-copy" type="button" aria-label="Copy: Commit only part of a file (git add -p)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">printf</span> <span class="hl-s">&#x27;pen 2.50\nbook 4.00\nglue 3.00\nink 6.00\ntape 1.25\nruler 1.00\nstamp 0.60\nclip 0.10\nfolder 0.90\nstaple 0.30\n&#x27;</span> &gt; prices.txt
+<span class="hl-cmd">git</span> add prices.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Add prices&quot;</span>
+<span class="hl-cmd">sed</span> <span class="hl-s">&#x27;s/^pen 2.50/pen 2.75/; s/^staple 0.30/staple 0.35/&#x27;</span> prices.txt &gt; prices.new &amp;&amp; <span class="hl-cmd">mv</span> prices.new prices.txt
+<span class="hl-cmd">git</span> add <span class="hl-f">-p</span>
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Raise pen price&quot;</span>
+<span class="hl-cmd">git</span> diff</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first commit adds the ten price lines. <code>git add -p</code> then shows two changes and asks <code>Stage this hunk [y,n,q,a,d,...]?</code> for each: <code>(1/2)</code> is the <code>pen 2.50</code> to <code>pen 2.75</code> change and <code>(2/2)</code> is the <code>staple</code> change. Type <code>y</code> for the first and <code>n</code> for the second. The commit prints <code>1 file changed, 1 insertion(+), 1 deletion(-)</code>, and the last <code>git diff</code> still shows the left-over change: <code>-staple 0.30</code> and <code>+staple 0.35</code>.</p></figure><p class="tw-text"><code>git add -p</code> shows one change at a time and asks what to do. Press <code>y</code> to stage it, <code>n</code> to skip it, <code>s</code> to split a big change, <code>q</code> to stop. Git asks about each change in turn, so the second change here gets its answer too.</p></section><section class="block" id="module-1-d4"><div class="section-label">Type it</div><h2>Look at my history (git log, git show)</h2><p class="section-intro">Read the commits you made. Git opens long output in a pager: press <code>q</code> to leave it.</p><figure class="tw-codebox tw-cmd" id="module-1-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">See my commit history, one line per commit (git log --oneline)</span><button class="tw-copy" type="button" aria-label="Copy: See my commit history, one line per commit (git log --oneline)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-3</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Seven lines, newest first, from <code>Raise pen price</code> down to <code>Add orders and readme</code>, each after a 7-character hash. The second command prints only the top three.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Show what a commit changed (git show)</span><button class="tw-copy" type="button" aria-label="Copy: Show what a commit changed (git show)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> show <span class="hl-f">--stat</span>
+<span class="hl-cmd">git</span> show HEAD~1 <span class="hl-f">--oneline</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git show --stat</code> prints <code>commit</code> and the full hash, <code>Author: Sam Park &lt;sam@example.com&gt;</code>, a date, the message <code>Raise pen price</code>, and <code>prices.txt | 2 +-</code>. The second command prints one line for the earlier commit, like <code>b992ef6 Add prices</code>, then the whole file as lines starting with <code>+</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-1-d4-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find the commits that changed one file</span><button class="tw-copy" type="button" aria-label="Copy: Find the commits that changed one file">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> -- orders.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Three lines: <code>Add order A5</code>, <code>Add order A4</code> and <code>Add orders and readme</code>. The other commits did not touch <code>orders.txt</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Which git command shows what, and where my changes live</h2><details class="rule-card" id="module-1-r1" name="rules-1" open><summary><span><span class="num">01</span>See changes, staged changes and history</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Pick the command by what you want to see.</p><table><thead><tr><th>Command</th><th>Shows</th></tr></thead><tbody><tr><td><code>git status</code></td><td>Which files changed, and which are staged</td></tr><tr><td><code>git diff</code></td><td>Edits you have not staged yet</td></tr><tr><td><code>git diff --staged</code></td><td>What your next commit will save</td></tr><tr><td><code>git log --oneline</code></td><td>One line per commit, newest first</td></tr><tr><td><code>git show</code></td><td>The latest commit with its changes</td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r2" name="rules-1"><summary><span><span class="num">02</span>Move a change from edited to staged to committed</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">A change goes through three places.</p><table><thead><tr><th>Place</th><th>How it gets there</th></tr></thead><tbody><tr><td>Edited</td><td>Change a file in your editor</td></tr><tr><td>Staged</td><td><code>git add file</code></td></tr><tr><td>Committed</td><td><code>git commit -m &quot;message&quot;</code></td></tr><tr><td>Back to the staged version</td><td><code>git restore file</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-1-r3" name="rules-1"><summary><span><span class="num">03</span>Skip files git should never save</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">List the names in a <code>.gitignore</code> file, one per line.</p><table><thead><tr><th>Line</th><th>Skips</th></tr></thead><tbody><tr><td><code>todo.txt</code></td><td>That one file</td></tr><tr><td><code>*.log</code></td><td>Every file ending in .log</td></tr></tbody></table></div></details></section><section class="block" id="module-1-worked"><div class="section-label">Worked application</div><h2>Save one edit with a clear message</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">Add a new order to <code>orders.txt</code> and save it as its own commit.</p><figure class="tw-codebox tw-cmd" id="module-1-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw-git/shop</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>echo &#x27;A5 glue 3.00&#x27; &gt;&gt; orders.txt</code></span> · <span>Edit the file.</span></li><li><span><em>Keys:</em> <code>git status -s</code></span> · <span>Check what changed.</span></li><li><span><em>Keys:</em> <code>git add orders.txt</code></span> · <span>Choose the file.</span></li><li><span><em>Keys:</em> <code>git commit -m &quot;Add order A5&quot;</code></span> · <span>Save it.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code> M orders.txt
+[main f12d620] Add order A5
+ 1 file changed, 1 insertion(+)</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> Status, add, commit: three looks and one save. The hash differs on your machine.</div></div></section><section class="block" id="module-1-practice"><div class="section-label">Your turn</div><h2>Check your answers: status, diff, add and commit</h2><div class="practice-card" id="module-1-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>git diff</code> print nothing after I run <code>git add orders.txt</code>?</p><details class="hint"><summary>hint</summary><p>Which two places does git compare?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>git diff</code> compares your files with the staging area.</li><li>After <code>git add</code>, the staging area holds the same text.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git diff --staged</code> shows what the next commit will save.</div></div></details></div><div class="practice-card" id="module-1-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">How do I save my staged changes with the message &quot;Add order A5&quot;?</p><details class="hint"><summary>hint</summary><p>One command, one flag.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Type <code>git commit</code>.</li><li>Add <code>-m</code> and the message in quotes.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git commit -m &quot;Add order A5&quot;</code>.</div></div></details></div><div class="practice-card" id="module-1-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">How do I commit the price change on line 1 of <code>prices.txt</code> and leave the one on line 10 for later?</p><details class="hint"><summary>hint</summary><p>Pick changes one by one.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>git add -p prices.txt</code>.</li><li>Press <code>y</code> for the first change and <code>n</code> for the second.</li><li>Run <code>git commit -m &quot;Raise pen price&quot;</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git add -p</code>, then <code>y</code>, <code>n</code>, then <code>git commit</code>.</div></div></details></div><div class="practice-card" id="module-1-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Why is <code>todo.txt</code> still in my <code>git status</code> after I added it to <code>.gitignore</code>?</p><details class="hint"><summary>hint</summary><p>Is the file tracked already?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>.gitignore</code> only hides files git does not track yet.</li><li>If the file was committed before, git keeps tracking it.</li></ol><div class="solution-final"><strong>Final answer:</strong> Stop tracking it with <code>git rm --cached todo.txt</code>, then commit.</div></div></details></div></section></section><section class="lesson sq-page" id="module-2" data-module="2" role="tabpanel" aria-labelledby="tab-2" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Save, undo, branch and sync with git in the terminal · Page 2 of 4</div><h1>Undo a mistake in git: unstage, amend, undo a commit, get it back</h1><p class="subtitle">Unstage a file, fix my last commit message, undo my last commit, get back a lost commit, put changes aside with stash</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Pick the undo by what went wrong. Soft and mixed reset keep your edits. Plain restore and hard reset overwrite them.</p><ul class="kitchen-links"><li><strong>Unstage a file <span class="kl-nowrap">→ git restore --staged file.</span></strong> The edit stays in the file.</li><li><strong>Fix my last commit <span class="kl-nowrap">→ git commit --amend.</span></strong> Add -m to change the message.</li><li><strong>Undo my last commit <span class="kl-nowrap">→ git reset --soft HEAD~1.</span></strong> The changes stay staged.</li><li><strong>Get a lost commit back <span class="kl-nowrap">→ git reflog.</span></strong> Find its hash, then make a branch there.</li></ul></div></div><div class="block" id="module-2-problem"><div class="word-problem"><span class="tag">The problem</span><p>How do I undo a git mistake? You staged the wrong file, typed a message wrong or committed too early. Each mistake has its own fix, and the wrong one loses work.</p><div class="result-box"><strong>The fix:</strong> Match the mistake to the command in the rules below. <code>git restore --staged</code>, soft reset and mixed reset keep your working files. Plain restore overwrites unstaged edits. Reflog entries expire after 90 days by default, or 30 days for unreachable entries. Your config can shorten these times.</div></div></div><section class="block" id="module-2-d1"><div class="section-label">Type it</div><h2>Unstage a file or get an old version back (git restore)</h2><p class="section-intro"><code>git restore</code> has two jobs: take a file off the staging area, or bring back an older copy of it.</p><figure class="tw-codebox tw-cmd" id="module-2-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Commit every edit to files git already tracks (git commit -am)</span><button class="tw-copy" type="button" aria-label="Copy: Commit every edit to files git already tracks (git commit -am)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Raise staple price&quot;</span>
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>[main b002589] Raise staple price</code> and <code>1 file changed, 1 insertion(+), 1 deletion(-)</code>. <code>git status -s</code> prints nothing: the folder is clean again.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Unstage a file but keep my edits (git restore --staged)</span><button class="tw-copy" type="button" aria-label="Copy: Unstage a file but keep my edits (git restore --staged)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;call the carrier&#x27;</span> &gt;&gt; notes.txt
+<span class="hl-cmd">git</span> add notes.txt
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span>
+<span class="hl-cmd">git</span> restore <span class="hl-f">--staged</span> notes.txt
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span>
+<span class="hl-cmd">git</span> restore notes.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first <code>git status -s</code> shows <code>M  notes.txt</code> (staged). After <code>git restore --staged notes.txt</code> it shows <code> M notes.txt</code>: still edited, no longer staged. The last command throws the edit away.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get an old version of a file back (git restore --source)</span><button class="tw-copy" type="button" aria-label="Copy: Get an old version of a file back (git restore --source)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> show HEAD~5:orders.txt
+<span class="hl-cmd">git</span> restore --source=HEAD~5 orders.txt
+<span class="hl-cmd">git</span> diff <span class="hl-f">--stat</span>
+<span class="hl-cmd">git</span> restore orders.txt
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git show HEAD~5:orders.txt</code> prints the file as it was five commits ago: <code>A1</code> to <code>A4</code> and no <code>A5</code>. <code>git restore --source=HEAD~5 orders.txt</code> writes that copy into your folder, and <code>git diff --stat</code> shows <code> orders.txt | 1 -</code>. The last <code>git restore orders.txt</code> puts the current version back, and <code>git status -s</code> prints nothing.</p></figure></section><section class="block" id="module-2-d2"><div class="section-label">Type it</div><h2>Fix my last commit: message or forgotten change (git commit --amend)</h2><p class="section-intro">Amend replaces the last commit with a new one. Use it before you push, never after: a pushed commit is shared.</p><figure class="tw-codebox tw-cmd" id="module-2-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Fix a typo in my last commit message (git commit --amend)</span><button class="tw-copy" type="button" aria-label="Copy: Fix a typo in my last commit message (git commit --amend)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A6 stamps 0.60&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add oder A6&quot;</span>
+<span class="hl-cmd">git</span> commit <span class="hl-f">--amend</span> <span class="hl-f">-m</span> <span class="hl-s">&quot;Add order A6&quot;</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-2</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first commit is <code>Add oder A6</code>. The amend prints <code>[main b3467eb] Add order A6</code> with a new hash. <code>git log --oneline -2</code> shows <code>Add order A6</code> on top of <code>Raise staple price</code>: the typo commit is gone.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Add a forgotten change to my last commit</span><button class="tw-copy" type="button" aria-label="Copy: Add a forgotten change to my last commit">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A7 clips 0.10&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-a</span> <span class="hl-f">--amend</span> <span class="hl-f">--no-edit</span>
+<span class="hl-cmd">git</span> show <span class="hl-f">--stat</span> <span class="hl-f">--oneline</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The amend prints the same message with a new hash and <code>1 file changed, 2 insertions(+)</code>: both orders are in one commit. <code>git show --stat --oneline</code> prints the hash and <code>Add order A6</code>, then <code> orders.txt | 2 ++</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d2-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Add a forgotten file to my last commit</span><button class="tw-copy" type="button" aria-label="Copy: Add a forgotten file to my last commit">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;Pack orders before noon.&#x27;</span> &gt; packing.txt
+<span class="hl-cmd">git</span> add packing.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">--amend</span> <span class="hl-f">--no-edit</span>
+<span class="hl-cmd">git</span> show <span class="hl-f">--stat</span> <span class="hl-f">--oneline</span>
+<span class="hl-cmd">git</span> restore --source=HEAD~1 <span class="hl-f">--staged</span> <span class="hl-f">--worktree</span> packing.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">--amend</span> <span class="hl-f">--no-edit</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git add packing.txt</code> stages the new file. The amend prints <code>[main &lt;hash&gt;] Add order A6</code>, <code>2 files changed, 3 insertions(+)</code> and <code>create mode 100644 packing.txt</code>. <code>git show --stat --oneline</code> shows a 7-character hash and the same message, then <code>orders.txt | 2 ++</code> and <code>packing.txt | 1 +</code> (spacing may differ). Your hash differs. The last two commands remove only the practice file from the commit so the next drill starts with just the two orders again: the final amend prints <code>1 file changed, 2 insertions(+)</code>.</p></figure></section><section class="block" id="module-2-d3"><div class="section-label">Type it</div><h2>Undo my last commit and keep my changes (git reset)</h2><p class="section-intro"><code>git reset HEAD~1</code> moves the branch back one commit. The flag decides what happens to your changes. Each block here makes the commit again, so you can repeat them.</p><figure class="tw-codebox tw-keys" id="module-2-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Undo my last commit, keep or delete the changes</span><button class="tw-copy" type="button" aria-label="Copy: Undo my last commit, keep or delete the changes">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">git reset --soft HEAD~1</kbd></td><td>Undo my last commit and keep the changes staged</td></tr><tr><td><kbd class="tw-key">git reset HEAD~1</kbd></td><td>Undo my last commit and keep the changes unstaged</td></tr><tr><td><kbd class="tw-key">git reset --hard HEAD~1</kbd></td><td>Undo my last commit and delete its changes</td></tr><tr><td><kbd class="tw-key">git revert HEAD</kbd></td><td>Undo a commit by adding a new commit that reverses it</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>git reset --soft HEAD~1  Undo my last commit and keep the changes staged
+git reset HEAD~1  Undo my last commit and keep the changes unstaged
+git reset --hard HEAD~1  Undo my last commit and delete its changes
+git revert HEAD  Undo a commit by adding a new commit that reverses it</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Undo my last commit but keep the changes staged (git reset --soft)</span><button class="tw-copy" type="button" aria-label="Copy: Undo my last commit but keep the changes staged (git reset --soft)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> reset <span class="hl-f">--soft</span> HEAD~1
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span>
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Add orders A6 and A7&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git status -s</code> prints <code>M  orders.txt</code>: the changes are staged. The new commit prints <code>[main 46a127d] Add orders A6 and A7</code> and <code>1 file changed, 2 insertions(+)</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Undo my last commit and unstage the changes (git reset)</span><button class="tw-copy" type="button" aria-label="Copy: Undo my last commit and unstage the changes (git reset)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> reset HEAD~1
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span>
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add orders A6 and A7&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git reset HEAD~1</code> prints <code>Unstaged changes after reset:</code> and then <code>M</code> and <code>orders.txt</code> on one line. <code>git status -s</code> prints <code> M orders.txt</code>: edited, not staged. <code>-am</code> stages and commits it again.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Throw away my last commit and its changes (git reset --hard)</span><button class="tw-copy" type="button" aria-label="Copy: Throw away my last commit and its changes (git reset --hard)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-c"># Warning: this overwrites staged and unstaged tracked edits and may overwrite untracked files in the way; reflog cannot recover edits git never saved.</span>
+<span class="hl-cmd">git</span> reset <span class="hl-f">--hard</span> HEAD~1
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-1</span>
+<span class="hl-cmd">tail</span> <span class="hl-n">-2</span> orders.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>HEAD is now at b002589 Raise staple price</code>. <code>git log --oneline -1</code> agrees. <code>tail -2 orders.txt</code> ends at <code>A5 glue 3.00</code>: the A6 and A7 lines are gone.</p></figure></section><section class="block" id="module-2-d4"><div class="section-label">Type it</div><h2>Get back a lost commit or undo a shared one (git reflog, git revert)</h2><p class="section-intro">A commit you reset away is not gone. <code>git reflog</code> lists every place HEAD has been. A commit that others already have needs <code>git revert</code>, which adds a new commit instead of rewriting history.</p><figure class="tw-codebox tw-cmd" id="module-2-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get back a commit I reset by mistake (git reflog)</span><button class="tw-copy" type="button" aria-label="Copy: Get back a commit I reset by mistake (git reflog)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-c"># Warning: this overwrites staged and unstaged tracked edits and may overwrite untracked files in the way; reflog cannot recover edits git never saved.</span>
+<span class="hl-cmd">git</span> reflog <span class="hl-n">-4</span>
+<span class="hl-cmd">git</span> reset <span class="hl-f">--hard</span> <span class="hl-s">&#x27;HEAD@{1}&#x27;</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-1</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git reflog -4</code> lists newest first. Each line starts with a hash and a reflog index: <code>HEAD@{0}</code>, <code>HEAD@{1}</code>, <code>HEAD@{2}</code>, <code>HEAD@{3}</code>. The top line reads <code>reset: moving to HEAD~1</code> and the one below it <code>commit: Add orders A6 and A7</code>. Resetting to <code>HEAD@{1}</code> prints <code>HEAD is now at</code> and that commit, and <code>git log --oneline -1</code> shows <code>Add orders A6 and A7</code> again.</p></figure><figure class="tw-codebox tw-cmd" id="module-2-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Revert a commit I already pushed (git revert)</span><button class="tw-copy" type="button" aria-label="Copy: Revert a commit I already pushed (git revert)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> revert <span class="hl-f">--no-edit</span> HEAD
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-3</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> A new commit named <code>Revert &quot;Add orders A6 and A7&quot;</code> with <code>1 file changed, 2 deletions(-)</code>. <code>git log --oneline -3</code> shows it on top, with the original commit still below it.</p></figure></section><section class="block" id="module-2-d5"><div class="section-label">Type it</div><h2>Save my changes for later without committing (git stash)</h2><p class="section-intro">Stash clears your edits so you can switch tasks. Bring them back when you are ready.</p><figure class="tw-codebox tw-cmd" id="module-2-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Put my changes aside and bring them back (git stash)</span><button class="tw-copy" type="button" aria-label="Copy: Put my changes aside and bring them back (git stash)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A8 rubber 0.40&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">git</span> stash push <span class="hl-f">-m</span> <span class="hl-s">&quot;half-done A8&quot;</span>
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span>
+<span class="hl-cmd">git</span> stash list
+<span class="hl-cmd">git</span> stash pop
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add order A8&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Saved working directory and index state On main: half-done A8</code>. <code>git status -s</code> prints nothing and <code>git stash list</code> prints <code>stash@{0}: On main: half-done A8</code>. <code>git stash pop</code> prints the status with <code>modified:   orders.txt</code> and <code>Dropped refs/stash@{0}</code> plus a hash. The commit prints <code>[main bc95f96] Add order A8</code>.</p></figure><p class="tw-text">A plain <code>git stash</code> skips new files that git does not track yet. Add <code>-u</code> to stash them too: <code>git stash push -u -m &quot;message&quot;</code>.</p></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Which command undoes which git mistake</h2><details class="rule-card" id="module-2-r1" name="rules-2" open><summary><span><span class="num">01</span>Match the mistake to the undo</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Start with the smallest fix.</p><table><thead><tr><th>What went wrong</th><th>Command</th></tr></thead><tbody><tr><td>I edited a file and want the old text</td><td><code>git restore file</code></td></tr><tr><td>I staged the wrong file</td><td><code>git restore --staged file</code></td></tr><tr><td>My last commit message has a typo</td><td><code>git commit --amend -m &quot;new message&quot;</code></td></tr><tr><td>I committed too early</td><td><code>git reset --soft HEAD~1</code></td></tr><tr><td>I need to undo a commit others have</td><td><code>git revert HEAD</code></td></tr><tr><td>I lost a commit</td><td><code>git reflog</code>, then <code>git branch recovered &lt;hash&gt;</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r2" name="rules-2"><summary><span><span class="num">02</span>What each git reset keeps</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">All three move the branch back. They differ in what they do to your work.</p><table><thead><tr><th>Command</th><th>Staged changes</th><th>Files</th></tr></thead><tbody><tr><td><code>git reset --soft HEAD~1</code></td><td>Kept</td><td>Kept</td></tr><tr><td><code>git reset HEAD~1</code></td><td>Unstaged</td><td>Kept</td></tr><tr><td><code>git reset --hard HEAD~1</code></td><td>Deleted</td><td>Deleted</td></tr></tbody></table></div></details><details class="rule-card" id="module-2-r3" name="rules-2"><summary><span><span class="num">03</span>Rewrite a commit or add a new one</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Rewriting is fine alone and wrong once others have the commit.</p><table><thead><tr><th>Command</th><th>Use it when</th></tr></thead><tbody><tr><td><code>git commit --amend</code></td><td>The commit is only on your machine</td></tr><tr><td><code>git reset</code></td><td>The commit is only on your machine</td></tr><tr><td><code>git revert</code></td><td>The commit is pushed or shared</td></tr></tbody></table></div></details></section><section class="block" id="module-2-worked"><div class="section-label">Worked application</div><h2>Undo a commit I made too early</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You committed <code>orders.txt</code> before adding one more order. Take the commit back and keep the edits.</p><figure class="tw-codebox tw-cmd" id="module-2-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw-git/shop</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>git reset --soft HEAD~1</code></span> · <span>Undo the commit. The changes stay staged.</span></li><li><span><em>Keys:</em> <code>git status -s</code></span> · <span>Check: the file shows as staged.</span></li><li><span><em>Keys:</em> <code>git commit -m &quot;Add orders A6 and A7&quot;</code></span> · <span>Commit again when you are ready.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>M  orders.txt
+[main 46a127d] Add orders A6 and A7
+ 1 file changed, 2 insertions(+)</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> The commit disappears and the edits stay. Nothing is lost, so this is safe to try.</div></div></section><section class="block" id="module-2-practice"><div class="section-label">Your turn</div><h2>Check your answers: restore, amend, reset, revert and stash</h2><div class="practice-card" id="module-2-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why can I get a commit back after <code>git reset --hard</code>?</p><details class="hint"><summary>hint</summary><p>Where does git write down where HEAD has been?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>git reset --hard</code> moves the branch, but the commit object stays in the repository.</li><li><code>git reflog</code> keeps a list of every place HEAD pointed to.</li></ol><div class="solution-final"><strong>Final answer:</strong> Run <code>git reflog</code>, find the hash, then <code>git reset --hard &lt;hash&gt;</code>.</div></div></details></div><div class="practice-card" id="module-2-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">How do I fix the message of my last commit to &quot;Add order A6&quot;?</p><details class="hint"><summary>hint</summary><p>Replace the commit, with a new message.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Type <code>git commit --amend</code>.</li><li>Add <code>-m &quot;Add order A6&quot;</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git commit --amend -m &quot;Add order A6&quot;</code>.</div></div></details></div><div class="practice-card" id="module-2-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">How do I undo a commit I already pushed, without rewriting history?</p><details class="hint"><summary>hint</summary><p>Add a commit that does the opposite.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>git revert --no-edit HEAD</code>.</li><li>Push the new commit as usual.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git revert --no-edit HEAD</code> adds a commit that reverses the last one.</div></div></details></div><div class="practice-card" id="module-2-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Why did <code>git stash</code> leave my new file <code>scratch.txt</code> in the folder?</p><details class="hint"><summary>hint</summary><p>Does a plain stash take files git does not track?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>A plain <code>git stash</code> only saves tracked files.</li><li>Add <code>-u</code> to include untracked files.</li></ol><div class="solution-final"><strong>Final answer:</strong> Use <code>git stash push -u</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-3" data-module="3" role="tabpanel" aria-labelledby="tab-3" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Save, undo, branch and sync with git in the terminal · Page 3 of 4</div><h1>Create, switch and merge a git branch and fix a merge conflict</h1><p class="subtitle">Create a branch, switch branches, merge a branch into main, fix a merge conflict, rebase, cherry-pick, delete a branch</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Work on a copy of the history, then bring it back. Branches are cheap: make one for every task.</p><ul class="kitchen-links"><li><strong>Create a branch and switch to it <span class="kl-nowrap">→ git switch -c name.</span></strong> Switch back with git switch main.</li><li><strong>Merge a branch into main <span class="kl-nowrap">→ git merge name.</span></strong> Run it while main is checked out.</li><li><strong>Fix a merge conflict <span class="kl-nowrap">→ git add file.</span></strong> Edit the file first, then add it and commit.</li><li><strong>Copy one commit to another branch <span class="kl-nowrap">→ git cherry-pick name.</span></strong> Use a commit hash for any commit.</li></ul></div></div><div class="block" id="module-3-problem"><div class="word-problem"><span class="tag">The problem</span><p>How do I try something without breaking main? You edit on main, and a half-done change gets mixed with the fixes you need to ship.</p><div class="result-box"><strong>The fix:</strong> Make a branch for the change, commit there, and merge it when it works. If two branches change the same line, git asks you to choose.</div></div></div><section class="block" id="module-3-d1"><div class="section-label">Type it</div><h2>Create a branch and switch between branches (git switch)</h2><p class="section-intro">A branch is a name for a line of commits. Switching changes the files in your folder to match.</p><figure class="tw-codebox tw-cmd" id="module-3-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Create a branch and switch to it (git switch -c)</span><button class="tw-copy" type="button" aria-label="Copy: Create a branch and switch to it (git switch -c)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> switch <span class="hl-f">-c</span> add-labels
+<span class="hl-cmd">git</span> branch
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;label: fragile&#x27;</span> &gt; labels.txt
+<span class="hl-cmd">git</span> add labels.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Add labels file&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Switched to a new branch &#x27;add-labels&#x27;</code>. <code>git branch</code> lists <code>* add-labels</code> and <code>  main</code>: the <code>*</code> marks the branch you are on. The commit prints <code>[add-labels 7e2f789] Add labels file</code> (your hash differs) and <code>create mode 100644 labels.txt</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Switch back to main and see the files change (git switch)</span><button class="tw-copy" type="button" aria-label="Copy: Switch back to main and see the files change (git switch)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> switch main
+<span class="hl-cmd">command</span> ls
+<span class="hl-cmd">git</span> switch add-labels
+<span class="hl-cmd">command</span> ls
+<span class="hl-cmd">git</span> switch main</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> On <code>main</code>, <code>command ls</code> lists <code>debug.log</code>, <code>notes.txt</code>, <code>orders.txt</code>, <code>prices.txt</code>, <code>README.md</code> and <code>todo.txt</code>. On <code>add-labels</code> the list also has <code>labels.txt</code>. Switching changes the files in the folder to match the branch.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d1-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Go back to the previous branch (git switch -)</span><button class="tw-copy" type="button" aria-label="Copy: Go back to the previous branch (git switch -)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> switch -
+<span class="hl-cmd">git</span> branch <span class="hl-f">--show-current</span>
+<span class="hl-cmd">git</span> switch -</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first <code>git switch -</code> prints <code>Switched to branch &#x27;add-labels&#x27;</code>: that was the branch you were on before <code>main</code>. <code>git branch --show-current</code> prints <code>add-labels</code>. Running <code>git switch -</code> again prints <code>Switched to branch &#x27;main&#x27;</code>, ready for the merge drill.</p></figure></section><section class="block" id="module-3-d2"><div class="section-label">Type it</div><h2>Merge a branch into main (git merge)</h2><p class="section-intro">Check out the branch that should receive the work, then name the branch to bring in. Git may open an editor with a merge message: save and close it, or add <code>--no-edit</code> to skip it.</p><figure class="tw-codebox tw-cmd" id="module-3-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Merge a branch into main (git merge)</span><button class="tw-copy" type="button" aria-label="Copy: Merge a branch into main (git merge)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;Open 9 to 5.&#x27;</span> &gt;&gt; README.md
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add opening hours&quot;</span>
+<span class="hl-cmd">git</span> merge <span class="hl-f">--no-edit</span> add-labels
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-f">--graph</span> <span class="hl-n">-5</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The commit prints <code>[main 5a02ace] Add opening hours</code>. The merge prints <code>Merge made by the &#x27;ort&#x27; strategy.</code> and <code> labels.txt | 1 +</code>. The graph shows a merge commit on top, <code>Merge branch &#x27;add-labels&#x27;</code>, with two lines under it: <code>Add opening hours</code> on the left (main) and the branch commit <code>Add labels file</code> on the right, which join again below.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Delete a branch I already merged (git branch -d)</span><button class="tw-copy" type="button" aria-label="Copy: Delete a branch I already merged (git branch -d)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> branch <span class="hl-f">-d</span> add-labels
+<span class="hl-cmd">git</span> branch</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Deleted branch add-labels (was 7e2f789).</code> and <code>git branch</code> lists only <code>* main</code>. Git deletes a merged branch without asking, because its commits are on main.</p></figure></section><section class="block" id="module-3-d3"><div class="section-label">Type it</div><h2>Fix a merge conflict</h2><p class="section-intro">A conflict happens when two branches change the same line. Git stops, marks both versions in the file and waits for you.</p><figure class="tw-codebox tw-cmd" id="module-3-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Make two branches change the same line</span><button class="tw-copy" type="button" aria-label="Copy: Make two branches change the same line">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> switch <span class="hl-f">-c</span> fix-price
+<span class="hl-cmd">sed</span> <span class="hl-s">&#x27;s/^A1 pen 2.50/A1 pen 2.75/&#x27;</span> orders.txt &gt; orders.new &amp;&amp; <span class="hl-cmd">mv</span> orders.new orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Raise pen price to 2.75&quot;</span>
+<span class="hl-cmd">git</span> switch main
+<span class="hl-cmd">sed</span> <span class="hl-s">&#x27;s/^A1 pen 2.50/A1 pen 3.00/&#x27;</span> orders.txt &gt; orders.new &amp;&amp; <span class="hl-cmd">mv</span> orders.new orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Raise pen price to 3.00&quot;</span>
+<span class="hl-cmd">git</span> merge <span class="hl-f">--no-edit</span> fix-price
+<span class="hl-cmd">git</span> status <span class="hl-f">-s</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The merge prints <code>CONFLICT (content): Merge conflict in orders.txt</code> and <code>Automatic merge failed; fix conflicts and then commit the result.</code> Then <code>git status -s</code> prints <code>UU orders.txt</code>: both branches changed it.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">See the conflict markers git wrote in the file</span><button class="tw-copy" type="button" aria-label="Copy: See the conflict markers git wrote in the file">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">head</span> <span class="hl-n">-6</span> orders.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Git put both versions in the file. Your branch comes first, after <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code>: <code>A1 pen 3.00</code>. A line of <code>=======</code> separates it from the other branch, <code>A1 pen 2.75</code>, which ends at <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; fix-price</code>. Everything below is unchanged: <code>A2 book 4.00</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Fix a merge conflict and finish the merge</span><button class="tw-copy" type="button" aria-label="Copy: Fix a merge conflict and finish the merge">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">sed</span> <span class="hl-f">-e</span> <span class="hl-s">&#x27;/^&lt;&lt;&lt;&lt;&lt;&lt;&lt; /d&#x27;</span> <span class="hl-f">-e</span> <span class="hl-s">&#x27;/^=======$/d&#x27;</span> <span class="hl-f">-e</span> <span class="hl-s">&#x27;/^&gt;&gt;&gt;&gt;&gt;&gt;&gt; /d&#x27;</span> <span class="hl-f">-e</span> <span class="hl-s">&#x27;/^A1 pen 2.75$/d&#x27;</span> orders.txt &gt; orders.new &amp;&amp; <span class="hl-cmd">mv</span> orders.new orders.txt
+<span class="hl-cmd">head</span> <span class="hl-n">-2</span> orders.txt
+<span class="hl-cmd">git</span> add orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">--no-edit</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-f">--graph</span> <span class="hl-n">-4</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>head -2 orders.txt</code> shows <code>A1 pen 3.00</code> and <code>A2 book 4.00</code>: no markers left. The commit prints <code>[main 7faf737] Merge branch &#x27;fix-price&#x27;</code>. The graph shows <code>Merge branch &#x27;fix-price&#x27;</code> on top and the two price commits side by side below it.</p></figure><p class="tw-text">In a real conflict, open the file in Neovim, delete the marker lines and the version you do not want, then save. The <code>sed</code> line does the same job here, so the block gives the same result every time. To back out of a merge, run <code>git merge --abort</code>.</p></section><section class="block" id="module-3-d4"><div class="section-label">Type it</div><h2>Put my branch&#x27;s commits on top of the latest main (git rebase)</h2><p class="section-intro">Rebase replays your commits after the newest commit of another branch. The history becomes one straight line instead of a fork and a merge. Rebase only commits that are not pushed yet.</p><figure class="tw-codebox tw-cmd" id="module-3-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Make a branch that main has moved past</span><button class="tw-copy" type="button" aria-label="Copy: Make a branch that main has moved past">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> switch <span class="hl-f">-c</span> add-stamps
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;stamps: 100&#x27;</span> &gt; stamps.txt
+<span class="hl-cmd">git</span> add stamps.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-m</span> <span class="hl-s">&quot;Add stamps file&quot;</span>
+<span class="hl-cmd">git</span> switch main
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;Closed Sundays.&#x27;</span> &gt;&gt; README.md
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add closed days&quot;</span>
+<span class="hl-cmd">git</span> switch add-stamps
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-f">--graph</span> <span class="hl-f">--all</span> <span class="hl-n">-4</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The branch commit prints <code>[add-stamps 8038d66] Add stamps file</code> and the main commit prints <code>[main 100e07d] Add closed days</code>. The graph shows a fork: <code>Add stamps file</code> on one line and <code>Add closed days</code> on another, both leaving the same older commit.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d4-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Rebase my branch onto main (git rebase)</span><button class="tw-copy" type="button" aria-label="Copy: Rebase my branch onto main (git rebase)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> rebase main
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-f">--graph</span> <span class="hl-f">--all</span> <span class="hl-n">-4</span>
+<span class="hl-cmd">git</span> switch main
+<span class="hl-cmd">git</span> merge add-stamps
+<span class="hl-cmd">git</span> branch <span class="hl-f">-d</span> add-stamps fix-price</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Rebasing (1/1)</code> then <code>Successfully rebased and updated refs/heads/add-stamps.</code> The graph is a straight line now: <code>Add stamps file</code> (a new hash) sits on top of <code>Add closed days</code>. On main, <code>git merge add-stamps</code> prints <code>Fast-forward</code> and <code> stamps.txt | 1 +</code>. Both finished branches are deleted: <code>Deleted branch add-stamps (was ac87ba5).</code> and <code>Deleted branch fix-price (was 5991ddd).</code></p></figure></section><section class="block" id="module-3-d5"><div class="section-label">Type it</div><h2>Copy one commit to another branch, or get a deleted branch back</h2><p class="section-intro"><code>git cherry-pick</code> copies a single commit. A deleted branch is only a lost name: its commits are still in the reflog.</p><figure class="tw-codebox tw-cmd" id="module-3-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Copy one commit from another branch onto main (git cherry-pick)</span><button class="tw-copy" type="button" aria-label="Copy: Copy one commit from another branch onto main (git cherry-pick)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> switch <span class="hl-f">-c</span> hotfix
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;Support: 555-0100&#x27;</span> &gt;&gt; notes.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add support phone&quot;</span>
+<span class="hl-cmd">git</span> switch main
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A9 staples 0.80&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add order A9&quot;</span>
+<span class="hl-cmd">git</span> cherry-pick hotfix
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-3</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The cherry-pick prints <code>[main 2d12386] Add support phone</code> plus a <code>Date:</code> line: the same message, a new hash. <code>git log --oneline -3</code> shows <code>Add support phone</code>, <code>Add order A9</code> and <code>Add stamps file</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Delete a branch git says is not merged (git branch -D)</span><button class="tw-copy" type="button" aria-label="Copy: Delete a branch git says is not merged (git branch -D)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> branch <span class="hl-f">-d</span> hotfix
+<span class="hl-cmd">git</span> branch <span class="hl-f">-D</span> hotfix</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first command prints <code>error: the branch &#x27;hotfix&#x27; is not fully merged</code> and a hint to use <code>git branch -D hotfix</code>. Git sees the cherry-picked copy as a different commit. The second command prints <code>Deleted branch hotfix (was ef044d1).</code></p></figure><figure class="tw-codebox tw-cmd" id="module-3-d5-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Get back a branch I deleted (git reflog)</span><button class="tw-copy" type="button" aria-label="Copy: Get back a branch I deleted (git reflog)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> reflog | <span class="hl-cmd">grep</span> <span class="hl-s">&quot;commit: Add support phone&quot;</span>
+<span class="hl-cmd">git</span> branch hotfix <span class="hl-v">$(</span><span class="hl-cmd">git</span> reflog | <span class="hl-cmd">grep</span> <span class="hl-s">&quot;commit: Add support phone&quot;</span> | <span class="hl-cmd">cut</span> <span class="hl-f">-d</span><span class="hl-s">&#x27; &#x27;</span> <span class="hl-f">-f1</span>)
+<span class="hl-cmd">git</span> branch</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first line shows one reflog entry, like <code>ef044d1 HEAD@{3}: commit: Add support phone</code> (your hash and number differ). The second command makes a branch at that hash. <code>git branch</code> lists <code>hotfix</code> again beside <code>* main</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Which branch command to use, and how to fix a conflict</h2><details class="rule-card" id="module-3-r1" name="rules-3" open><summary><span><span class="num">01</span>List, create, switch and delete branches</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Names go after the command.</p><table><thead><tr><th>Command</th><th>Does</th></tr></thead><tbody><tr><td><code>git branch</code></td><td>List branches; the current one has a <code>*</code></td></tr><tr><td><code>git switch name</code></td><td>Go to a branch</td></tr><tr><td><code>git switch -c name</code></td><td>Create a branch and go to it</td></tr><tr><td><code>git branch -d name</code></td><td>Delete a branch that is merged</td></tr><tr><td><code>git branch -D name</code></td><td>Delete a branch even if it is not merged</td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r2" name="rules-3"><summary><span><span class="num">02</span>Bring work together: merge, rebase or cherry-pick</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">All three move commits. The history looks different afterwards.</p><table><thead><tr><th>Command</th><th>History afterwards</th></tr></thead><tbody><tr><td><code>git merge name</code></td><td>Fast-forwards when possible; otherwise joins diverged histories with a merge commit</td></tr><tr><td><code>git rebase main</code></td><td>One straight line; your commits get new hashes</td></tr><tr><td><code>git cherry-pick hash</code></td><td>One commit copied, with a new hash</td></tr></tbody></table></div></details><details class="rule-card" id="module-3-r3" name="rules-3"><summary><span><span class="num">03</span>Fix a merge conflict in four steps</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Git marks the file with <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>.</p><table><thead><tr><th>Step</th><th>Do</th></tr></thead><tbody><tr><td>1</td><td><code>git status -s</code> and find the files marked <code>UU</code></td></tr><tr><td>2</td><td>Edit each file: keep what you want, delete the marker lines</td></tr><tr><td>3</td><td><code>git add file</code></td></tr><tr><td>4</td><td><code>git commit --no-edit</code>, or <code>git merge --abort</code> to give up</td></tr></tbody></table></div></details></section><section class="block" id="module-3-worked"><div class="section-label">Worked application</div><h2>Merge two branches that changed the same line</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">Two branches set a different price for <code>A1 pen</code>. Finish the merge and keep the price from main.</p><figure class="tw-codebox tw-cmd" id="module-3-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw-git/shop</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>git status -s</code></span> · <span>Find the file marked <code>UU</code>.</span></li><li><span><em>Keys:</em> Edit <code>orders.txt</code></span> · <span>Delete the marker lines and the line you do not want.</span></li><li><span><em>Keys:</em> <code>git add orders.txt</code></span> · <span>Tell git the conflict is solved.</span></li><li><span><em>Keys:</em> <code>git commit --no-edit</code></span> · <span>Finish the merge with git&#x27;s own message.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code>UU orders.txt
+[main 7faf737] Merge branch &#x27;fix-price&#x27;</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> A conflict is git asking a question. Answer it in the file, then add and commit.</div></div></section><section class="block" id="module-3-practice"><div class="section-label">Your turn</div><h2>Check your answers: branches, merge, rebase and conflicts</h2><div class="practice-card" id="module-3-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does the file <code>labels.txt</code> disappear when I run <code>git switch main</code>?</p><details class="hint"><summary>hint</summary><p>Where was the file committed?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>labels.txt</code> was committed on <code>add-labels</code> only.</li><li>Switching makes your folder match the branch you switch to.</li></ol><div class="solution-final"><strong>Final answer:</strong> Main has no <code>labels.txt</code> yet. It comes back on <code>add-labels</code>, or after a merge.</div></div></details></div><div class="practice-card" id="module-3-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">How do I create a branch named <code>fix-price</code> and switch to it in one command?</p><details class="hint"><summary>hint</summary><p>A flag on <code>git switch</code> makes a new branch.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Type <code>git switch</code>.</li><li>Add <code>-c</code> and the name.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git switch -c fix-price</code>.</div></div></details></div><div class="practice-card" id="module-3-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">How do I get a branch back after <code>git branch -D</code>?</p><details class="hint"><summary>hint</summary><p>The commits are still in the reflog.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>git reflog</code> and find the last commit of the branch.</li><li>Run <code>git branch name hash</code> with that hash.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git branch hotfix &lt;hash&gt;</code>.</div></div></details></div><div class="practice-card" id="module-3-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Why does <code>git branch -d hotfix</code> refuse to delete a branch I cherry-picked?</p><details class="hint"><summary>hint</summary><p>Does git see the copy as the same commit?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>A cherry-pick makes a copy with a new hash.</li><li>Git sees the original as not merged.</li></ol><div class="solution-final"><strong>Final answer:</strong> Check the work is on main, then use <code>git branch -D hotfix</code>.</div></div></details></div></section></section><section class="lesson sq-page" id="module-4" data-module="4" role="tabpanel" aria-labelledby="tab-4" aria-hidden="true"><header class="lesson-header"><div class="eyebrow">Save, undo, branch and sync with git in the terminal · Page 4 of 4</div><h1>Push to GitHub, pull changes and fix a rejected git push</h1><p class="subtitle">Push my project to GitHub, clone a repository, pull the latest changes, fix a rejected push, tag a release, find who changed a line</p><div class="rule"></div></header><div class="block"><div class="one-idea"><span class="tag">The one idea</span><p>Your history lives on your machine, and a copy lives on a remote. Send yours with push. Get theirs with fetch or pull.</p><ul class="kitchen-links"><li><strong>Download a repository <span class="kl-nowrap">→ git clone url.</span></strong> It makes a folder and sets origin.</li><li><strong>Get the latest changes <span class="kl-nowrap">→ git pull --rebase.</span></strong> git fetch only looks and leaves your files alone.</li><li><strong>Upload my commits <span class="kl-nowrap">→ git push.</span></strong> Use git push -u origin main the first time.</li><li><strong>Find who changed a line <span class="kl-nowrap">→ git blame file.</span></strong> Add -L 1,5 for lines 1 to 5.</li></ul></div></div><div class="block" id="module-4-problem"><div class="word-problem"><span class="tag">The problem</span><p>How do I share my commits and get my teammates&#x27; commits? Your repo is only on your machine until you push it, and a push fails when someone pushed first.</p><div class="result-box"><strong>The fix:</strong> Push to <code>origin</code>, fetch to look, and <code>git pull --rebase</code> to put their commits under yours. Here <code>origin</code> is a folder on your disk; GitHub works the same way.</div></div></div><section class="block" id="module-4-d1"><div class="section-label">Type it</div><h2>Push my project to GitHub (git remote add, git push -u)</h2><p class="section-intro">A remote is another copy of the repo. This block makes a bare repo in <code>/tmp/tw-git/remote.git</code> that plays the part of GitHub, so nothing leaves your machine.</p><figure class="tw-codebox tw-cmd" id="module-4-d1-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Add a remote and push my branch for the first time (git push -u)</span><button class="tw-copy" type="button" aria-label="Copy: Add a remote and push my branch for the first time (git push -u)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> init <span class="hl-f">--bare</span> <span class="hl-f">-b</span> main /tmp/tw-git/remote.git
+<span class="hl-cmd">git</span> remote add origin /tmp/tw-git/remote.git
+<span class="hl-cmd">git</span> remote <span class="hl-f">-v</span>
+<span class="hl-cmd">git</span> push <span class="hl-f">-u</span> origin main</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git init --bare</code> prints <code>Initialized empty Git repository in /tmp/tw-git/remote.git/</code> (macOS shows <code>/private/tmp/...</code>). <code>git remote -v</code> lists <code>origin</code> twice, <code>(fetch)</code> and <code>(push)</code>, with the folder path. The push prints <code>* [new branch]      main -&gt; main</code> and <code>branch &#x27;main&#x27; set up to track &#x27;origin/main&#x27;.</code></p></figure><figure class="tw-codebox tw-code" id="module-4-d1-b2"><figcaption class="tw-code-head"><span class="tw-where">shell</span><span class="tw-code-title">Push to a real GitHub repository (fresh repo; skip this exercise)</span><button class="tw-copy" type="button" aria-label="Copy: Push to a real GitHub repository (fresh repo; skip this exercise)">Copy</button></figcaption><pre class="sq-code"><code>git remote add origin git@github.com:YOUR-NAME/shop.git
+git push -u origin main</code></pre></figure><p class="tw-text">This is the alternative for a fresh repo with no <code>origin</code>; skip it during this exercise. Create the empty repository on GitHub first, then copy its address from the green Code button. Use that address in place of <code>YOUR-NAME/shop.git</code>. If <code>origin</code> already exists, use <code>git remote set-url origin &lt;url&gt;</code> instead of <code>git remote add</code>, with the GitHub address in place of <code>&lt;url&gt;</code>. After <code>-u</code>, a plain <code>git push</code> and <code>git pull</code> know where to go.</p></section><section class="block" id="module-4-d2"><div class="section-label">Type it</div><h2>Clone a repo from GitHub (git clone)</h2><p class="section-intro">Clone makes a folder with the full history and sets <code>origin</code> for you. This block clones the repo for a second person, Alex, who then pushes a commit.</p><figure class="tw-codebox tw-cmd" id="module-4-d2-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Clone a repo and list all branches including remote ones (git clone, git branch -a)</span><button class="tw-copy" type="button" aria-label="Copy: Clone a repo and list all branches including remote ones (git clone, git branch -a)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> clone /tmp/tw-git/remote.git /tmp/tw-git/friend
+<span class="hl-cmd">cd</span> /tmp/tw-git/friend
+<span class="hl-cmd">git</span> config user.name <span class="hl-s">&quot;Alex Lee&quot;</span>
+<span class="hl-cmd">git</span> config user.email <span class="hl-s">&quot;alex@example.com&quot;</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-3</span>
+<span class="hl-cmd">git</span> branch <span class="hl-f">-a</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Cloning into &#x27;/tmp/tw-git/friend&#x27;...</code> (a real GitHub clone also prints counting and receiving lines). <code>git log --oneline -3</code> shows the same last three commits as your repo: <code>Add support phone</code>, <code>Add order A9</code>, <code>Add stamps file</code>. <code>git branch -a</code> lists <code>* main</code>, <code>remotes/origin/HEAD -&gt; origin/main</code> and <code>remotes/origin/main</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d2-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Push a commit to the remote (git push)</span><button class="tw-copy" type="button" aria-label="Copy: Push a commit to the remote (git push)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A10 folders 0.90&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add order A10&quot;</span>
+<span class="hl-cmd">git</span> push</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The commit prints <code>[main ab0a52e] Add order A10</code>. The push prints <code>To /tmp/tw-git/remote.git</code> and a line like <code>   2232f7f..ab0a52e  main -&gt; main</code>: the old and new tip of the remote branch.</p></figure></section><section class="block" id="module-4-d3"><div class="section-label">Type it</div><h2>Get the newest changes from GitHub (git fetch, git pull --rebase)</h2><p class="section-intro">Go back to your own repo. Alex pushed a commit that you do not have. If a rebase stops for conflicts, fix the files, run <code>git add &lt;file&gt;</code>, then <code>git rebase --continue</code>. Repeat until it finishes, then push. Use <code>git rebase --abort</code> to cancel.</p><figure class="tw-codebox tw-keys" id="module-4-d3-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Download, update and upload with a remote</span><button class="tw-copy" type="button" aria-label="Copy: Download, update and upload with a remote">Copy</button></figcaption><div class="tw-scroll"><table class="tw-keytable"><tbody><tr><td><kbd class="tw-key">git clone url</kbd></td><td>Download a repository from GitHub</td></tr><tr><td><kbd class="tw-key">git remote -v</kbd></td><td>See where origin points</td></tr><tr><td><kbd class="tw-key">git fetch</kbd></td><td>Download new commits without changing my files</td></tr><tr><td><kbd class="tw-key">git pull --rebase</kbd></td><td>Pull without a merge commit: rebase my commits on the downloaded changes</td></tr><tr><td><kbd class="tw-key">git push</kbd></td><td>Upload my commits</td></tr><tr><td><kbd class="tw-key">git push -u origin branch</kbd></td><td>Push a new branch and remember it</td></tr></tbody></table></div><pre class="tw-copy-src" hidden><code>git clone url  Download a repository from GitHub
+git remote -v  See where origin points
+git fetch  Download new commits without changing my files
+git pull --rebase  Pull without a merge commit: rebase my commits on the downloaded changes
+git push  Upload my commits
+git push -u origin branch  Push a new branch and remember it</code></pre></figure><figure class="tw-codebox tw-cmd" id="module-4-d3-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">See if the remote has new commits (git fetch)</span><button class="tw-copy" type="button" aria-label="Copy: See if the remote has new commits (git fetch)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw-git/shop
+<span class="hl-cmd">git</span> fetch
+<span class="hl-cmd">git</span> status
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> main..origin/main</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git fetch</code> prints <code>From /tmp/tw-git/remote</code> and a line like <code>2232f7f..ab0a52e  main       -&gt; origin/main</code>. <code>git status</code> says <code>Your branch is behind &#x27;origin/main&#x27; by 1 commit, and can be fast-forwarded.</code> Your files did not change. The last command lists the commit you lack: <code>Add order A10</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d3-b3"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Pull the latest changes and keep my commits on top (git pull --rebase)</span><button class="tw-copy" type="button" aria-label="Copy: Pull the latest changes and keep my commits on top (git pull --rebase)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> pull <span class="hl-f">--rebase</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-n">-2</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>Updating 2232f7f..ab0a52e</code>, <code>Fast-forward</code> and <code> orders.txt | 1 +</code>. <code>git log --oneline -2</code> now has <code>Add order A10</code> on top of <code>Add support phone</code>.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d3-b4"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Fix &quot;rejected, fetch first&quot; when I push</span><button class="tw-copy" type="button" aria-label="Copy: Fix &quot;rejected, fetch first&quot; when I push">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">echo</span> <span class="hl-s">&#x27;A11 pins 0.20&#x27;</span> &gt;&gt; orders.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add order A11&quot;</span>
+<span class="hl-cmd">cd</span> /tmp/tw-git/friend
+<span class="hl-cmd">echo</span> <span class="hl-s">&#x27;Back on Monday.&#x27;</span> &gt;&gt; notes.txt
+<span class="hl-cmd">git</span> commit <span class="hl-f">-am</span> <span class="hl-s">&quot;Add Monday note&quot;</span>
+<span class="hl-cmd">git</span> push
+<span class="hl-cmd">cd</span> /tmp/tw-git/shop
+<span class="hl-cmd">git</span> push</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> Both commits succeed: <code>[main b8b1de2] Add order A11</code> here and <code>[main c354bd0] Add Monday note</code> in Alex&#x27;s folder. Alex&#x27;s push works (<code>ab0a52e..c354bd0  main -&gt; main</code>). Yours does not: <code>! [rejected]        main -&gt; main (fetch first)</code> and <code>error: failed to push some refs to &#x27;/tmp/tw-git/remote.git&#x27;</code>, followed by hints.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d3-b5"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Pull, then push again after a rejected push</span><button class="tw-copy" type="button" aria-label="Copy: Pull, then push again after a rejected push">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> pull <span class="hl-f">--rebase</span>
+<span class="hl-cmd">git</span> push
+<span class="hl-cmd">git</span> log <span class="hl-f">--oneline</span> <span class="hl-f">--graph</span> <span class="hl-n">-4</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git pull --rebase</code> prints <code>Rebasing (1/1)</code> and <code>Successfully rebased and updated refs/heads/main.</code> The push now works: <code>c354bd0..6d535dc  main -&gt; main</code>. The graph is a straight line with your <code>Add order A11</code> on top of Alex&#x27;s <code>Add Monday note</code>.</p></figure></section><section class="block" id="module-4-d4"><div class="section-label">Type it</div><h2>Tag a release (git tag)</h2><p class="section-intro">A tag is a name for one commit, such as <code>v1.0</code>. Tags are not pushed with <code>git push</code>: push them by name.</p><figure class="tw-codebox tw-cmd" id="module-4-d4-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Tag a release and push the tag (git tag)</span><button class="tw-copy" type="button" aria-label="Copy: Tag a release and push the tag (git tag)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> tag <span class="hl-f">-a</span> v1.0 <span class="hl-f">-m</span> <span class="hl-s">&quot;First release&quot;</span>
+<span class="hl-cmd">git</span> tag
+<span class="hl-cmd">git</span> push origin v1.0
+<span class="hl-cmd">git</span> show v1.0 <span class="hl-f">--stat</span> | <span class="hl-cmd">head</span> <span class="hl-n">-8</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> <code>git tag</code> prints <code>v1.0</code>. The push prints <code>* [new tag]         v1.0 -&gt; v1.0</code>. <code>git show v1.0 --stat</code> starts with <code>tag v1.0</code>, <code>Tagger: Sam Park &lt;sam@example.com&gt;</code>, a date and the message <code>First release</code>, then the commit it points to.</p></figure></section><section class="block" id="module-4-d5"><div class="section-label">Type it</div><h2>Find who changed a line and when (git blame, git log -S)</h2><p class="section-intro">Blame shows who last changed each line. The search option <code>-S</code> finds commits where the number of occurrences of a piece of text changed.</p><figure class="tw-codebox tw-cmd" id="module-4-d5-b1"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">See who last changed each line of a file (git blame)</span><button class="tw-copy" type="button" aria-label="Copy: See who last changed each line of a file (git blame)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> blame orders.txt</code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> One line per line of the file: a short hash (a <code>^</code> in front means the first commit), the author in brackets, the date, the line number and the text. Lines 1 to 7 and 9 show <code>Sam Park</code>, and line 8, <code>A10 folders 0.90</code>, shows <code>Alex Lee</code>. Hashes and dates differ on your machine.</p></figure><figure class="tw-codebox tw-cmd" id="module-4-d5-b2"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Find commits that added or removed text (git log -S)</span><button class="tw-copy" type="button" aria-label="Copy: Find commits that added or removed text (git log -S)">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">git</span> log <span class="hl-f">-S</span><span class="hl-s">&quot;A9&quot;</span> <span class="hl-f">--oneline</span>
+<span class="hl-cmd">git</span> log <span class="hl-f">-S</span><span class="hl-s">&quot;A9&quot;</span> --format=<span class="hl-s">&quot;%h %an %s&quot;</span></code></pre><p class="tw-expect"><span class="tw-expect-label">You should see</span> The first command prints one line, <code>Add order A9</code>, with its hash: the only commit that added that text. The second adds the author: <code>Sam Park</code>.</p></figure></section><section class="block"><div class="section-label">Rules and review depth</div><h2>Which command syncs with a remote, and how to fix a rejected push</h2><details class="rule-card" id="module-4-r1" name="rules-4" open><summary><span><span class="num">01</span>Download, update and upload</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Each command touches a different place.</p><table><thead><tr><th>Command</th><th>Changes</th></tr></thead><tbody><tr><td><code>git fetch</code></td><td>Only the remote copy in your repo (<code>origin/main</code>)</td></tr><tr><td><code>git pull --rebase</code></td><td>Fetch, then put your commits on top</td></tr><tr><td><code>git push</code></td><td>The remote branch</td></tr><tr><td><code>git push origin v1.0</code></td><td>Sends one tag</td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r2" name="rules-4"><summary><span><span class="num">02</span>Fix a rejected push in two commands</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Someone pushed first. Your push would erase their commit, so git stops.</p><table><thead><tr><th>Step</th><th>Command</th></tr></thead><tbody><tr><td>1</td><td><code>git pull --rebase</code></td></tr><tr><td>2</td><td><code>git push</code></td></tr></tbody></table></div></details><details class="rule-card" id="module-4-r3" name="rules-4"><summary><span><span class="num">03</span>Find who changed a line, or when it appeared</span><span class="chevron"></span></summary><div class="rule-body"><p class="section-intro">Ask the history, not a teammate.</p><table><thead><tr><th>Command</th><th>Shows</th></tr></thead><tbody><tr><td><code>git blame file</code></td><td>The last commit and author of each line</td></tr><tr><td><code>git log -S&quot;text&quot;</code></td><td>Commits changing the text&#x27;s occurrence count</td></tr><tr><td><code>git log --oneline -- file</code></td><td>Commits that changed the file</td></tr><tr><td><code>git show hash</code></td><td>What one commit changed</td></tr></tbody></table></div></details></section><section class="block" id="module-4-worked"><div class="section-label">Worked application</div><h2>Share my commit after a teammate pushed first</h2><div class="word-problem"><span class="tag">The setup</span><p class="kitchen-frame">You committed <code>Add order A11</code> and Alex pushed <code>Add Monday note</code> before you. Get his commit, then send yours.</p><figure class="tw-codebox tw-cmd" id="module-4-worked-open"><figcaption class="tw-code-head"><span class="tw-where">Shell</span><span class="tw-code-title">Open it</span><button class="tw-copy" type="button" aria-label="Copy: Open it">Copy</button></figcaption><pre class="sq-code"><code><span class="hl-cmd">cd</span> /tmp/tw-git/shop</code></pre></figure><ol class="worked-steps ws-steps"><li><span><em>Keys:</em> <code>git push</code></span> · <span>Git rejects it: the remote has a commit you lack.</span></li><li><span><em>Keys:</em> <code>git pull --rebase</code></span> · <span>Download his commit and put yours on top.</span></li><li><span><em>Keys:</em> <code>git push</code></span> · <span>Send yours.</span></li></ol><div class="ws-pair ws-one"><div class="ws-pane"><span class="ws-label">You see</span><pre class="sq-code"><code> ! [rejected]        main -&gt; main (fetch first)
+Successfully rebased and updated refs/heads/main.
+   c354bd0..6d535dc  main -&gt; main</code></pre></div></div><div class="result-box"><strong>Why it matters:</strong> A rejected push is a request to look first. Pull, then push again.</div></div></section><section class="block" id="module-4-practice"><div class="section-label">Your turn</div><h2>Check your answers: remotes, pull, push, tags and blame</h2><div class="practice-card" id="module-4-q1"><span class="q-kind">Mechanism</span><span class="q-num">Q1</span><p class="q-text">Why does <code>git push</code> say &quot;rejected&quot; when someone pushed before me?</p><details class="hint"><summary>hint</summary><p>What would happen to their commit?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>The remote branch has a commit that your branch does not have.</li><li>A push would replace their commit with your history, so git refuses.</li></ol><div class="solution-final"><strong>Final answer:</strong> Run <code>git pull --rebase</code>, then <code>git push</code>.</div></div></details></div><div class="practice-card" id="module-4-q2"><span class="q-kind">Keystrokes</span><span class="q-num">Q2</span><p class="q-text">How do I push a new branch <code>add-labels</code> and remember it for later pushes?</p><details class="hint"><summary>hint</summary><p>One flag links your branch to the remote one.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Type <code>git push</code>.</li><li>Add <code>-u origin add-labels</code>.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git push -u origin add-labels</code>.</div></div></details></div><div class="practice-card" id="module-4-q3"><span class="q-kind">Application</span><span class="q-num">Q3</span><p class="q-text">How do I find the commit that first added the word <code>A9</code>?</p><details class="hint"><summary>hint</summary><p>Search the history for a piece of text.</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li>Run <code>git log -S&quot;A9&quot; --oneline</code>.</li><li>Read the last line: it is the oldest commit.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git log -S&quot;A9&quot; --oneline</code> prints the commit.</div></div></details></div><div class="practice-card" id="module-4-q4"><span class="q-kind">Common mistake</span><span class="q-num">Q4</span><p class="q-text">Why is my tag <code>v1.0</code> missing on GitHub after <code>git push</code>?</p><details class="hint"><summary>hint</summary><p>Does a plain push send tags?</p></details><details class="solution"><summary>step-by-step solution</summary><div class="solution-body"><ol class="solution-steps"><li><code>git push</code> sends branches, not tags.</li><li>Push the tag by name.</li></ol><div class="solution-final"><strong>Final answer:</strong> <code>git push origin v1.0</code>, or <code>git push --tags</code> for every tag.</div></div></details></div></section></section>
+    </main>
+    <nav class="tabbar" aria-label="Page navigation">
+      <div class="tabbar-inner">
+        <button id="prevBtn" class="nav-arrow" type="button" aria-label="Previous page">‹</button>
+        <div id="tabs" class="tabs sq-tabs" role="tablist" aria-label="Pages"></div>
+        <button id="nextBtn" class="nav-arrow" type="button" aria-label="Next page">›</button>
+        <span id="progressMini" class="progress-mini" aria-live="polite">1/4</span>
+      </div>
+    </nav>
+    <nav class="group-nav" aria-label="Course modules">
+      <a rel="prev" href="../m11-bash-expert/">← Write safer Bash scripts and reuse functions</a>
+      <a rel="next" href="../m13-lazygit/">Commit, branch and undo with LazyGit →</a>
+    </nav>
+    <footer>
+      <strong>Module 12 · Save, undo, branch and sync with git in the terminal</strong><br />Git in the terminal: commit, undo a commit, branch, merge, fix a conflict, push and pull; see each result.
+    </footer>
+    </div>
+    <script>window.TW_GLOSSARY = [{"id": "tw-commit", "label": "Commit", "forms": ["commit", "commits"], "definition": "A saved snapshot of your project with a message. Each commit has a short hash such as 3f2a9c1."}, {"id": "tw-staging", "label": "Staging area", "forms": ["staging area", "staged", "stage"], "definition": "The list of changes your next commit will save. git add puts a change on it."}, {"id": "tw-branch", "label": "Branch", "forms": ["branch", "branches"], "definition": "A line of commits with a name. The default one here is main."}, {"id": "tw-remote", "label": "Remote", "forms": ["remote", "remotes"], "definition": "Another copy of the repository, such as the one on GitHub. Here it is called origin."}, {"id": "tw-prefix", "label": "Prefix key", "forms": ["prefix key", "prefix"], "definition": "The key you press first to tell tmux that the next key is a tmux command. Here: Ctrl-a."}, {"id": "tw-session", "label": "Session", "forms": ["session", "sessions"], "definition": "A tmux workspace that keeps running when you close the terminal window. You re-attach to it later."}, {"id": "tw-pane", "label": "Pane", "forms": ["pane", "panes"], "definition": "One rectangle inside a tmux window. Each pane runs its own shell."}, {"id": "tw-buffer", "label": "Buffer", "forms": ["buffer", "buffers"], "definition": "A file loaded into Neovim's memory. You edit the buffer, and saving writes it to disk."}, {"id": "tw-register", "label": "Register", "forms": ["register", "registers"], "definition": "A named slot in Neovim that holds text: yanked, deleted or typed."}, {"id": "tw-worktree", "label": "Worktree", "forms": ["worktree", "worktrees"], "definition": "A second folder checked out from the same git repository, on its own branch."}, {"id": "tw-leader", "label": "Leader key", "forms": ["leader key", "leader"], "definition": "A key you press first to start your own Neovim shortcuts. Here: Space."}, {"id": "tw-picker", "label": "Picker", "forms": ["picker", "pickers"], "definition": "A pop-up list you filter by typing, such as the file finder."}, {"id": "tw-hunk", "label": "Hunk", "forms": ["hunk", "hunks"], "definition": "One block of changed lines in a git diff."}, {"id": "tw-quickfix", "label": "Quickfix list", "forms": ["quickfix list", "quickfix"], "definition": "A list of locations, such as search hits or errors, that you step through one by one."}, {"id": "tw-lsp", "label": "LSP", "forms": ["LSP"], "definition": "Language Server Protocol. A background program that tells Neovim what the code means: definitions, errors, renames."}];</script>
+    <script src="../_shared/search-index.js?v=6bfce22fce"></script>
+    <script src="../_shared/cheatsheet.js?v=6d098602ae"></script>
+    <script>
+/* Course page behaviour: tabs, hash links, rule cards, glossary. Base from the SQL course. */
+
+"use strict";
+document.documentElement.classList.add("js-ready");
+const lessons = Array.from(document.querySelectorAll(".lesson"));
+const tabsHost = document.getElementById("tabs");
+const previousButton = document.getElementById("prevBtn");
+const nextButton = document.getElementById("nextBtn");
+const progress = document.getElementById("progressMini");
+let activeLesson = 0;
+const tabs = lessons.map((lesson, index) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "tab";
+  button.id = `tab-${index + 1}`;
+  button.setAttribute("role", "tab");
+  button.setAttribute("aria-controls", lesson.id);
+  button.setAttribute("aria-label", `Open page ${index + 1}`);
+  button.textContent = String(index + 1);
+  button.addEventListener("click", () => goTo(index));
+  tabsHost.append(button);
+  return button;
+});
+function showLesson(index, options = {}) {
+  activeLesson = Math.max(0, Math.min(index, lessons.length - 1));
+  lessons.forEach((lesson, position) => {
+    const selected = position === activeLesson;
+    lesson.classList.toggle("active", selected);
+    lesson.setAttribute("aria-hidden", String(!selected));
+    tabs[position].classList.toggle("active", selected);
+    tabs[position].setAttribute("aria-selected", String(selected));
+    tabs[position].tabIndex = selected ? 0 : -1;
+  });
+  previousButton.disabled = activeLesson === 0;
+  nextButton.disabled = activeLesson === lessons.length - 1;
+  progress.textContent = `${activeLesson + 1}/${lessons.length}`;
+  if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
+}
+// Tab moves rewrite the hash without a new history entry, so reload and shared links keep the page.
+function goTo(index) {
+  showLesson(index);
+  history.replaceState(null, "", `#${lessons[activeLesson].id}`);
+}
+previousButton.addEventListener("click", () => goTo(activeLesson - 1));
+nextButton.addEventListener("click", () => goTo(activeLesson + 1));
+tabsHost.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight") { event.preventDefault(); goTo(activeLesson + 1); tabs[activeLesson].focus(); }
+  if (event.key === "ArrowLeft") { event.preventDefault(); goTo(activeLesson - 1); tabs[activeLesson].focus(); }
+});
+
+const HIT_FLASH_MS = 1600;
+// Any id inside a page works as a deep link: open its tab, open its details, then scroll to it.
+function routeToHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const target = id && document.getElementById(id);
+  const lesson = target && target.closest(".lesson");
+  if (!lesson) return false;
+  showLesson(lessons.indexOf(lesson), { scroll: false });
+  for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: "start" });
+    if (target === lesson) return;
+    target.classList.add("tw-hit");
+    setTimeout(() => target.classList.remove("tw-hit"), HIT_FLASH_MS);
+  });
+  return true;
+}
+addEventListener("hashchange", routeToHash);
+if (!routeToHash()) showLesson(0);
+
+if (!("name" in HTMLDetailsElement.prototype)) {
+  document.querySelectorAll(".rule-card").forEach((card) => {
+    card.addEventListener("toggle", () => {
+      if (!card.open || !card.getAttribute("name")) return;
+      const name = card.getAttribute("name");
+      document.querySelectorAll(`.rule-card[name="${name}"]`).forEach((other) => {
+        if (other !== card && other.open) other.open = false;
+      });
+    });
+  });
+}
+
+(function () {
+  const glossaryEntries = window.TW_GLOSSARY || [];
+      const glossaryFormMap = new Map();
+      glossaryEntries.forEach(function (entry) {
+        entry.forms.forEach(function (form) {
+          glossaryFormMap.set(form.toLowerCase(), entry);
+        });
+      });
+      const glossaryForms = [...glossaryFormMap.keys()].sort(function (a, b) {
+        return b.length - a.length;
+      });
+      const glossaryPattern = new RegExp(
+        "\\b(" +
+          glossaryForms
+            .map(function (term) {
+              return term.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+            })
+            .join("|") +
+          ")\\b",
+        "gi",
+      );
+      const glossarySkip =
+        "button,a,summary,label,input,select,option,textarea,code,pre,script,style,noscript,svg,.tw-codebox,.tw-search,.tw-search-btn,kbd,.glossary-popover,.glossary-term,.eyebrow,.kitchen-strip";
+      const glossarySection = 'section[id^="module-"]';
+
+      function applyGlossary(scope) {
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode: function (node) {
+            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest(glossarySkip))
+              return NodeFilter.FILTER_REJECT;
+            glossaryPattern.lastIndex = 0;
+            return glossaryPattern.test(node.nodeValue)
+              ? NodeFilter.FILTER_ACCEPT
+              : NodeFilter.FILTER_REJECT;
+          },
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function (node) {
+          const text = node.nodeValue;
+          // One link per term per page. The DOM is the record: the observer below re-runs this on every caption change.
+          const section = node.parentElement.closest(glossarySection);
+          const linkedHere = new Set();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          glossaryPattern.lastIndex = 0;
+          let match;
+          while ((match = glossaryPattern.exec(text))) {
+            const entry = glossaryFormMap.get(match[0].toLowerCase());
+            if (
+              section &&
+              (linkedHere.has(entry.id) ||
+                section.querySelector(
+                  '.glossary-term[data-glossary="' + entry.id + '"]',
+                ))
+            )
+              continue;
+            if (match.index > cursor)
+              fragment.append(
+                document.createTextNode(text.slice(cursor, match.index)),
+              );
+            const term = document.createElement("button");
+            term.type = "button";
+            term.className = "glossary-term";
+            term.dataset.glossary = entry.id;
+            term.setAttribute("aria-haspopup", "dialog");
+            term.setAttribute("aria-expanded", "false");
+            term.setAttribute("aria-label", match[0] + ": open definition");
+            term.textContent = match[0];
+            fragment.append(term);
+            linkedHere.add(entry.id);
+            cursor = match.index + match[0].length;
+          }
+          // Nothing linked: leave the node alone, or the observer would loop forever.
+          if (!linkedHere.size) return;
+          if (cursor < text.length)
+            fragment.append(document.createTextNode(text.slice(cursor)));
+          node.replaceWith(fragment);
+        });
+      }
+
+      const glossaryPopover = document.createElement("aside");
+      glossaryPopover.className = "glossary-popover";
+      glossaryPopover.id = "glossary-popover";
+      glossaryPopover.hidden = true;
+      glossaryPopover.setAttribute("role", "dialog");
+      glossaryPopover.setAttribute("aria-label", "Term definition");
+      glossaryPopover.innerHTML =
+        '<button class="glossary-close" type="button" aria-label="Close definition">×</button><strong class="glossary-title"></strong><p class="glossary-definition"></p><span class="glossary-meta">Definition · Press Esc or click elsewhere to close</span>';
+      document.body.append(glossaryPopover);
+
+      let activeGlossaryTerm = null;
+      function closeGlossary() {
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = null;
+        glossaryPopover.hidden = true;
+      }
+      function positionGlossary(term) {
+        const gap = 13,
+          margin = 12,
+          termRect = term.getBoundingClientRect();
+        glossaryPopover.classList.remove("below");
+        glossaryPopover.hidden = false;
+        const popRect = glossaryPopover.getBoundingClientRect();
+        const left = Math.max(
+          margin,
+          Math.min(
+            innerWidth - popRect.width - margin,
+            termRect.left + termRect.width / 2 - popRect.width / 2,
+          ),
+        );
+        let top = termRect.top - popRect.height - gap;
+        if (top < margin) {
+          top = termRect.bottom + gap;
+          glossaryPopover.classList.add("below");
+        }
+        const pointer = Math.max(
+          16,
+          Math.min(
+            popRect.width - 16,
+            termRect.left + termRect.width / 2 - left,
+          ),
+        );
+        glossaryPopover.style.left = left + "px";
+        glossaryPopover.style.top =
+          Math.min(top, innerHeight - popRect.height - margin) + "px";
+        glossaryPopover.style.setProperty("--pointer-x", pointer + "px");
+      }
+      function openGlossary(term) {
+        const entry = glossaryEntries.find(function (item) {
+          return item.id === term.dataset.glossary;
+        });
+        if (!entry) return;
+        if (activeGlossaryTerm === term && !glossaryPopover.hidden) {
+          closeGlossary();
+          return;
+        }
+        if (activeGlossaryTerm)
+          activeGlossaryTerm.setAttribute("aria-expanded", "false");
+        activeGlossaryTerm = term;
+        term.setAttribute("aria-expanded", "true");
+        glossaryPopover.querySelector(".glossary-title").textContent =
+          entry.label;
+        glossaryPopover.querySelector(".glossary-definition").textContent =
+          entry.definition;
+        positionGlossary(term);
+      }
+      document.addEventListener("click", function (event) {
+        const term = event.target.closest(".glossary-term");
+        if (term) {
+          event.preventDefault();
+          event.stopPropagation();
+          openGlossary(term);
+          return;
+        }
+        if (event.target.closest(".glossary-close")) {
+          closeGlossary();
+          return;
+        }
+        if (!event.target.closest(".glossary-popover")) closeGlossary();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !glossaryPopover.hidden) {
+          const term = activeGlossaryTerm;
+          closeGlossary();
+          if (term) term.focus();
+        }
+      });
+      addEventListener("resize", closeGlossary);
+      addEventListener("scroll", closeGlossary, true);
+
+      const glossaryRoot = document.querySelector("main");
+      applyGlossary(glossaryRoot);
+      let glossaryQueued = false;
+      new MutationObserver(function () {
+        if (glossaryQueued) return;
+        glossaryQueued = true;
+        requestAnimationFrame(function () {
+          glossaryQueued = false;
+          applyGlossary(glossaryRoot);
+        });
+      }).observe(glossaryRoot, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+    })();
+
+    </script>
+    <script>
+/* Site behaviour shared by every page: copy buttons, the cheat sheet drawer and site-wide search. */
+"use strict";
+(function () {
+  const MAX_RESULTS = 40;
+  const COPY_RESET_MS = 1500;
+  const KIND_LABEL = { p: "Page", h: "Section", c: "Command", k: "Key", t: "Text" };
+  const KIND_WEIGHT = { c: 30, k: 30, h: 20, p: 15, t: 0 };
+  const PHRASE_BONUS = 100, START_BONUS = 50, SAME_FILE_BONUS = 5;
+  const SYNONYM_START_BONUS = START_BONUS / 2;
+  const TEXT_LEN_CAP = 200, TEXT_LEN_DIVISOR = 50;
+  const ACTION_BONUS = PHRASE_BONUS + START_BONUS;
+  const WORD_BONUS = 40;
+  const SHORT_QUERY_MAX = 3, OPTIONAL_WEIGHT = 0.15;
+  const LITERAL_WEIGHT = 4, TITLE_WEIGHT = 3, DOMAIN_WEIGHT = 6, CONTEXT_WEIGHT = 0.5;
+  const COMMAND_WORDS = new Set("find rg fd sed awk jq git tmux xargs grep cut sort uniq wc head tail fzf mdfind du ls cat printf echo bash curl tar case".split(" "));
+  const AMBIGUOUS_COMMANDS = new Set("find sort cut head tail".split(" "));
+  const ACTION_PREFIX = /^(open|enter|close|run|find|search|change|show|save|copy|paste|delete|quit|rename|switch|go|scroll|move|select|start|get|read|count|format|pick|choose)\b/;
+  const COMMAND_BONUS = 1000, TITLE_PAIR_BONUS = 150;
+  const TASK_COVERAGE_BONUS = PHRASE_BONUS * 3, TASK_ROW_BONUS = PHRASE_BONUS * 2;
+  const TASK_PREFIX_BONUS = ACTION_BONUS * LITERAL_WEIGHT, TITLE_TIE_BONUS = 1;
+  const FOCUSED_TASK_BONUS = COMMAND_BONUS * 2, QUESTION_BONUS = COMMAND_BONUS + ACTION_BONUS * 2;
+  const ALIAS_PREFIX_MIN = 4, COMMAND_FRAGMENT_MIN = 3;
+  const DOMAIN_WORDS = new Set(["tmux", "nvim", "neovim", "bash"]);
+  const STOPWORDS = new Set(("a an the with this that on in at of to my me i how do does can what which where why is are it from into by some any " +
+    "for and or your you its as when has have had did but than then im please was were just once before after using always passed " +
+    "own like something several somewhere properly get straight away out").split(" "));
+  // A module lives at <folder>/index.html but is linked as <folder>/.
+  const MODULE_FILE_RE = /(^|\/)index\.html$/;
+  const TYPING_TARGET = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
+
+  // Vim and tmux spellings of the same key must meet: "<C-w>v" and "Ctrl-w v" both become "ctrl-w v".
+  function norm(s) {
+    return String(s).toLowerCase()
+      .replace(/<c-([^>]+)>/g, " ctrl-$1 ")
+      .replace(/<leader>/g, "<space>")
+      .replace(/\bctrl\+/g, "ctrl-").replace(/\bctrl\s+([a-z])\b/g, "ctrl-$1")
+      .replace(/([a-z0-9])[?,](?=\s|$)/g, "$1").replace(/\s+/g, " ").trim();
+  }
+
+  const IRREGULAR_STEMS = new Map(Object.entries({
+    built: "build", chose: "choose", chosen: "choose", found: "find",
+    got: "get", gotten: "get", kept: "keep", made: "make", ran: "run",
+    sent: "send", shown: "show", took: "take", taken: "take",
+    wrote: "write", written: "write"
+  }));
+
+  function stem(token) {
+    if (IRREGULAR_STEMS.has(token)) return IRREGULAR_STEMS.get(token);
+    if (!/^[a-z]+$/.test(token)) return token;
+    const base = token.replace(/([a-z]{4,}al)ly$/, "$1").replace(/ies$/, "y").replace(/(?:ing|ed)$/, "")
+      .replace(/(ch|sh|ss|x|z)es$/, "$1").replace(/([^s])s$/, "$1");
+    return base.length >= 3 ? base : token;
+  }
+
+  function whole(hay, word, inflect = true) {
+    if (!word) return false;
+    for (let at = hay.indexOf(word); at !== -1; at = hay.indexOf(word, at + word.length)) {
+      const tail = hay.slice(at + word.length).match(/^[a-z0-9]*/)[0];
+      if (!/[a-z0-9]/.test(hay[at - 1] || "") && /^(?:s|es|ed|ing|er|est)?$/.test(tail)) return true;
+    }
+    if (!inflect) return false;
+    if (/[aeiou][bcdfgklmnprt]$/.test(word)) {
+      const doubled = word + word.slice(-1);
+      if (["ed", "ing", "er", "est"].some(suffix => whole(hay, doubled + suffix, false))) return true;
+    }
+    if (/e$/.test(word) && word.length > 3) {
+      const base = word.slice(0, -1);
+      return whole(hay, base + "ed", false) || whole(hay, base + "ing", false) || whole(hay, word + "r", false) || whole(hay, word + "st", false);
+    }
+    return false;
+  }
+
+  function createMatcher(groups) {
+    const aliases = new Map();
+    // Multiword everyday phrases become one query token, just like their synonym.
+    const phrases = groups.flatMap((group) => group.filter((word) => norm(word).includes(" "))
+      .map((phrase) => [new RegExp("\\b" + norm(phrase).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), norm(phrase).replace(/ /g, "\u0000")]));
+    groups.forEach((group) => {
+      const words = [...new Set(group.flatMap((word) => [norm(word), stem(norm(word))]))];
+      words.forEach((word) => {
+        if (!aliases.has(word)) aliases.set(word, new Set());
+        words.forEach((variant) => aliases.get(word).add(variant));
+      });
+    });
+    function query(q) {
+      const normalized = phrases.reduce((text, [pattern, word]) => text.replace(pattern, word), norm(q));
+      return normalized ? [...new Set(normalized.split(" ").map(word => word.replace(/\u0000/g, " ")))].filter((word) => !STOPWORDS.has(word)).map((original, position) => {
+        const base = stem(original);
+        // saved -> sav must discover save's groups as well as literal sav matches.
+        const inflected = base === original ? [] : [...aliases.keys()]
+          .filter((word) => word.startsWith(base)).flatMap((word) => [...aliases.get(word)]);
+        return { original, optional: (original === "command" && position > 0) || /^(?:yesterday|today|recent|recently|older|day|days|week|weeks|statement)$/.test(original) || /\d|[./]/.test(original) || DOMAIN_WORDS.has(original) ||
+          /^(one|two|three|five|first|third)$/.test(original), variants: [...new Set([original, base,
+          ...(/(?:ing|ed)$/.test(original) && base !== original ? [base + "e"] : []),
+          ...(aliases.get(original) || []), ...(aliases.get(base) || []), ...inflected])] };
+      }) : [];
+    }
+    function match(hay, tokens, partial = false) {
+      let exact = 0, missing = 0;
+      const variants = [];
+      for (const token of tokens) {
+        const variant = token.variants.find((word) => whole(hay, word));
+        if (!variant) {
+          if (!partial && !token.optional) missing++;
+          continue;
+        }
+        if (hay.includes(token.original)) exact++;
+        variants.push(variant);
+      }
+      return variants.length && (partial || !missing || (tokens.length >= 3 && missing === 1 && exact >= 2)) ? { exact, variants } : null;
+    }
+    return { query, match };
+  }
+
+  function compact(field) {
+    return norm(field).replace(/([a-z])['’]s\b/g, "$1").replace(/([a-z])-([a-z])/g, "$1 $2")
+      .split(" ").filter(word => !STOPWORDS.has(word)).join(" ");
+  }
+
+  function literalMatch(field, token) {
+    return token.variants.some(variant => (token.original.includes(" ") || variant.includes(" ") ||
+      variant === token.original || variant === stem(token.original) ||
+      (token.original.length >= ALIAS_PREFIX_MIN && variant.startsWith(token.original))) && whole(field, variant));
+  }
+
+  function createSearch(data) {
+    const matcher = createMatcher(data.syn || []);
+    const both = data.items.map((it) => norm(it[4] + " " + it[5]).replace(/<[^>]+>\S*/g, ""));
+    const text = data.items.map((it) => norm(it[5]));
+    const description = data.items.map((it) => it[0] === "k"
+      ? norm(it[5].split(/ {2,}/).slice(1).join("  ")).replace(/<[^>]+>\S*/g, "") : "");
+    const title = data.items.map((it) => norm(it[4]).replace(/<[^>]+>\S*/g, ""));
+    const context = data.items.map((it) => norm(it[6] || ""));
+    const drillContext = data.items.map((it) => norm(it[7] || ""));
+    const blockKey = (it) => it[1] + "|" + it[3];
+    const blocks = new Map();
+    const codeKinds = new Map();
+    data.items.forEach(it => {
+      if (it[0] !== "c" || /^\s*(#|\/\/)/.test(it[5])) return;
+      if (!codeKinds.has(blockKey(it))) codeKinds.set(blockKey(it), new Set());
+      codeKinds.get(blockKey(it)).add(norm(it[5]).split(" ")[0]);
+    });
+    data.items.forEach((it, i) => blocks.set(blockKey(it), (blocks.get(blockKey(it)) || "") + " " + both[i]));
+    const frequencies = new Map();
+    both.forEach((hay) => new Set((hay.match(/[a-z0-9_-]+/g) || []).map(stem))
+      .forEach((word) => frequencies.set(word, (frequencies.get(word) || 0) + 1)));
+    const weight = (token) => 1 + Math.log(1 + data.items.length / (1 + Math.max(0,
+      ...token.variants.map((word) => frequencies.get(stem(word)) || 0))));
+    function search(q, here = "", limit = MAX_RESULTS) {
+      q = norm(q);
+      const tokens = matcher.query(q);
+      if (tokens.length > 1 && /^(read|show|get)$/.test(tokens[0].original)) tokens[0].optional = true;
+      if (!tokens.length) return { items: [], total: 0 };
+      // A domain is the object in "quit nvim", and a qualifier in "save file in nvim".
+      const requiredCount = tokens.filter(token => !token.optional).length;
+      if (requiredCount === 1) tokens.forEach(token => { if (DOMAIN_WORDS.has(token.original)) token.optional = false; });
+      // Keep timing clauses searchable without making them the main task.
+      const clause = q.match(/\b(?:after|before|when|while)\b([\s\S]*)$/);
+      if (clause && matcher.query(q.slice(0, clause.index)).length) {
+        const qualifiers = matcher.query(clause[1]);
+        tokens.forEach(token => { if (qualifiers.some(qualifier => qualifier.original === token.original)) token.optional = true; });
+      }
+      const terse = tokens.length <= SHORT_QUERY_MAX;
+      const shortLookup = terse && tokens.length > 1;
+      const required = tokens.filter(token => !token.optional);
+      const queryCaption = compact(q);
+      const questionQuery = /^(?:how|why|where|what)\b/.test(q);
+      const weighted = tokens.map((token) => ({ ...token, weight: weight(token) *
+        (token.optional && !DOMAIN_WORDS.has(token.original) ? OPTIONAL_WEIGHT : 1) }));
+      const phrase = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])");
+      const hits = [];
+      data.items.forEach((it, i) => {
+        const matched = matcher.match(both[i], tokens, true);
+        if (!matched) return;
+        let score = KIND_WEIGHT[it[0]] || 0, literalScore;
+        if (it[0] === "c" || it[0] === "k") score += ACTION_BONUS;
+        if (it[0] === "c" && /^\s*(#|\/\/)/.test(it[5])) score -= ACTION_BONUS * 2;
+        literalScore = score;
+        let coverage = 0, full = true, actionScore = 0, start = 0, localCoverage = 0;
+        weighted.forEach((token) => {
+          const literal = whole(both[i], token.original) || whole(both[i], stem(token.original));
+          const found = token.variants.some((variant) => whole(both[i], variant));
+          if (found) { literalScore += WORD_BONUS; if (!token.optional) localCoverage += token.weight; }
+          const domain = DOMAIN_WORDS.has(token.original);
+          const inBlock = token.variants.some((variant) => whole(blocks.get(blockKey(it)), variant) || (domain && whole(context[i], variant)));
+          if (inBlock && !token.optional) coverage += token.weight;
+          if (!inBlock && (!token.optional || domain)) full = false;
+          if (found) {
+            score += WORD_BONUS * token.weight * (literal ? LITERAL_WEIGHT : 1);
+            const actionText = title[i] + " " + description[i];
+            if (whole(actionText, token.original) || whole(actionText, stem(token.original))) actionScore += WORD_BONUS * token.weight * TITLE_WEIGHT;
+            else if (token.variants.some((variant) => whole(actionText, variant))) actionScore += WORD_BONUS * token.weight;
+          }
+          if (token.variants.some((variant) => whole(context[i], variant))) score += WORD_BONUS * token.weight *
+            (domain ? DOMAIN_WEIGHT : CONTEXT_WEIGHT);
+        });
+        score += actionScore;
+        if (phrase.test(text[i]) || (it[0] === "c" && phrase.test(title[i]))) { score += PHRASE_BONUS * 2; if (!terse || tokens.length === 1) literalScore += TASK_ROW_BONUS; }
+        if (phrase.test(both[i])) { score += PHRASE_BONUS; if (!terse || tokens.length === 1) literalScore += PHRASE_BONUS; }
+        // Task titles retain command relevance for multiword queries; single words prefer key actions.
+        const action = (description[i] || (tokens.length > 1 && it[0] === "c" ? title[i] : "")).replace(/^(?:start|begin|enter)\s+(?=\w)/, "");
+        const starts = (variant) => action.startsWith(variant) && whole(action, variant);
+        if (text[i].startsWith(q) || (action && (action.startsWith(q) || starts(tokens[0].original)))) {
+          score += START_BONUS;
+          literalScore += START_BONUS;
+          start = 2;
+        } else if (action && tokens[0].variants.some(starts)) {
+          score += SYNONYM_START_BONUS;
+          literalScore += SYNONYM_START_BONUS;
+          start = 1;
+        }
+        if (data.files[it[1]] === here) score += SAME_FILE_BONUS;
+        score -= (shortLookup ? 0 : Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR);
+        literalScore += (data.files[it[1]] === here ? SAME_FILE_BONUS : 0) - (shortLookup ? 0 : Math.min(it[5].length, TEXT_LEN_CAP) / TEXT_LEN_DIVISOR);
+        score += coverage * WORD_BONUS;
+        score += localCoverage * WORD_BONUS * LITERAL_WEIGHT;
+        for (let at = 0; at + 1 < tokens.length; at++) {
+          if (whole(title[i], tokens[at].original + " " + tokens[at + 1].original)) {
+            score += TITLE_PAIR_BONUS;
+          }
+        }
+        const taskWords = (description[i] || title[i]).split(" ").filter(word => !STOPWORDS.has(word));
+        if (tokens.length > 1 && (whole(taskWords[0] || "", tokens[0].original) || whole(taskWords[0] || "", stem(tokens[0].original)))) score += PHRASE_BONUS * LITERAL_WEIGHT;
+        const conciseTitle = title[i].split(" ").filter(word => !STOPWORDS.has(word)).map(stem).join(" ");
+        for (let at = 0; at + 1 < tokens.length; at++) {
+          if (whole(conciseTitle, stem(tokens[at].original) + " " + stem(tokens[at + 1].original))) score += TITLE_PAIR_BONUS;
+        }
+        const label = title[i].replace(/([a-z])-([a-z])/g, "$1 $2");
+        const detail = (description[i] || text[i]).replace(/([a-z])-([a-z])/g, "$1 $2");
+        for (let at = 0; at + 1 < tokens.length; at++) {
+          const pair = tokens[at].original + " " + tokens[at + 1].original;
+          if ((it[0] === "k" || it[0] === "c") && whole(label, pair) && whole(detail, pair)) literalScore += PHRASE_BONUS;
+        }
+        if (tokens.length > 1 && (it[0] === "k" || it[0] === "c") && ACTION_PREFIX.test(description[i] || title[i])) {
+          literalScore += SYNONYM_START_BONUS;
+        }
+        const commandText = it[0] === "c" ? text[i] : it[0] === "k" ? norm(it[5].split(/ {2,}/)[0]) : "";
+        // Everyday verbs need an explicit tool cue before earning a command-name bonus.
+        for (const token of tokens) {
+          if (COMMAND_WORDS.has(token.original) && !DOMAIN_WORDS.has(token.original) && (!AMBIGUOUS_COMMANDS.has(token.original) || tokens.length === 1 || tokens.some(t => t.original === "command")) && whole(commandText, token.original)) {
+            score += COMMAND_BONUS;
+            literalScore += COMMAND_BONUS;
+          }
+        }
+        // Rank the row's action before the surrounding tutorial vocabulary.
+        const actionDescription = !/^(with|when|if|while|for|in|at)\b/.test(description[i]);
+        const summary = it[0] === "t" && it[5].includes(" → ") ? it[5].split(" → ")[0] : "";
+        const taskLabel = summary || (it[0] === "k" ? (actionDescription ? description[i] : title[i]) : it[0] === "c" || it[0] === "h" ? title[i] : text[i]);
+        let primary = it[0] === "c" ? taskLabel + " " + text[i] : taskLabel;
+        if (it[0] === "c" && tokens[0].optional && tokens[0].variants.some(variant => taskLabel.startsWith(variant) && whole(taskLabel, variant))) primary += " " + drillContext[i];
+        const taskStart = compact(taskLabel.replace(/^(?:start|begin|enter)\s+/, ""));
+        const prefixLiteral = taskStart.startsWith(compact(tokens[0].original)) && whole(taskStart, compact(tokens[0].original));
+        const prefixSynonym = tokens[0].variants.some(variant => taskStart.startsWith(compact(variant)) && whole(taskStart, compact(variant)));
+        const localPrimary = primary;
+        if ((it[0] === "c" || it[0] === "k") && prefixLiteral) primary += " " + context[i];
+        // Context completes an explicit action, but cannot earn literal caption credit.
+        const primaryFull = required.every(token => token.variants.some(variant => whole(primary, variant)));
+        if (shortLookup) {
+          const caption = compact((it[0] === "c" || it[0] === "h" ? it[4] : taskLabel).split(/[(:,]| \/ /)[0]);
+          const captionTokens = caption.split(" ");
+          if (compact(title[i]) === queryCaption) literalScore += ACTION_BONUS;
+          if (captionTokens.length === required.length && required.every(token => token.variants.some(variant => whole(caption, compact(variant))))) literalScore += required.every(token => literalMatch(caption, token)) ? ACTION_BONUS : ACTION_BONUS / 2;
+          const prefixEligible = (it[0] === "c" || it[0] === "k" || summary || compact(title[i]) === queryCaption) && primaryFull;
+          if (prefixEligible) literalScore += prefixLiteral ? TASK_PREFIX_BONUS : prefixSynonym ? SYNONYM_START_BONUS : 0;
+          if (required.every(token => literalMatch(localPrimary, token))) literalScore += TASK_COVERAGE_BONUS;
+          if ((it[0] === "k" || it[0] === "c" || summary) && primaryFull) literalScore += TASK_ROW_BONUS;
+          if (summary) {
+            literalScore += ACTION_BONUS + KIND_WEIGHT.c;
+            if (compact(summary).startsWith(queryCaption)) literalScore += START_BONUS;
+            else if (tokens[0].variants.some(variant => summary.startsWith(variant) && whole(summary, variant))) literalScore += SYNONYM_START_BONUS;
+            if (ACTION_PREFIX.test(summary)) literalScore += SYNONYM_START_BONUS;
+          }
+          if (it[0] === "c" && required.every(token => literalMatch(title[i], token))) literalScore += TITLE_TIE_BONUS;
+          if (it[0] === "c" && (codeKinds.get(blockKey(it))?.size || 0) > 1 && !required.some(token => token.variants.some(variant => whole(text[i], variant)) || (token.original.length >= COMMAND_FRAGMENT_MIN && text[i].split(" ")[0].includes(stem(token.original))))) literalScore -= START_BONUS;
+        }
+        // A focused action and subject can beat a broad prose match missing that subject.
+        if (!terse && !full && (it[0] === "c" || it[0] === "k")) {
+          const needed = tokens.filter(token => !token.optional);
+          if (needed.length > 1 && needed[0].variants.some(variant => whole(title[i], variant)) && literalMatch(title[i], needed[needed.length - 1]) && needed.filter(token => !token.variants.some(variant => whole(blocks.get(blockKey(it)), variant))).every(token => (frequencies.get(stem(token.original)) || 0) >= (frequencies.get(stem(needed[needed.length - 1].original)) || 0))) score += FOCUSED_TASK_BONUS;
+        }
+        if (questionQuery && /^(?:how|why|where|what)\b/.test(title[i]) && tokens.every(token => token.optional || token.variants.some(variant => whole(title[i], variant)))) {
+          score += QUESTION_BONUS;
+          literalScore += QUESTION_BONUS;
+        }
+        const direct = tokens.every(token => token.optional || token.variants.some(variant => whole(both[i] + " " + drillContext[i] + (prefixLiteral ? " " + context[i] : ""), variant)));
+        // Short key/command lookups retain literal ordering; incomplete queries use weighted coverage.
+        hits.push({ i, score: terse && direct ? literalScore : score,
+          full: terse ? direct : full, start,
+          domain: tokens.filter(token => DOMAIN_WORDS.has(token.original) && token.variants.some(variant => whole(both[i] + " " + context[i], variant))).length,
+          exact: tokens.filter((token, at) => !token.optional && (tokens.length === 1 ? literalMatch(both[i] + " " + drillContext[i], token) : at === 0 ? token.variants.some(variant => whole(primary, variant)) : literalMatch(both[i] + (prefixLiteral ? " " + context[i] : tokens[0].optional ? " " + drillContext[i] : ""), token))).length });
+      });
+      hits.sort((a, b) => b.domain - a.domain || (terse ? b.full - a.full : 0) || (terse && a.full ? b.exact - a.exact : 0) ||
+        (tokens.length === 1 ? b.start - a.start : 0) || b.score - a.score || a.i - b.i);
+      // The same row often appears on several pages; keep only its best-ranked copy.
+      const seen = new Set();
+      const seenBlocks = new Set();
+      const unique = hits.filter((hit) => {
+        const key = text[hit.i];
+        const block = blockKey(data.items[hit.i]);
+        if (seen.has(key) || (tokens.length > 1 && seenBlocks.has(block))) return false;
+        seen.add(key);
+        seenBlocks.add(block);
+        return true;
+      });
+      return { items: unique.slice(0, limit).map((hit) => data.items[hit.i]), total: unique.length };
+    }
+    return { ...matcher, search };
+  }
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { norm, stem, createMatcher, createSearch, highlight };
+  }
+  if (typeof document === "undefined") return;
+  const root = document.body.dataset.root || "";
+  const here = document.body.dataset.file || "index.html";
+  const engine = createSearch(window.TW_SEARCH || { items: [], files: [] });
+
+  // ---- copy
+  function legacyCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    area.remove();
+    return ok;
+  }
+  async function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* fall through */ }
+    }
+    return legacyCopy(text);
+  }
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest(".tw-copy");
+    if (!button) return;
+    const box = button.closest(".tw-codebox");
+    const source = box && (box.querySelector(".tw-copy-src code") || box.querySelector("pre.sq-code code"));
+    if (!source) return;
+    const ok = await copyText(source.textContent);
+    button.textContent = ok ? "Copied" : "Copy failed";
+    clearTimeout(button._twReset);
+    button._twReset = setTimeout(() => { button.textContent = "Copy"; }, COPY_RESET_MS);
+  });
+
+  // ---- cheat sheet
+  const STORE_KEY = "tw-cheat";
+  const drawer = document.getElementById("tw-cheat");
+  const cheatBtn = document.querySelector(".tw-cheat-btn");
+  const cheatQ = document.getElementById("tw-cheat-q");
+  const cheatTabs = document.getElementById("tw-cheat-tabs");
+  const cheatBody = document.getElementById("tw-cheat-body");
+  const searchDialog = document.getElementById("tw-search");
+  const cheatState = { open: false, tab: "" };
+  // Set by the course menu below. Layers, topmost first: search, cheat sheet, menu panel.
+  // Returns true when it closed an open panel.
+  let closeMenu = () => false;
+  let cheatNorm = null;
+
+  function loadCheatState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      cheatState.open = saved.open === true;
+      cheatState.tab = typeof saved.tab === "string" ? saved.tab : "";
+    } catch (e) { /* storage unavailable or corrupt: use defaults */ }
+  }
+  function saveCheatState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(cheatState)); } catch (e) { /* storage unavailable */ }
+  }
+
+  function cheatTable(rows, taskFirst = false) {
+    const table = document.createElement("table");
+    table.className = "tw-keytable";
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      const keyCell = document.createElement("td");
+      const kbd = document.createElement("kbd");
+      kbd.className = "tw-key";
+      kbd.textContent = row[0];
+      keyCell.append(kbd);
+      const actionCell = document.createElement("td");
+      actionCell.textContent = row[1];
+      if (taskFirst) tr.append(actionCell, keyCell);
+      else tr.append(keyCell, actionCell);
+      table.append(tr);
+    });
+    return table;
+  }
+
+  function renderCheat() {
+    const sheets = window.TW_CHEAT;
+    if (!drawer || !Array.isArray(sheets) || !sheets.length) return;
+    if (!sheets.some((s) => s.id === cheatState.tab)) cheatState.tab = sheets[0].id;
+    if (!cheatNorm) cheatNorm = sheets.map((s) => s.rows.map((r) => norm(r[0] + " " + r[1])));
+    const q = norm(cheatQ.value);
+    cheatTabs.replaceChildren();
+    sheets.forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tw-cheat-tab";
+      b.textContent = s.title;
+      b.setAttribute("aria-pressed", String(!q && s.id === cheatState.tab));
+      b.addEventListener("click", () => {
+        cheatState.tab = s.id;
+        cheatQ.value = "";
+        saveCheatState();
+        renderCheat();
+      });
+      cheatTabs.append(b);
+    });
+    cheatBody.replaceChildren();
+    if (!q) {
+      const sheet = sheets.find((s) => s.id === cheatState.tab);
+      cheatBody.append(cheatTable(sheet.rows, sheet.task_first));
+      return;
+    }
+    const tokens = engine.query(q);
+    let found = 0;
+    sheets.forEach((s, si) => {
+      const rows = s.rows.filter((_, ri) => engine.match(cheatNorm[si][ri], tokens));
+      if (!rows.length) return;
+      found += rows.length;
+      const h = document.createElement("h3");
+      h.className = "tw-cheat-group";
+      h.textContent = s.title;
+      cheatBody.append(h, cheatTable(rows, s.task_first));
+    });
+    if (!found) {
+      const p = document.createElement("p");
+      p.className = "tw-cheat-empty";
+      p.textContent = "No match.";
+      cheatBody.append(p);
+    }
+  }
+
+  function setCheatOpen(open) {
+    if (!drawer) return;
+    // An open panel would trap Tab behind the drawer, so close it first and move focus into the drawer.
+    const fromMenu = open && closeMenu(false);
+    cheatState.open = open;
+    drawer.hidden = !open;
+    document.body.classList.toggle("tw-cheat-open", open);
+    if (cheatBtn) cheatBtn.setAttribute("aria-expanded", String(open));
+    saveCheatState();
+    if (fromMenu && cheatQ) cheatQ.focus();
+  }
+
+  if (drawer && cheatBtn && cheatQ && cheatTabs && cheatBody) {
+    loadCheatState();
+    renderCheat();
+    setCheatOpen(cheatState.open);
+    cheatBtn.addEventListener("click", () => setCheatOpen(!cheatState.open));
+    drawer.querySelector(".tw-cheat-close").addEventListener("click", () => setCheatOpen(false));
+    cheatQ.addEventListener("input", renderCheat);
+    document.addEventListener("keydown", (event) => {
+      if (searchDialog && !searchDialog.hidden) return;
+      if (event.key === "Escape" && cheatState.open) {
+        setCheatOpen(false);
+      } else if (event.key === "?" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+        event.preventDefault();
+        setCheatOpen(!cheatState.open);
+      }
+    });
+  }
+
+  // ---- course menu: a permanent column on module pages from SIDE_MIN_WIDTH up, a slide-in panel otherwise
+  const side = document.getElementById("tw-side");
+  const menuBtn = document.querySelector(".tw-menu-btn");
+  const backdrop = document.getElementById("tw-backdrop");
+  const SIDE_MIN_WIDTH = 1000;
+  const SIDE_MARGIN = 8;
+
+  if (side && menuBtn && backdrop) {
+    const wide = matchMedia(`(min-width: ${SIDE_MIN_WIDTH}px)`);
+    const menuIsOpen = () => document.body.classList.contains("tw-side-open");
+
+    // Keep the current page's link inside the menu's scroll area.
+    function revealCurrent() {
+      const link = side.querySelector('[aria-current="page"]');
+      if (!link) return;
+      const box = side.getBoundingClientRect();
+      const at = link.getBoundingClientRect();
+      if (at.top < box.top + SIDE_MARGIN) side.scrollTop -= box.top + SIDE_MARGIN - at.top;
+      else if (at.bottom > box.bottom - SIDE_MARGIN) side.scrollTop += at.bottom - box.bottom + SIDE_MARGIN;
+    }
+
+    // The page switcher (course.js) owns which page is shown; the menu follows it.
+    function syncCurrent() {
+      const shown = document.querySelector(".lesson.active");
+      if (!shown) return;
+      side.querySelectorAll("a[data-page]").forEach((link) => {
+        if (link.dataset.page === shown.dataset.module) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    function setMenuOpen(open, restoreFocus = true) {
+      if (open === menuIsOpen()) return;
+      document.body.classList.toggle("tw-side-open", open);
+      menuBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        revealCurrent();
+        (side.querySelector('[aria-current="page"]') || side.querySelector("summary, a")).focus();
+      } else if (restoreFocus && side.contains(document.activeElement)) {
+        menuBtn.focus();
+      }
+    }
+
+    closeMenu = (restoreFocus = true) => {
+      const wasOpen = menuIsOpen();
+      setMenuOpen(false, restoreFocus);
+      return wasOpen;
+    };
+
+    syncCurrent();
+    document.querySelectorAll(".lesson").forEach((lesson) => {
+      new MutationObserver(syncCurrent).observe(lesson, { attributes: true, attributeFilter: ["class"] });
+    });
+    if (document.body.classList.contains("has-side") && wide.matches) revealCurrent();
+
+    menuBtn.addEventListener("click", () => setMenuOpen(!menuIsOpen()));
+    backdrop.addEventListener("click", () => setMenuOpen(false));
+    side.addEventListener("click", (event) => { if (event.target.closest("a")) setMenuOpen(false); });
+    // Widening a module page turns the panel into the permanent column, so reset the panel state.
+    wide.addEventListener("change", () => {
+      if (document.body.classList.contains("has-side") && wide.matches) setMenuOpen(false, false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!menuIsOpen() || (searchDialog && !searchDialog.hidden)) return;
+      if (event.key === "Escape") {
+        if (cheatState.open) return; // the cheat sheet sits above the panel and closes first
+        event.preventDefault();
+        event.stopPropagation();
+        setMenuOpen(false);
+      } else if (event.key === "Tab") {
+        if (drawer && drawer.contains(document.activeElement)) return;
+        // Keep Tab inside the open panel.
+        const stops = [...side.querySelectorAll("summary, a")].filter((el) => el.offsetParent !== null);
+        if (!stops.length) return;
+        const first = stops[0], last = stops[stops.length - 1];
+        if (!side.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+        else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    }, true);
+  }
+
+  // ---- search
+  const dialog = document.getElementById("tw-search");
+  const input = document.getElementById("tw-q");
+  const list = document.getElementById("tw-results");
+  const openButtons = document.querySelectorAll("[data-tw-search]");
+  if (!dialog || !input || !list) return;
+
+  let active = -1;
+  let shown = [];
+  let lastFocus = null;
+
+  function isOpen() { return !dialog.hidden; }
+
+  function openSearch() {
+    if (isOpen()) return;
+    lastFocus = document.activeElement;
+    // A panel left open would stay up, with the page scroll locked, once a result is picked.
+    if (closeMenu(false)) lastFocus = menuBtn;
+    dialog.hidden = false;
+    document.body.classList.add("tw-search-open");
+    input.focus();
+    input.select();
+  }
+
+  function closeSearch() {
+    if (!isOpen()) return;
+    dialog.hidden = true;
+    document.body.classList.remove("tw-search-open");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function search(q) {
+    return engine.search(q, here).items;
+  }
+
+  // Preserve source offsets when key spellings or whitespace normalize differently.
+  function highlightSource(text) {
+    let chars = text.split("").flatMap((char, at) => char.toLowerCase().split("")
+      .map((value) => ({ value, start: at, end: at + 1 })));
+    function replace(pattern, replacement) {
+      const source = chars.map((char) => char.value).join("");
+      const next = [];
+      let at = 0;
+      for (const match of source.matchAll(pattern)) {
+        next.push(...chars.slice(at, match.index));
+        const value = typeof replacement === "function" ? replacement(match) : replacement;
+        const start = chars[match.index].start;
+        const end = chars[match.index + match[0].length - 1].end;
+        value.split("").forEach((letter) => next.push({ value: letter, start, end }));
+        at = match.index + match[0].length;
+      }
+      chars = next.concat(chars.slice(at));
+    }
+    replace(/<c-([^>]+)>/g, (match) => " ctrl-" + match[1] + " ");
+    replace(/<leader>/g, "<space>");
+    replace(/\bctrl\+/g, "ctrl-");
+    replace(/\s+/g, " ");
+    replace(/^\s+|\s+$/g, "");
+    return { lower: chars.map((char) => char.value).join(""), chars };
+  }
+
+  // Mark the actual matching variant using text nodes only.
+  function highlight(host, text, tokens) {
+    const { lower, chars } = highlightSource(text);
+    const marked = new Array(text.length).fill(false);
+    tokens.forEach((t) => {
+      if (!t) return;
+      for (let at = lower.indexOf(t); at !== -1; at = lower.indexOf(t, at + t.length)) {
+        for (let k = chars[at].start; k < chars[at + t.length - 1].end; k++) marked[k] = true;
+      }
+    });
+    let start = 0;
+    while (start < text.length) {
+      let end = start;
+      while (end < text.length && marked[end] === marked[start]) end++;
+      const piece = text.slice(start, end);
+      if (marked[start]) {
+        const mark = document.createElement("mark");
+        mark.textContent = piece;
+        host.append(mark);
+      } else {
+        host.append(document.createTextNode(piece));
+      }
+      start = end;
+    }
+  }
+
+  function setActive(next) {
+    const options = list.querySelectorAll('[role="option"]');
+    if (!options.length) return;
+    active = (next + options.length) % options.length;
+    options.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    input.setAttribute("aria-activedescendant", options[active].id);
+    options[active].scrollIntoView({ block: "nearest" });
+  }
+
+  function render(q) {
+    list.replaceChildren();
+    input.removeAttribute("aria-activedescendant");
+    shown = [];
+    active = -1;
+    if (!q) { input.setAttribute("aria-expanded", "false"); return; }
+    input.setAttribute("aria-expanded", "true");
+    shown = search(q);
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "tw-r-text";
+      li.textContent = "No match. Try a key like Ctrl-w or a command like git worktree.";
+      list.append(li);
+      return;
+    }
+    const data = window.TW_SEARCH;
+    const tokens = engine.query(q);
+    shown.forEach((it, i) => {
+      const li = document.createElement("li");
+      li.id = `tw-r-${i}`;
+      li.setAttribute("role", "option");
+      const mod = data.mods[it[1]];
+      const meta = document.createElement("div");
+      meta.className = "tw-r-meta";
+      const kind = document.createElement("span");
+      kind.className = "tw-r-kind";
+      kind.textContent = KIND_LABEL[it[0]] || it[0];
+      meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
+      const title = document.createElement("div");
+      title.className = "tw-r-title";
+      const variants = engine.match(norm(it[4] + " " + it[5]), tokens, true).variants;
+      highlight(title, it[4], variants);
+      const snippet = document.createElement("div");
+      snippet.className = "tw-r-text";
+      highlight(snippet, it[5], variants);
+      li.append(meta, title, snippet);
+      li.addEventListener("click", () => go(it));
+      list.append(li);
+    });
+    setActive(0);
+  }
+
+  function go(it) {
+    const file = window.TW_SEARCH.files[it[1]];
+    const target = it[3];
+    closeSearch();
+    if (file === here) {
+      if (location.hash === "#" + target) dispatchEvent(new HashChangeEvent("hashchange"));
+      else location.hash = target;
+    } else {
+      location.href = root + file.replace(MODULE_FILE_RE, "$1") + "#" + target;
+    }
+  }
+
+  input.addEventListener("input", () => render(norm(input.value)));
+  openButtons.forEach((button) => button.addEventListener("click", openSearch));
+  dialog.addEventListener("click", (event) => { if (event.target === dialog) closeSearch(); });
+
+  document.addEventListener("keydown", (event) => {
+    if (isOpen()) {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSearch(); }
+      else if (event.key === "ArrowDown") { event.preventDefault(); setActive(active + 1); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); setActive(active - 1); }
+      else if (event.key === "Enter" && shown[active]) { event.preventDefault(); go(shown[active]); }
+      return;
+    }
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.target.closest && event.target.closest(TYPING_TARGET)) return;
+    event.preventDefault();
+    openSearch();
+  }, true);
+})();
+
+    </script>
+  </body>
+</html>
