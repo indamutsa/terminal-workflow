@@ -277,7 +277,7 @@ GIT = [
     ("see which remote i push to", [(12, "module-4-d1-b1"), (12, "module-4-d3-b1")]),
     ("download changes without merging", [(12, "module-4-d3-b1"), (12, "module-4-d3-b2")]),
     ("pull without a merge commit", [(12, "module-4-d3-b1"), (12, "module-4-d3-b3"), (12, "module-4-d3-b5")]),
-    ("push a new branch for the first time", [(12, "module-4-d1-b1"), (12, "module-4-d3-b1")]),
+    ("push a new branch for the first time", [(12, "module-3-d1-b1"), (12, "module-4-d3-b1")]),
     ("tag a release", (12, "module-4-d4-b1")),
     ("who changed this line", [(12, "module-4-d5-b1"), (5, "module-2-d4-b1")]),
     ("show history as a graph", [(12, "module-3-d2-b1"), (12, "module-3-d4-b1"), (12, "module-3-d4-b2")]),

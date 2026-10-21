@@ -41,11 +41,12 @@ MODULE = {
             "drills": [
                 {
                     "h2": "Start a git repository and make my first commits",
-                    "intro": "Build a small practice repo in `/tmp/tw-git/shop`. Every block on the four pages runs there, in order. Git needs a name and email on each commit: this block sets them for this repo only.",
+                    "intro": "The hub is just a folder that works like GitHub. Clone it into `/tmp/tw-git/shop`, where the four pages run in order. Git needs a name and email on each commit: this block sets them for this repo only.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Create a git repository with three commits to practice on", "code": C(r'''
-mkdir -p /tmp/tw-git/shop && cd /tmp/tw-git/shop
-git init -b main
+                        {"type": "cmd", "where": "shell", "title": "Create a local GitHub hub, clone it and push my first commits", "code": C(r'''
+git init --bare -b main /tmp/tw-git/hub.git
+git clone /tmp/tw-git/hub.git /tmp/tw-git/shop
+cd /tmp/tw-git/shop
 git config user.name "Sam Park"
 git config user.email "sam@example.com"
 printf 'A1 pen 2.50\nA2 book 4.00\nA3 tape 1.25\n' > orders.txt
@@ -57,10 +58,11 @@ git commit -am "Add order A4"
 echo 'ship same day before noon' > notes.txt
 git add notes.txt
 git commit -m "Add shipping notes"
+git push -u origin main
 git log --oneline
 '''),
-                         "expect": "`git init` prints `Initialized empty Git repository in /tmp/tw-git/shop/.git/` (macOS shows `/private/tmp/tw-git/shop/.git/`). Each commit prints a line like `[main 1fbfbcc] Add order A4`, and the first one also says `(root-commit)`. The last command lists three commits, newest first: `Add shipping notes`, `Add order A4`, `Add orders and readme`, each after a 7-character hash. Your hashes differ."},
-                        {"type": "text", "body": "To start over, delete the folder with `rm -rf /tmp/tw-git` and run the block again. Git says \"Please tell me who you are\" when no name is set. Set one for every repo with `git config --global user.name \"Your Name\"` and `git config --global user.email \"you@example.com\"`."},
+                         "expect": "`git init --bare` prints `Initialized empty Git repository in /tmp/tw-git/hub.git/` (macOS shows `/private/tmp/...`). Clone prints `Cloning into '/tmp/tw-git/shop'...`, `warning: You appear to have cloned an empty repository.` and `done.`: there are no commits yet. Each commit prints `[main <hash>]` and its message; the first also says `(root-commit)`. Push prints `To /tmp/tw-git/hub.git`, `* [new branch]      main -> main` and `branch 'main' set up to track 'origin/main'.` The log lists three commits, newest first: `Add shipping notes`, `Add order A4`, `Add orders and readme`, each after a 7-character hash. Your hashes differ."},
+                        {"type": "text", "body": "To start over, move `/tmp/tw-git` to an unused backup name with `mv`, then run the block again. A bare hub stores history without editable project files; edit in `shop` and push to the hub. If Git says \"Please tell me who you are\", set `user.name` and `user.email` in the repo as above."},
                     ],
                 },
                 {
@@ -73,7 +75,7 @@ echo 'draft' > todo.txt
 git status
 git status -s
 '''),
-                         "expect": "`git status` prints `On branch main`, then `Changes not staged for commit:` with `modified:   orders.txt`, then `Untracked files:` with `todo.txt`. `git status -s` shrinks that to two lines: ` M orders.txt` and `?? todo.txt`. The space before the `M` means edited but not staged."},
+                         "expect": "`git status` prints `On branch main` and `Your branch is up to date with 'origin/main'.`, then `Changes not staged for commit:` with `modified:   orders.txt`, then `Untracked files:` with `todo.txt`. `git status -s` shrinks that to two lines: ` M orders.txt` and `?? todo.txt`. The space before the `M` means edited but not staged."},
                         {"type": "cmd", "where": "shell", "title": "See what I changed (git diff)", "code": C('''
 git diff
 '''),
@@ -98,11 +100,12 @@ git status -s
                     "h2": "Commit my changes with a message (git commit)",
                     "intro": "Commit what is staged. Write the message as what the commit does: \"Add order A5\", not \"changes\".",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Save my staged changes as a commit (git commit -m)", "code": C('''
+                        {"type": "cmd", "where": "shell", "title": "Save my staged changes as a commit and push (git commit -m)", "code": C('''
 git commit -m "Add order A5"
+git push
 git status -s
 '''),
-                         "expect": "A line like `[main f12d620] Add order A5`, then `1 file changed, 1 insertion(+)`. `git status -s` now lists only `?? todo.txt`."},
+                         "expect": "A line like `[main <hash>] Add order A5`, then `1 file changed, 1 insertion(+)`. Push prints `To /tmp/tw-git/hub.git` and `<old>..<new>  main -> main`: the old and new tip hashes. `git status -s` now lists only `?? todo.txt`."},
                         {"type": "cmd", "where": "shell", "title": "Stop git showing a file I never want to commit (.gitignore)", "code": C(r'''
 printf 'todo.txt\n*.log\n' > .gitignore
 echo 'x' > debug.log
@@ -138,7 +141,7 @@ git log --oneline -3
 git show --stat
 git show HEAD~1 --oneline
 '''),
-                         "expect": "`git show --stat` prints `commit` and the full hash, `Author: Sam Park <sam@example.com>`, a date, the message `Raise pen price`, and `prices.txt | 2 +-`. The second command prints one line for the earlier commit, like `b992ef6 Add prices`, then the whole file as lines starting with `+`."},
+                         "expect": "`git show --stat` prints `commit` and the full hash, `Author: Sam Park <sam@example.com>`, a date, the message `Raise pen price`, and `prices.txt | 2 +-`. The second command prints one line for the earlier commit, like `<hash> Add prices`, then the whole file as lines starting with `+`."},
                         {"type": "cmd", "where": "shell", "title": "Find the commits that changed one file", "code": C('''
 git log --oneline -- orders.txt
 '''),
@@ -230,7 +233,7 @@ git log --oneline -- orders.txt
 git commit -am "Raise staple price"
 git status -s
 '''),
-                         "expect": "`[main b002589] Raise staple price` and `1 file changed, 1 insertion(+), 1 deletion(-)`. `git status -s` prints nothing: the folder is clean again."},
+                         "expect": "`[main <hash>] Raise staple price` and `1 file changed, 1 insertion(+), 1 deletion(-)`. `git status -s` prints nothing: the folder is clean again."},
                         {"type": "cmd", "where": "shell", "title": "Unstage a file but keep my edits (git restore --staged)", "code": C('''
 echo 'call the carrier' >> notes.txt
 git add notes.txt
@@ -260,7 +263,7 @@ git commit -am "Add oder A6"
 git commit --amend -m "Add order A6"
 git log --oneline -2
 '''),
-                         "expect": "The first commit is `Add oder A6`. The amend prints `[main b3467eb] Add order A6` with a new hash. `git log --oneline -2` shows `Add order A6` on top of `Raise staple price`: the typo commit is gone."},
+                         "expect": "The first commit is `Add oder A6`. The amend prints `[main <hash>] Add order A6` with a new hash. `git log --oneline -2` shows `Add order A6` on top of `Raise staple price`: the typo commit is gone."},
                         {"type": "cmd", "where": "shell", "title": "Add a forgotten change to my last commit", "code": C('''
 echo 'A7 clips 0.10' >> orders.txt
 git commit -a --amend --no-edit
@@ -280,7 +283,7 @@ git commit --amend --no-edit
                 },
                 {
                     "h2": "Undo my last commit and keep my changes (git reset)",
-                    "intro": "`git reset HEAD~1` moves the branch back one commit. The flag decides what happens to your changes. Each block here makes the commit again, so you can repeat them.",
+                    "intro": "`git reset HEAD~1` moves the branch back one commit. Use reset only before you push that commit; use revert for pushed commits. The flag decides what happens to your changes. These commits stay local until the next drill.",
                     "blocks": [
                         {"type": "keys", "where": "shell", "title": "Undo my last commit, keep or delete the changes", "rows": [
                             ("git reset --soft HEAD~1", "Undo my last commit and keep the changes staged"),
@@ -293,7 +296,7 @@ git reset --soft HEAD~1
 git status -s
 git commit -m "Add orders A6 and A7"
 '''),
-                         "expect": "`git status -s` prints `M  orders.txt`: the changes are staged. The new commit prints `[main 46a127d] Add orders A6 and A7` and `1 file changed, 2 insertions(+)`."},
+                         "expect": "`git status -s` prints `M  orders.txt`: the changes are staged. The new commit prints `[main <hash>] Add orders A6 and A7` and `1 file changed, 2 insertions(+)`."},
                         {"type": "cmd", "where": "shell", "title": "Undo my last commit and unstage the changes (git reset)", "code": C('''
 git reset HEAD~1
 git status -s
@@ -306,7 +309,7 @@ git reset --hard HEAD~1
 git log --oneline -1
 tail -2 orders.txt
 '''),
-                         "expect": "`HEAD is now at b002589 Raise staple price`. `git log --oneline -1` agrees. `tail -2 orders.txt` ends at `A5 glue 3.00`: the A6 and A7 lines are gone."},
+                         "expect": "`HEAD is now at <hash> Raise staple price`. `git log --oneline -1` agrees. `tail -2 orders.txt` ends at `A5 glue 3.00`: the A6 and A7 lines are gone."},
                     ],
                 },
                 {
@@ -318,13 +321,15 @@ tail -2 orders.txt
 git reflog -4
 git reset --hard 'HEAD@{1}'
 git log --oneline -1
+git push
 '''),
-                         "expect": "`git reflog -4` lists newest first. Each line starts with a hash and a reflog index: `HEAD@{0}`, `HEAD@{1}`, `HEAD@{2}`, `HEAD@{3}`. The top line reads `reset: moving to HEAD~1` and the one below it `commit: Add orders A6 and A7`. Resetting to `HEAD@{1}` prints `HEAD is now at` and that commit, and `git log --oneline -1` shows `Add orders A6 and A7` again."},
+                         "expect": "`git reflog -4` lists newest first. Each line starts with a hash and a reflog index: `HEAD@{0}`, `HEAD@{1}`, `HEAD@{2}`, `HEAD@{3}`. The top line reads `reset: moving to HEAD~1` and the one below it `commit: Add orders A6 and A7`. Resetting to `HEAD@{1}` prints `HEAD is now at` and that commit, and `git log --oneline -1` shows `Add orders A6 and A7` again. Push prints `To /tmp/tw-git/hub.git` and `<old>..<new>  main -> main`: this commit is now shared, ready for revert."},
                         {"type": "cmd", "where": "shell", "title": "Revert a commit I already pushed (git revert)", "code": C('''
 git revert --no-edit HEAD
+git push
 git log --oneline -3
 '''),
-                         "expect": "A new commit named `Revert \"Add orders A6 and A7\"` with `1 file changed, 2 deletions(-)`. `git log --oneline -3` shows it on top, with the original commit still below it."},
+                         "expect": "A new commit named `Revert \"Add orders A6 and A7\"` with `1 file changed, 2 deletions(-)`. Push prints `To /tmp/tw-git/hub.git` and `<old>..<new>  main -> main`. `git log --oneline -3` shows the revert on top, with the original commit still below it."},
                     ],
                 },
                 {
@@ -339,7 +344,7 @@ git stash list
 git stash pop
 git commit -am "Add order A8"
 '''),
-                         "expect": "`Saved working directory and index state On main: half-done A8`. `git status -s` prints nothing and `git stash list` prints `stash@{0}: On main: half-done A8`. `git stash pop` prints the status with `modified:   orders.txt` and `Dropped refs/stash@{0}` plus a hash. The commit prints `[main bc95f96] Add order A8`."},
+                         "expect": "`Saved working directory and index state On main: half-done A8`. `git status -s` prints nothing and `git stash list` prints `stash@{0}: On main: half-done A8`. `git stash pop` prints `Your branch is up to date with 'origin/main'.`, the status with `modified:   orders.txt` and `Dropped refs/stash@{0}` plus a hash. The commit prints `[main <hash>] Add order A8`."},
                         {"type": "text", "body": "A plain `git stash` skips new files that git does not track yet. Add `-u` to stash them too: `git stash push -u -m \"message\"`."},
                     ],
                 },
@@ -360,7 +365,7 @@ git commit -am "Add order A8"
                         ["`git reset HEAD~1`", "Unstaged", "Kept"],
                         ["`git reset --hard HEAD~1`", "Deleted", "Deleted"],
                     ]),
-                    ("Rewrite a commit or add a new one", "Rewriting is fine alone and wrong once others have the commit.", ["Command", "Use it when"], [
+                    ("Rewrite a commit or add a new one", "Amend and reset only before you push; revert a pushed commit.", ["Command", "Use it when"], [
                         ["`git commit --amend`", "The commit is only on your machine"],
                         ["`git reset`", "The commit is only on your machine"],
                         ["`git revert`", "The commit is pushed or shared"],
@@ -377,7 +382,7 @@ git commit -am "Add order A8"
                     (None, "`git commit -m \"Add orders A6 and A7\"`", "Commit again when you are ready."),
                 ],
                 "after": "M  orders.txt\n[main 46a127d] Add orders A6 and A7\n 1 file changed, 2 insertions(+)",
-                "meaning": "The commit disappears and the edits stay. Nothing is lost, so this is safe to try.",
+                "meaning": "Before you push, the commit disappears and the edits stay. Use revert if you already pushed it.",
             },
             "practice": {
                 "h2": "Check your answers: restore, amend, reset, revert and stash",
@@ -430,8 +435,9 @@ git branch
 echo 'label: fragile' > labels.txt
 git add labels.txt
 git commit -m "Add labels file"
+git push -u origin add-labels
 '''),
-                         "expect": "`Switched to a new branch 'add-labels'`. `git branch` lists `* add-labels` and `  main`: the `*` marks the branch you are on. The commit prints `[add-labels 7e2f789] Add labels file` (your hash differs) and `create mode 100644 labels.txt`."},
+                         "expect": "`Switched to a new branch 'add-labels'`. `git branch` lists `* add-labels` and `  main`: the `*` marks the branch you are on. The commit prints `[add-labels <hash>] Add labels file` and `create mode 100644 labels.txt`. Push prints `To /tmp/tw-git/hub.git`, `* [new branch]      add-labels -> add-labels` and `branch 'add-labels' set up to track 'origin/add-labels'.` Your hash differs."},
                         {"type": "cmd", "where": "shell", "title": "Switch back to main and see the files change (git switch)", "code": C('''
 git switch main
 command ls
@@ -439,13 +445,13 @@ git switch add-labels
 command ls
 git switch main
 '''),
-                         "expect": "On `main`, `command ls` lists `debug.log`, `notes.txt`, `orders.txt`, `prices.txt`, `README.md` and `todo.txt`. On `add-labels` the list also has `labels.txt`. Switching changes the files in the folder to match the branch."},
+                         "expect": "Switching to `main` prints `Your branch is ahead of 'origin/main' by 1 commit.` Its `command ls` lists `debug.log`, `notes.txt`, `orders.txt`, `prices.txt`, `README.md` and `todo.txt`. Switching to `add-labels` prints `Your branch is up to date with 'origin/add-labels'.` and its list also has `labels.txt`. Switching changes the files in the folder to match the branch; the last switch returns to main, still one commit ahead."},
                         {"type": "cmd", "where": "shell", "title": "Go back to the previous branch (git switch -)", "code": C('''
 git switch -
 git branch --show-current
 git switch -
 '''),
-                         "expect": "The first `git switch -` prints `Switched to branch 'add-labels'`: that was the branch you were on before `main`. `git branch --show-current` prints `add-labels`. Running `git switch -` again prints `Switched to branch 'main'`, ready for the merge drill."},
+                         "expect": "The first `git switch -` prints `Switched to branch 'add-labels'` and `Your branch is up to date with 'origin/add-labels'.` `git branch --show-current` prints `add-labels`. Running `git switch -` again prints `Switched to branch 'main'` and `Your branch is ahead of 'origin/main' by 1 commit.`, ready for the merge drill."},
                     ],
                 },
                 {
@@ -458,12 +464,12 @@ git commit -am "Add opening hours"
 git merge --no-edit add-labels
 git log --oneline --graph -5
 '''),
-                         "expect": "The commit prints `[main 5a02ace] Add opening hours`. The merge prints `Merge made by the 'ort' strategy.` and ` labels.txt | 1 +`. The graph shows a merge commit on top, `Merge branch 'add-labels'`, with two lines under it: `Add opening hours` on the left (main) and the branch commit `Add labels file` on the right, which join again below."},
+                         "expect": "The commit prints `[main <hash>] Add opening hours`. The merge prints `Merge made by the 'ort' strategy.` and ` labels.txt | 1 +`. The graph shows a merge commit on top, `Merge branch 'add-labels'`, with two lines under it: `Add opening hours` on the left (main) and the branch commit `Add labels file` on the right, which join again below."},
                         {"type": "cmd", "where": "shell", "title": "Delete a branch I already merged (git branch -d)", "code": C('''
 git branch -d add-labels
 git branch
 '''),
-                         "expect": "`Deleted branch add-labels (was 7e2f789).` and `git branch` lists only `* main`. Git deletes a merged branch without asking, because its commits are on main."},
+                         "expect": "`Deleted branch add-labels (was <hash>).` and `git branch` lists only `* main`. This removes only your local branch; the copy on the hub stays. Because the branch was pushed, `-d` checks it against `origin/add-labels`, not main, so check `git log --oneline --graph` shows the merge first."},
                     ],
                 },
                 {
@@ -480,7 +486,7 @@ git commit -am "Raise pen price to 3.00"
 git merge --no-edit fix-price
 git status -s
 '''),
-                         "expect": "The merge prints `CONFLICT (content): Merge conflict in orders.txt` and `Automatic merge failed; fix conflicts and then commit the result.` Then `git status -s` prints `UU orders.txt`: both branches changed it."},
+                         "expect": "Switching to main prints `Your branch is ahead of 'origin/main' by 4 commits.` The merge prints `CONFLICT (content): Merge conflict in orders.txt` and `Automatic merge failed; fix conflicts and then commit the result.` Then `git status -s` prints `UU orders.txt`: both branches changed it."},
                         {"type": "cmd", "where": "shell", "title": "See the conflict markers git wrote in the file", "code": C('''
 head -6 orders.txt
 '''),
@@ -492,7 +498,7 @@ git add orders.txt
 git commit --no-edit
 git log --oneline --graph -4
 '''),
-                         "expect": "`head -2 orders.txt` shows `A1 pen 3.00` and `A2 book 4.00`: no markers left. The commit prints `[main 7faf737] Merge branch 'fix-price'`. The graph shows `Merge branch 'fix-price'` on top and the two price commits side by side below it."},
+                         "expect": "`head -2 orders.txt` shows `A1 pen 3.00` and `A2 book 4.00`: no markers left. The commit prints `[main <hash>] Merge branch 'fix-price'`. The graph shows `Merge branch 'fix-price'` on top and the two price commits side by side below it."},
                         {"type": "text", "body": "In a real conflict, open the file in Neovim, delete the marker lines and the version you do not want, then save. The `sed` line does the same job here, so the block gives the same result every time. To back out of a merge, run `git merge --abort`."},
                     ],
                 },
@@ -511,7 +517,7 @@ git commit -am "Add closed days"
 git switch add-stamps
 git log --oneline --graph --all -4
 '''),
-                         "expect": "The branch commit prints `[add-stamps 8038d66] Add stamps file` and the main commit prints `[main 100e07d] Add closed days`. The graph shows a fork: `Add stamps file` on one line and `Add closed days` on another, both leaving the same older commit."},
+                         "expect": "The branch commit prints `[add-stamps <hash>] Add stamps file`. Switching to main prints `Your branch is ahead of 'origin/main' by 7 commits.`, then its commit prints `[main <hash>] Add closed days`. The graph shows a fork: `Add stamps file` on one line and `Add closed days` on another, both leaving the same older commit."},
                         {"type": "cmd", "where": "shell", "title": "Rebase my branch onto main (git rebase)", "code": C('''
 git rebase main
 git log --oneline --graph --all -4
@@ -519,7 +525,7 @@ git switch main
 git merge add-stamps
 git branch -d add-stamps fix-price
 '''),
-                         "expect": "`Rebasing (1/1)` then `Successfully rebased and updated refs/heads/add-stamps.` The graph is a straight line now: `Add stamps file` (a new hash) sits on top of `Add closed days`. On main, `git merge add-stamps` prints `Fast-forward` and ` stamps.txt | 1 +`. Both finished branches are deleted: `Deleted branch add-stamps (was ac87ba5).` and `Deleted branch fix-price (was 5991ddd).`"},
+                         "expect": "`Rebasing (1/1)` then `Successfully rebased and updated refs/heads/add-stamps.` The graph puts `Add stamps file` (a new hash) directly on top of `Add closed days`; the older merge is still below. Switching to main prints `Your branch is ahead of 'origin/main' by 8 commits.` Then `git merge add-stamps` prints `Fast-forward` and ` stamps.txt | 1 +`. Both finished branches print `Deleted branch <name> (was <hash>).`"},
                     ],
                 },
                 {
@@ -534,20 +540,21 @@ git switch main
 echo 'A9 staples 0.80' >> orders.txt
 git commit -am "Add order A9"
 git cherry-pick hotfix
+git push
 git log --oneline -3
 '''),
-                         "expect": "The cherry-pick prints `[main 2d12386] Add support phone` plus a `Date:` line: the same message, a new hash. `git log --oneline -3` shows `Add support phone`, `Add order A9` and `Add stamps file`."},
+                         "expect": "Switching to main prints `Your branch is ahead of 'origin/main' by 9 commits.` The cherry-pick prints `[main <hash>] Add support phone` plus a `Date:` line: the same message, a new hash. Push prints `To /tmp/tw-git/hub.git` and `<old>..<new>  main -> main`. `git log --oneline -3` shows `Add support phone`, `Add order A9` and `Add stamps file`."},
                         {"type": "cmd", "where": "shell", "title": "Delete a branch git says is not merged (git branch -D)", "code": C('''
 git branch -d hotfix
 git branch -D hotfix
 '''),
-                         "expect": "The first command prints `error: the branch 'hotfix' is not fully merged` and a hint to use `git branch -D hotfix`. Git sees the cherry-picked copy as a different commit. The second command prints `Deleted branch hotfix (was ef044d1).`"},
+                         "expect": "The first command prints `error: the branch 'hotfix' is not fully merged` and a hint to use `git branch -D hotfix`. Git sees the cherry-picked copy as a different commit. The second command prints `Deleted branch hotfix (was <hash>).`"},
                         {"type": "cmd", "where": "shell", "title": "Get back a branch I deleted (git reflog)", "code": C('''
 git reflog | grep "commit: Add support phone"
 git branch hotfix $(git reflog | grep "commit: Add support phone" | cut -d' ' -f1)
 git branch
 '''),
-                         "expect": "The first line shows one reflog entry, like `ef044d1 HEAD@{3}: commit: Add support phone` (your hash and number differ). The second command makes a branch at that hash. `git branch` lists `hotfix` again beside `* main`."},
+                         "expect": "The first line shows one reflog entry, like `<hash> HEAD@{3}: commit: Add support phone` (your hash and number differ). The second command makes a branch at that hash. `git branch` lists `hotfix` again beside `* main`."},
                     ],
                 },
             ],
@@ -563,7 +570,7 @@ git branch
                     ]),
                     ("Bring work together: merge, rebase or cherry-pick", "All three move commits. The history looks different afterwards.", ["Command", "History afterwards"], [
                         ["`git merge name`", "Fast-forwards when possible; otherwise joins diverged histories with a merge commit"],
-                        ["`git rebase main`", "One straight line; your commits get new hashes"],
+                        ["`git rebase main`", "Replays your branch commits on top of main with new hashes"],
                         ["`git cherry-pick hash`", "One commit copied, with a new hash"],
                     ]),
                     ("Fix a merge conflict in four steps", "Git marks the file with `<<<<<<<`, `=======` and `>>>>>>>`.", ["Step", "Do"], [
@@ -629,16 +636,14 @@ git branch
             },
             "drills": [
                 {
-                    "h2": "Push my project to GitHub (git remote add, git push -u)",
-                    "intro": "A remote is another copy of the repo. This block makes a bare repo in `/tmp/tw-git/remote.git` that plays the part of GitHub, so nothing leaves your machine.",
+                    "h2": "See where git push goes",
+                    "intro": "You have pushed to the hub since page 1. Check its address and which remote branch each local branch tracks.",
                     "blocks": [
-                        {"type": "cmd", "where": "shell", "title": "Add a remote and push my branch for the first time (git push -u)", "code": C('''
-git init --bare -b main /tmp/tw-git/remote.git
-git remote add origin /tmp/tw-git/remote.git
+                        {"type": "cmd", "where": "shell", "title": "See where git push goes (git remote -v, git branch -vv)", "code": C('''
 git remote -v
-git push -u origin main
+git branch -vv
 '''),
-                         "expect": "`git init --bare` prints `Initialized empty Git repository in /tmp/tw-git/remote.git/` (macOS shows `/private/tmp/...`). `git remote -v` lists `origin` twice, `(fetch)` and `(push)`, with the folder path. The push prints `* [new branch]      main -> main` and `branch 'main' set up to track 'origin/main'.`"},
+                         "expect": "`git remote -v` lists `origin` twice with `/tmp/tw-git/hub.git`, once for `(fetch)` and once for `(push)`. `git branch -vv` shows `* main <hash> [origin/main] Add support phone` and `hotfix <hash> Add support phone` (spacing may differ). Main tracks `origin/main`; hotfix has no upstream. These commands only show where pushes go."},
                         {"type": "code", "file": "shell", "title": "Push to a real GitHub repository (fresh repo; skip this exercise)", "code": C('''
 git remote add origin git@github.com:YOUR-NAME/shop.git
 git push -u origin main
@@ -651,20 +656,20 @@ git push -u origin main
                     "intro": "Clone makes a folder with the full history and sets `origin` for you. This block clones the repo for a second person, Alex, who then pushes a commit.",
                     "blocks": [
                         {"type": "cmd", "where": "shell", "title": "Clone a repo and list all branches including remote ones (git clone, git branch -a)", "code": C('''
-git clone /tmp/tw-git/remote.git /tmp/tw-git/friend
+git clone /tmp/tw-git/hub.git /tmp/tw-git/friend
 cd /tmp/tw-git/friend
 git config user.name "Alex Lee"
 git config user.email "alex@example.com"
 git log --oneline -3
 git branch -a
 '''),
-                         "expect": "`Cloning into '/tmp/tw-git/friend'...` (a real GitHub clone also prints counting and receiving lines). `git log --oneline -3` shows the same last three commits as your repo: `Add support phone`, `Add order A9`, `Add stamps file`. `git branch -a` lists `* main`, `remotes/origin/HEAD -> origin/main` and `remotes/origin/main`."},
+                         "expect": "`Cloning into '/tmp/tw-git/friend'...` and `done.` (a real GitHub clone also prints counting and receiving lines). `git log --oneline -3` shows the same last three commits as your repo: `Add support phone`, `Add order A9`, `Add stamps file`. `git branch -a` lists `* main`, `remotes/origin/HEAD -> origin/main`, `remotes/origin/add-labels` and `remotes/origin/main`. The pushed add-labels branch stays on the hub after its local name is deleted."},
                         {"type": "cmd", "where": "shell", "title": "Push a commit to the remote (git push)", "code": C('''
 echo 'A10 folders 0.90' >> orders.txt
 git commit -am "Add order A10"
 git push
 '''),
-                         "expect": "The commit prints `[main ab0a52e] Add order A10`. The push prints `To /tmp/tw-git/remote.git` and a line like `   2232f7f..ab0a52e  main -> main`: the old and new tip of the remote branch."},
+                         "expect": "The commit prints `[main <hash>] Add order A10`. The push prints `To /tmp/tw-git/hub.git` and a line like `   <old>..<new>  main -> main`: the old and new tip of the remote branch."},
                     ],
                 },
                 {
@@ -685,12 +690,12 @@ git fetch
 git status
 git log --oneline main..origin/main
 '''),
-                         "expect": "`git fetch` prints `From /tmp/tw-git/remote` and a line like `2232f7f..ab0a52e  main       -> origin/main`. `git status` says `Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.` Your files did not change. The last command lists the commit you lack: `Add order A10`."},
+                         "expect": "`git fetch` prints `From /tmp/tw-git/hub` and a line like `<old>..<new>  main       -> origin/main`. `git status` says `Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.` Your files did not change. The last command lists the commit you lack: `Add order A10`."},
                         {"type": "cmd", "where": "shell", "title": "Pull the latest changes and keep my commits on top (git pull --rebase)", "code": C('''
 git pull --rebase
 git log --oneline -2
 '''),
-                         "expect": "`Updating 2232f7f..ab0a52e`, `Fast-forward` and ` orders.txt | 1 +`. `git log --oneline -2` now has `Add order A10` on top of `Add support phone`."},
+                         "expect": "`Updating <old>..<new>`, `Fast-forward` and ` orders.txt | 1 +`. `git log --oneline -2` now has `Add order A10` on top of `Add support phone`."},
                         {"type": "cmd", "where": "shell", "title": "Fix \"rejected, fetch first\" when I push", "code": C('''
 echo 'A11 pins 0.20' >> orders.txt
 git commit -am "Add order A11"
@@ -701,13 +706,13 @@ git push
 cd /tmp/tw-git/shop
 git push
 '''),
-                         "expect": "Both commits succeed: `[main b8b1de2] Add order A11` here and `[main c354bd0] Add Monday note` in Alex's folder. Alex's push works (`ab0a52e..c354bd0  main -> main`). Yours does not: `! [rejected]        main -> main (fetch first)` and `error: failed to push some refs to '/tmp/tw-git/remote.git'`, followed by hints."},
+                         "expect": "Both commits succeed: `[main <hash>] Add order A11` here and `[main <hash>] Add Monday note` in Alex's folder. Alex's push works (`<old>..<new>  main -> main`). Yours does not: `! [rejected]        main -> main (fetch first)` and `error: failed to push some refs to '/tmp/tw-git/hub.git'`, followed by hints."},
                         {"type": "cmd", "where": "shell", "title": "Pull, then push again after a rejected push", "code": C('''
 git pull --rebase
 git push
 git log --oneline --graph -4
 '''),
-                         "expect": "`git pull --rebase` prints `Rebasing (1/1)` and `Successfully rebased and updated refs/heads/main.` The push now works: `c354bd0..6d535dc  main -> main`. The graph is a straight line with your `Add order A11` on top of Alex's `Add Monday note`."},
+                         "expect": "`git pull --rebase` prints `Rebasing (1/1)` and `Successfully rebased and updated refs/heads/main.` The push now works: `<old>..<new>  main -> main`. The graph is a straight line with your `Add order A11` on top of Alex's `Add Monday note`."},
                     ],
                 },
                 {
