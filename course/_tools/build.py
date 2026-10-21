@@ -216,6 +216,7 @@ def module_html(mod, prev, nxt, version, cheat, mods):
     <style>
 {css}
     </style>
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml"><link rel="icon" href="/favicon.ico?v=2" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
   </head>
   <body class="has-side" data-root="../" data-file="{module_path(mod["folder"])}">
     {kit.topbar("../")}
