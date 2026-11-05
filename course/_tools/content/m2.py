@@ -415,6 +415,11 @@ dd
                             (".", "Repeat the last change"),
                         ], "try": "In `data/log.txt`, put the cursor on `pending` in line 1, press `ciw`, type `done`, press `Esc`. On line 2 press `.`. Then `u` twice, `Ctrl-r` twice, then `u` twice again.",
                          "expect": "Line 1 reads `item 1: done`, and line 2 reads `item 2: done` after `.`. After the last two `u`, `/done` finds nothing: every line says `pending` again."},
+                        {"type": "keys", "where": "nvim", "title": "Undo and redo while you type (insert mode)", "rows": [
+                            ("Ctrl-o u", "Undo without leaving insert mode"),
+                            ("Ctrl-o Ctrl-r", "Redo without leaving insert mode"),
+                        ], "try": "`Ctrl-o` runs one normal-mode command, then puts you back in insert mode. Cmd+Z does not undo in Neovim in a terminal: the terminal keeps Cmd keys for itself. In `data/log.txt` go to line 3, press `A`, type ` later`. Without pressing `Esc`, press `Ctrl-o u`, then `Ctrl-o Ctrl-r`, then `Ctrl-o u` again, then `Esc`.",
+                         "expect": "After the first `Ctrl-o u` line 3 reads `item 3: pending` and you are still in insert mode (the status line says `INSERT`). `Ctrl-o Ctrl-r` brings back `item 3: pending later`. After the last `Ctrl-o u` and `Esc`, line 3 is `item 3: pending` again."},
                     ],
                 },
             ],
@@ -431,6 +436,7 @@ dd
                         ["`di\"/da(`", "Delete inside/around"],
                         ["`vi{/vip`", "Select inside braces/paragraph"],
                         ["`u / Ctrl-r`", "Undo / redo"],
+                        ["`Ctrl-o u / Ctrl-o Ctrl-r`", "Undo / redo without leaving insert mode"],
                         ["`.`", "Repeat the last change"],
                         ["`>>  / <<`", "Indent / unindent"],
                         ["`gg=G`", "Auto-indent the entire file"],
@@ -440,6 +446,7 @@ dd
                     ("Take back an edit: undo, redo or reload the file", "Three ways back, from smallest to biggest.", ["Situation", "Keys"], [
                         ["Undo the last change", "`u`"],
                         ["Redo it", "`Ctrl-r`"],
+                        ["Undo or redo while typing (Cmd+Z does not undo in the terminal)", "`Ctrl-o u` / `Ctrl-o Ctrl-r`"],
                         ["Reload from disk (autosave paused with `:ASToggle` first)", "`:e!`"],
                     ]),
                 ],
