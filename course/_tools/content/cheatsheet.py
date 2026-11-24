@@ -5,7 +5,7 @@ Live-config notes: the tmux prefix is Ctrl-a, windows start at 1, and the termin
 Row wording starts with the plain words a person would type (verb and object), official terms after.
 """
 
-from content.common import FZF_HELPERS
+from content.common import FZF_HELPERS, VD_COMMANDS
 
 CHEATSHEET = [
     {"id": "essentials", "title": "Essentials", "rows": [
@@ -375,6 +375,7 @@ CHEATSHEET = [
         ("devh --pick", "Search the dev cheat sheet; the pick lands on your prompt"),
         ("cch", "Show the coding agent's keys and slash commands"),
         ("lzy", "Open LazyGit in the current folder"),
+        *VD_COMMANDS,
     ]},
     {"id": "git-cli", "title": "Git", "task_first": True, "rows": [
         # Save my work and see what changed (m12 page 1).

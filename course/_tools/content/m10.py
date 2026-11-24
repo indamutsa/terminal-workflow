@@ -1,5 +1,7 @@
 """Module 10: Bash basics. Source: snippets run in /bin/bash 3.2 on macOS; no lesson file."""
 
+from content.common import VD_COMMANDS
+
 
 def C(s):
     """Code blocks are written between newlines so a closing quote never touches a code quote."""
@@ -853,6 +855,9 @@ printf 'C:\\temp\n' | { read -r line; echo "raw:   $line"; }
                         ["Give up after 5 seconds", "`read -t 5 a`"],
                         ["Keep backslashes as typed", "`read -r line`"],
                     ]),
+                    ("Download YouTube videos with vd",
+                     "`vd` is a custom shell command that uses Docker. Replace `VIDEO_URL` or `PLAYLIST_URL` with a YouTube link and `PATH` with an existing folder.",
+                     ["Command", "What it does"], [(f"`{command}`", action) for command, action in VD_COMMANDS]),
                 ],
             },
             "worked": {
