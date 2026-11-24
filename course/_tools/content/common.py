@@ -67,6 +67,20 @@ FZF_HELPERS = [
     ("devh --pick", "Search the dev cheat sheet and put the pick on the prompt"),
 ]
 
+# Custom YouTube downloader commands shared by the Bash lesson and the Shell cheat sheet.
+VD_COMMANDS = [
+    ('vd "VIDEO_URL"', "Download a single YouTube video to the default folder (/Volumes/Depot/Videos/youtube)"),
+    ('vd --playlist "PLAYLIST_URL"', "Download a whole YouTube playlist into its own folder"),
+    ('vd --dir "VIDEO_URL"', "Download a video to the current folder"),
+    ('vd --dir . "VIDEO_URL"', "Download a video to the current folder using . as the path"),
+    ('vd --dir "PATH" "VIDEO_URL"', "Download a video to an existing folder you choose"),
+    ('vd --dir="PATH" "VIDEO_URL"', "Download a video to an existing folder using the equals sign form"),
+    ('vd --rebuild "VIDEO_URL"', "Pull the latest base image and rebuild the Docker image without cached layers before downloading"),
+    ('vd --rebuild --playlist --dir "PATH" "PLAYLIST_URL"', "Rebuild the Docker image, then download a playlist into an existing folder you choose"),
+    ("vd --help", "Show the video downloader's usage and flags"),
+    ("vd -h", "Show the video downloader's help with the short flag"),
+]
+
 # Each module is served at /<folder>/ from <folder>/MODULE_FILE.
 MODULE_FILE = "index.html"
 
