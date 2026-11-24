@@ -937,6 +937,9 @@ body.tw-side-open .tw-backdrop{opacity:1;visibility:visible;transition-delay:0s}
 .tw-side-group+.tw-side-group{margin-top:22px}
 .tw-side ul,.tw-side ol{margin:0;padding:0;list-style:none}
 .tw-side :focus-visible{outline-offset:-2px}
+.tw-side-tool{display:block;min-height:40px;padding:10px;border-radius:8px;color:var(--chalk);font-size:14px;font-weight:500;line-height:1.3;text-decoration:none}
+.tw-side-tool:hover{background:var(--soft)}
+.tw-side-tool[aria-current=page]{background:var(--soft);color:var(--gold);font-weight:600}
 .tw-side-mod summary{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;border-radius:8px;color:var(--chalk);cursor:pointer;font-size:14px;font-weight:500;line-height:1.3;list-style:none}
 .tw-side-mod summary::-webkit-details-marker{display:none}
 .tw-side-mod summary::after{content:"";flex:none;width:7px;height:7px;margin:0 3px 0 auto;border-right:1.5px solid var(--dim);border-bottom:1.5px solid var(--dim);transform:rotate(-45deg);transition:transform .15s}

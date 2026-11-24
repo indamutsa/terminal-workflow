@@ -123,8 +123,13 @@
       (token.original.length >= ALIAS_PREFIX_MIN && variant.startsWith(token.original))) && whole(field, variant));
   }
 
+  // Orama retrieves every candidate (typo-tolerant); the code below ranks them by task fit. Scripts load before this one.
+  // Adding Orama's score, even only to break ties, reorders rows that search_check expects in index order.
+  const oramaAdapter = () => (typeof module !== "undefined" && module.exports ? require("./orama-search.js") : window.TW_ORAMA_SEARCH);
+
   function createSearch(data) {
     const matcher = createMatcher(data.syn || []);
+    let orama;
     const both = data.items.map((it) => norm(it[4] + " " + it[5]).replace(/<[^>]+>\S*/g, ""));
     const text = data.items.map((it) => norm(it[5]));
     const description = data.items.map((it) => it[0] === "k"
@@ -169,9 +174,10 @@
         (token.optional && !DOMAIN_WORDS.has(token.original) ? OPTIONAL_WEIGHT : 1) }));
       const phrase = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])");
       const hits = [];
-      data.items.forEach((it, i) => {
-        const matched = matcher.match(both[i], tokens, true);
-        if (!matched) return;
+      orama ||= oramaAdapter().create(data, norm);
+      const retrieved = orama.rank(q, tokens);
+      retrieved.forEach((_orama, i) => {
+        const it = data.items[i];
         let score = KIND_WEIGHT[it[0]] || 0, literalScore;
         if (it[0] === "c" || it[0] === "k") score += ACTION_BONUS;
         if (it[0] === "c" && /^\s*(#|\/\/)/.test(it[5])) score -= ACTION_BONUS * 2;
@@ -673,7 +679,7 @@
       const kind = document.createElement("span");
       kind.className = "tw-r-kind";
       kind.textContent = KIND_LABEL[it[0]] || it[0];
-      meta.append(kind, document.createTextNode(`M${mod.n} · ${mod.pages[it[2] - 1] || ""}`));
+      meta.append(kind, document.createTextNode(`${mod.tool || "M" + mod.n} · ${mod.pages[it[2] - 1] || ""}`));
       const title = document.createElement("div");
       title.className = "tw-r-title";
       const variants = engine.match(norm(it[4] + " " + it[5]), tokens, true).variants;

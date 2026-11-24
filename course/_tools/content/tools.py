@@ -1,0 +1,405 @@
+"""Reference pages for terminal tools: copyable commands grouped by task.
+
+An example is (task, command, explanation) or (task, command, explanation, result). A result line makes
+the box a command to type now; build.py requires one as the first example of every tool page.
+"""
+
+from content.common import VD_COMMANDS
+
+VD_DESCRIPTIONS = dict(VD_COMMANDS)
+
+
+def vd(task, command, *result):
+    """A vd example whose explanation is the shared VD_COMMANDS description (KeyError if the row is missing)."""
+    return (task, command, VD_DESCRIPTIONS[command], *result)
+
+
+def example_count(tool):
+    return sum(len(section["examples"]) for section in tool["sections"])
+
+
+VD_TOOL = {
+    "slug": "vd",
+    "label": "vd",
+    "title": "Download YouTube videos and audio with vd",
+    "tagline": "Every vd command: videos, playlists, audio only, folders and the Docker image.",
+    "intro": "vd is a custom shell command that runs yt-dlp in Docker. Have vd on your PATH and Docker running. "
+             "Replace VIDEO_URL or PLAYLIST_URL with a YouTube link and keep the quotes around it.",
+    "sections": [
+        {
+            "id": "try",
+            "title": "Check that vd is ready",
+            "intro": "Help prints the usage without Docker or a YouTube URL.",
+            "examples": [
+                vd("Show the usage and flags", "vd --help",
+                   "A `Usage:` line listing `[--rebuild] [--playlist] [--audio] [--dir [PATH]]`, then one line per flag."),
+                vd("Show help with the short flag", "vd -h"),
+            ],
+        },
+        {
+            "id": "download",
+            "title": "Download a video or a playlist",
+            "intro": "Videos are saved as MKV in /Volumes/Depot/Videos/youtube unless you pass --dir. "
+                     "A playlist gets its own folder, and its files are numbered in playlist order.",
+            "examples": [
+                vd("Download one video", 'vd "VIDEO_URL"'),
+                vd("Download a whole playlist", 'vd --playlist "PLAYLIST_URL"'),
+            ],
+        },
+        {
+            "id": "audio",
+            "title": "Download audio only",
+            "intro": "--audio keeps the best audio stream as it is, with no video and no re-encoding. "
+                     "Convert the file afterwards with FFmpeg if a player needs MP3 or M4A.",
+            "examples": [
+                vd("Download the audio of one video", 'vd --audio "VIDEO_URL"'),
+                vd("Download the audio of a whole playlist", 'vd --audio --playlist "PLAYLIST_URL"'),
+                vd("Add a playlist to your music folder", 'vd --audio --playlist --dir ~/Music "PLAYLIST_URL"'),
+            ],
+        },
+        {
+            "id": "destination",
+            "title": "Choose where the download goes",
+            "intro": "If you give --dir a PATH, use an existing folder. A path containing spaces works when quoted.",
+            "examples": [
+                vd("Save here", 'vd --dir "VIDEO_URL"'),
+                vd("Use the current folder explicitly", 'vd --dir . "VIDEO_URL"'),
+                vd("Choose a folder", 'vd --dir "PATH" "VIDEO_URL"'),
+                vd("Pass the folder with an equals sign", 'vd --dir="PATH" "VIDEO_URL"'),
+            ],
+        },
+        {
+            "id": "playlist-archive",
+            "title": "Resume or update a playlist",
+            "intro": "Run the same playlist command again to fetch only new or missing items.",
+            "examples": [
+                ("See which playlist items are already done", "cat .vd-archive.txt",
+                 "Run it in the download folder. Each line is one downloaded video ID; audio downloads use .vd-audio-archive.txt instead."),
+            ],
+        },
+        {
+            "id": "rebuild",
+            "title": "Update the downloader image",
+            "intro": "When YouTube downloads start failing, rebuild to get the newest yt-dlp. "
+                     "--rebuild still needs a URL; it builds first, then downloads.",
+            "examples": [
+                vd("Build a fresh image, then download", 'vd --rebuild "VIDEO_URL"'),
+                vd("Rebuild and download a playlist to a chosen folder", 'vd --rebuild --playlist --dir "PATH" "PLAYLIST_URL"'),
+            ],
+        },
+        {
+            "id": "image",
+            "title": "Manage the downloader image",
+            "intro": "Each build keeps its local-yt-dlp:YYYYMMDD-HHMMSS tag, and vd always runs local-yt-dlp:current.",
+            "examples": [
+                ("List every downloader build", "docker images local-yt-dlp",
+                 "current shares its ID with the dated build it points to."),
+                ("Check the yt-dlp version in the current image", "docker run --rm local-yt-dlp:current --version",
+                 "Prints the yt-dlp version, a date such as 2026.11.20."),
+                ("Go back to an older build", "docker tag local-yt-dlp:YYYYMMDD-HHMMSS local-yt-dlp:current",
+                 "Points current at that dated build. The next vd run without --rebuild uses it."),
+                ("Remove an old build", "docker rmi local-yt-dlp:YYYYMMDD-HHMMSS",
+                 "Removes the dated tag and frees the space once no other tag uses the image. Keep the build current points to."),
+            ],
+        },
+        {
+            "id": "check",
+            "title": "Check formats and downloaded files",
+            "intro": "List what YouTube offers before downloading, then confirm what you got.",
+            "examples": [
+                ("List the formats a video offers", 'docker run --rm local-yt-dlp:current -F "VIDEO_URL"',
+                 "Shows each format ID with its resolution or audio bitrate. Rows marked audio only are what --audio chooses from."),
+                ("Check the codec and bitrate of a downloaded audio file",
+                 'ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,sample_rate,channels:format=bit_rate -of default=nw=1 "FILE.opus"',
+                 "Prints codec_name, sample_rate, channels and bit_rate, one per line."),
+            ],
+        },
+    ],
+}
+
+FFMPEG_TOOL = {
+    "slug": "ffmpeg",
+    "label": "FFmpeg",
+    "title": "Convert and edit video and audio with FFmpeg",
+    "tagline": "Inspect, convert, trim, resize, normalize and join media files from the shell.",
+    "intro": "Use ffprobe to inspect media and ffmpeg to edit or convert it. Run the examples with your own input files and choose fresh output names. The -n flag protects existing outputs.",
+    "sections": [
+        {
+            "id": "try",
+            "title": "Check that FFmpeg is installed",
+            "intro": "Run this first. It needs no input file.",
+            "examples": [
+                ("Check FFmpeg's version", "ffmpeg -version", "Shows the version and build configuration.",
+                 "A first line starting with `ffmpeg version`, then `built with` and `configuration:` lines."),
+            ],
+        },
+        {
+            "id": "inspect",
+            "title": "Inspect a media file",
+            "intro": "Start with ffprobe to find the duration, format, and available streams.",
+            "examples": [
+                ("Show a quick summary of a file", "ffprobe -hide_banner input.mp4",
+                 "Prints the container, duration, overall bitrate and one Stream line per video, audio or subtitle track."),
+                ("See the container and every stream as JSON",
+                 "ffprobe -v error -show_format -show_streams -of json input.mp4",
+                 "Includes stream types, codecs, and format metadata. The JSON is useful in scripts."),
+                ("Check video dimensions and frame rate",
+                 "ffprobe -v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 input.mp4",
+                 "Selects the first video stream and prints only width, height, and average frame rate."),
+                ("Print only the duration in seconds",
+                 "ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 input.mp4",
+                 "Prints one number, such as 10.000000, which is easy to use in a script."),
+                ("Check the codec and bitrate of an audio file",
+                 "ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,sample_rate,channels:format=bit_rate -of default=nw=1 input.opus",
+                 "Prints codec_name, sample_rate, channels and bit_rate, one per line."),
+            ],
+        },
+        {
+            "id": "convert",
+            "title": "Convert or change containers",
+            "intro": "Transcoding encodes the streams again. Remuxing copies streams into a different container when its format supports their codecs.",
+            "examples": [
+                ("Convert MKV to an H.264 MP4",
+                 "ffmpeg -n -i input.mkv -c:v libx264 -preset medium -crf 23 -c:a aac -movflags +faststart output.mp4",
+                 "Encodes H.264 video and AAC audio. Fast start lets supported players begin playback before the whole file downloads."),
+                ("Remux MP4 to MKV without re-encoding",
+                 "ffmpeg -n -i input.mp4 -map 0:v:0 -map '0:a:0?' -c copy output.mkv",
+                 "Copies the first video and the first audio stream if present. Single quotes keep the shell from expanding the question mark."),
+            ],
+        },
+        {
+            "id": "convert-audio",
+            "title": "Convert audio files",
+            "intro": "vd --audio usually saves Opus files. Convert them when a player or device needs another format. -vn skips any cover image.",
+            "examples": [
+                ("Convert Opus to MP3", "ffmpeg -n -i input.opus -vn -c:a libmp3lame -q:a 2 output.mp3",
+                 "Variable-bitrate MP3 at high quality, around 190 kbit/s. Plays almost everywhere."),
+                ("Convert Opus to M4A (AAC)", "ffmpeg -n -i input.opus -vn -c:a aac -b:a 192k output.m4a",
+                 "AAC in an M4A file, the format Apple Music and iPhones prefer."),
+                ("Convert Opus to FLAC", "ffmpeg -n -i input.opus -vn -c:a flac output.flac",
+                 "Lossless from here on, but it cannot restore quality the Opus file never had."),
+                ("Convert to WAV for editing", "ffmpeg -n -i input.opus -vn output.wav",
+                 "Uncompressed 16-bit PCM. Large, but every audio editor opens it."),
+            ],
+        },
+        {
+            "id": "batch",
+            "title": "Convert a whole folder",
+            "intro": "Run these in the folder that holds the files. Existing outputs are skipped because of -n.",
+            "examples": [
+                ("Convert every Opus file in this folder to MP3",
+                 'for f in *.opus; do ffmpeg -n -i "$f" -vn -c:a libmp3lame -q:a 2 "${f%.opus}.mp3"; done',
+                 "${f%.opus} is the file name without .opus, so song.opus becomes song.mp3. If nothing matches, the shell prints an error."),
+                ("Convert Opus files in this folder and every subfolder",
+                 "find . -name '*.opus' -exec sh -c 'ffmpeg -nostdin -n -i \"$1\" -vn -c:a libmp3lame -q:a 2 \"${1%.opus}.mp3\"' sh {} ';'",
+                 "Reaches playlist folders too. Each MP3 is written next to its Opus file. -nostdin stops ffmpeg from reading the terminal."),
+            ],
+        },
+        {
+            "id": "volume",
+            "title": "Change volume and loudness",
+            "intro": "Audio filters need re-encoding the audio. In a video, the picture is copied unchanged.",
+            "examples": [
+                ("Make a video louder", "ffmpeg -n -i input.mp4 -af 'volume=6dB' -c:v copy -c:a aac louder.mp4",
+                 "Raises the volume by 6 dB. Use a negative value, such as volume=-6dB, to make it quieter."),
+                ("Even out loudness in a video",
+                 "ffmpeg -n -i input.mp4 -af 'loudnorm=I=-16:TP=-1.5:LRA=11' -ar 48000 -c:v copy -c:a aac normalized.mp4",
+                 "Normalizes to -16 LUFS, a common target for speech and online video. -ar 48000 resets the sample rate loudnorm raises."),
+                ("Even out loudness in an audio file",
+                 "ffmpeg -n -i input.mp3 -af 'loudnorm=I=-16:TP=-1.5:LRA=11' -ar 48000 -c:a libmp3lame -q:a 2 normalized.mp3",
+                 "The same loudness target, saved as MP3."),
+            ],
+        },
+        {
+            "id": "loudness-folder",
+            "title": "Make a folder of audio files equally loud",
+            "intro": "Re-encoding tools (ffmpeg, ffmpeg-normalize) work on any format but lose a little quality; lossless tools (mp3gain, rsgain) keep the audio untouched. Run these in the folder that holds the files.",
+            "examples": [
+                ("Even out every MP3 in this folder with ffmpeg alone",
+                 "mkdir -p normalized && for f in *.mp3; do ffmpeg -n -i \"$f\" -vn -af 'loudnorm=I=-16:TP=-1.5:LRA=11' -ar 48000 -c:a libmp3lame -q:a 2 \"normalized/$f\"; done",
+                 "Needs no extra install. Copies land in normalized/, so the originals stay untouched. Use I=-14 for music."),
+                ("Even out every Opus file in this folder with ffmpeg alone",
+                 "mkdir -p normalized && for f in *.opus; do ffmpeg -n -i \"$f\" -vn -af 'loudnorm=I=-16:TP=-1.5:LRA=11' -c:a libopus -b:a 160k \"normalized/$f\"; done",
+                 "The same loop for Opus, such as music downloaded from YouTube. Opus is always 48 kHz, so -ar is not needed."),
+                ("Install ffmpeg-normalize",
+                 "brew install ffmpeg pipx && pipx install ffmpeg-normalize",
+                 "A tool that measures every file first, then normalizes the whole folder. It needs ffmpeg; pipx installs Python tools in isolation."),
+                ("Normalize every MP3 with ffmpeg-normalize",
+                 "ffmpeg-normalize *.mp3 -t -16 -ar 48000 -c:a libmp3lame -b:a 192k -ext mp3",
+                 "Results go to normalized/. -t -16 suits speech and lessons; use -t -14 for music."),
+                ("Normalize every WAV",
+                 "ffmpeg-normalize *.wav -t -16 -ar 48000 -ext wav",
+                 "-ext wav keeps WAV output, because the default container is MKV."),
+                ("Normalize every M4A",
+                 "ffmpeg-normalize *.m4a -t -16 -ar 48000 -c:a aac -b:a 192k -ext m4a",
+                 "AAC audio in an M4A container, written to normalized/."),
+                ("Normalize every Opus file",
+                 "ffmpeg-normalize *.opus -t -16 -ar 48000 -c:a libopus -b:a 160k -ext opus",
+                 "Opus output at 160 kbit/s, written to normalized/."),
+                ("Install mp3gain",
+                 "brew install mp3gain",
+                 "Changes MP3 loudness without re-encoding, so there is no quality loss."),
+                ("Make MP3s equally loud without re-encoding",
+                 "mp3gain -r -k -p *.mp3",
+                 "-r applies track gain, -k lowers it if the file would clip, -p keeps file dates. It edits the files in place, in 1.5 dB steps. MP3 only."),
+                ("Undo mp3gain",
+                 "mp3gain -u *.mp3",
+                 "Restores the original volume of the files, because mp3gain records every change in the file."),
+                ("Install rsgain",
+                 "brew install rsgain",
+                 "Writes ReplayGain tags into MP3, Opus, FLAC, M4A and more, and leaves the audio itself unchanged."),
+                ("Tag a whole music folder with ReplayGain",
+                 "rsgain easy .",
+                 "Scans this folder and its subfolders and writes the tags. The files sound the same until the player reads ReplayGain."),
+            ],
+        },
+        {
+            "id": "trim",
+            "title": "Trim a clip",
+            "intro": "These examples start at five seconds and keep three seconds. Choose re-encoding for an accurate cut or stream copy for speed.",
+            "examples": [
+                ("Trim accurately",
+                 "ffmpeg -n -ss 00:00:05 -i input.mp4 -t 3 -c:v libx264 -crf 23 -c:a aac clip.mp4",
+                 "Decodes and re-encodes around the chosen start time."),
+                ("Trim quickly by copying streams",
+                 "ffmpeg -n -ss 00:00:05 -i input.mp4 -t 3 -c copy fast-clip.mp4",
+                 "Seeks to a nearby keyframe, so the cut can start earlier than the requested time."),
+            ],
+        },
+        {
+            "id": "speed",
+            "title": "Speed up or slow down",
+            "intro": "setpts changes video speed and atempo changes audio speed without changing pitch.",
+            "examples": [
+                ("Play a video twice as fast",
+                 "ffmpeg -n -i input.mp4 -filter_complex '[0:v]setpts=PTS/2[v];[0:a]atempo=2[a]' -map '[v]' -map '[a]' -c:v libx264 -crf 23 -c:a aac fast.mp4",
+                 "Halves the duration. The input needs an audio stream; for half speed use setpts=PTS*2 and atempo=0.5."),
+                ("Speed up audio by 25 percent", "ffmpeg -n -i input.mp3 -af 'atempo=1.25' -c:a libmp3lame -q:a 2 faster.mp3",
+                 "Useful for talks and podcasts. Voices keep their normal pitch."),
+            ],
+        },
+        {
+            "id": "resize",
+            "title": "Resize, compress, or capture a frame",
+            "intro": "Resizing and video compression require re-encoding. Adjust CRF for your output quality and size.",
+            "examples": [
+                ("Resize video to 720 pixels tall",
+                 "ffmpeg -n -i input.mp4 -vf 'scale=-2:720' -c:v libx264 -crf 23 -c:a copy resized.mp4",
+                 "Preserves aspect ratio and rounds the width to an even number. Audio is copied."),
+                ("Compress a video for sharing",
+                 "ffmpeg -n -i input.mp4 -c:v libx264 -preset slow -crf 28 -c:a aac -b:a 128k compressed.mp4",
+                 "A higher CRF usually makes the video smaller at lower quality. Slow encoding takes more time."),
+                ("Save a thumbnail from two seconds in",
+                 "ffmpeg -n -ss 00:00:02 -i input.mp4 -frames:v 1 -update 1 thumbnail.jpg",
+                 "Writes one JPEG with a fixed file name."),
+            ],
+        },
+        {
+            "id": "picture",
+            "title": "Rotate, crop, or change the frame rate",
+            "intro": "Each of these re-encodes the video and copies the audio.",
+            "examples": [
+                ("Rotate a video 90 degrees clockwise",
+                 "ffmpeg -n -i input.mp4 -vf 'transpose=1' -c:v libx264 -crf 23 -c:a copy rotated.mp4",
+                 "transpose=2 rotates counter-clockwise. A 1920x1080 video becomes 1080x1920."),
+                ("Crop the center to a vertical 9:16 frame",
+                 "ffmpeg -n -i input.mp4 -vf 'crop=ih*9/16:ih' -c:v libx264 -crf 23 -c:a copy vertical.mp4",
+                 "Keeps the full height and the middle of the width, for phone-shaped video."),
+                ("Change the frame rate to 24 fps",
+                 "ffmpeg -n -i input.mp4 -vf 'fps=24' -c:v libx264 -crf 23 -c:a copy output-24fps.mp4",
+                 "Drops or repeats frames to reach the new rate. Playback speed stays the same."),
+            ],
+        },
+        {
+            "id": "frames",
+            "title": "Make a GIF or save frames",
+            "intro": "Keep GIFs short and small; they have no sound and grow large quickly.",
+            "examples": [
+                ("Make a GIF from three seconds of video",
+                 "ffmpeg -n -ss 5 -t 3 -i input.mp4 -vf 'fps=12,scale=480:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse' clip.gif",
+                 "12 frames per second, 480 pixels wide, with a palette built from the clip for cleaner colors."),
+                ("Save one image per second of video",
+                 "mkdir -p frames && ffmpeg -n -i input.mp4 -vf 'fps=1' frames/%04d.png",
+                 "Writes frames/0001.png, frames/0002.png and so on. Use an empty folder: -n does not protect numbered images."),
+            ],
+        },
+        {
+            "id": "audio",
+            "title": "Extract or remove audio",
+            "intro": "Use -map to choose a stream. In 0:a:0, the first 0 means the first input and a:0 means its first audio stream.",
+            "examples": [
+                ("Extract audio as MP3", "ffmpeg -n -i input.mp4 -map 0:a:0 -c:a libmp3lame -q:a 2 audio.mp3",
+                 "Encodes the first audio stream as variable-bitrate MP3."),
+                ("Copy an AAC audio stream as M4A", "ffmpeg -n -i input.mp4 -map 0:a:0 -c:a copy audio.m4a",
+                 "Copies an existing AAC stream without another encoding step."),
+                ("Make a silent video", "ffmpeg -n -i input.mp4 -map 0:v:0 -c:v copy -an silent.mp4",
+                 "Keeps the first video stream and drops audio."),
+            ],
+        },
+        {
+            "id": "tracks",
+            "title": "Replace or add an audio track",
+            "intro": "The second -i is input 1, so 1:a:0 is the first audio stream of the second file.",
+            "examples": [
+                ("Replace the audio with a music file",
+                 "ffmpeg -n -i input.mp4 -i music.mp3 -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -shortest with-music.mp4",
+                 "Keeps the picture, swaps the sound and stops at the end of the shorter input."),
+                ("Add a second audio track and keep the original",
+                 "ffmpeg -n -i input.mp4 -i commentary.m4a -map 0:v -map '0:a?' -map 1:a:0 -c copy with-commentary.mkv",
+                 "MKV holds both tracks without re-encoding. Pick the track in your player's audio menu."),
+            ],
+        },
+        {
+            "id": "join",
+            "title": "Join video clips",
+            "intro": "To join without re-encoding, use clips with matching stream layouts, codecs, and time bases.",
+            "examples": [
+                ("Write the list of clips in playback order",
+                 "printf \"file '%s'\\n\" part1.mp4 part2.mp4 > clips.txt",
+                 "Writes one file line per clip into clips.txt. Check it with cat clips.txt."),
+                ("Join matching MP4 clips without re-encoding",
+                 "ffmpeg -n -f concat -i clips.txt -c copy joined.mp4",
+                 "Reads the named clips in order and copies their streams into one output."),
+                ("Join two clips while re-encoding",
+                 "ffmpeg -n -i part1.mp4 -i part2.mp4 -filter_complex '[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[v][a]' -map '[v]' -map '[a]' -c:v libx264 -crf 23 -c:a aac joined-encoded.mp4",
+                 "Use clips that start at timestamp zero, with matching frame dimensions and one video and audio stream each. The filter joins the decoded streams before encoding."),
+            ],
+        },
+        {
+            "id": "subtitles",
+            "title": "Add, burn in, or extract subtitles",
+            "intro": "An embedded subtitle track can be turned on and off in a compatible player. Burned-in text becomes part of the picture.",
+            "examples": [
+                ("Embed an SRT as a selectable subtitle track",
+                 "ffmpeg -n -i input.mp4 -i captions.srt -map 0:v:0 -map '0:a:0?' -map 1:0 -c:v copy -c:a copy -c:s mov_text captioned.mp4",
+                 "Copies video and any first audio stream, then encodes the subtitle track for MP4."),
+                ("Burn subtitles into the video",
+                 "ffmpeg -n -i input.mp4 -vf 'subtitles=captions.srt' -c:v libx264 -crf 23 -c:a copy burned.mp4",
+                 "Requires FFmpeg's subtitles filter, built with libass. Video is re-encoded to draw the text."),
+                ("Extract a text subtitle track as SRT",
+                 "ffmpeg -n -i captioned.mp4 -map 0:s:0 captions-extracted.srt",
+                 "Converts the first text subtitle track to SubRip. Image-based subtitle tracks need OCR."),
+            ],
+        },
+        {
+            "id": "help",
+            "title": "Find options supported by your build",
+            "intro": "FFmpeg builds can support different formats, codecs, and filters. Check capabilities on the machine that will run the command.",
+            "examples": [
+                ("List all command-line options", "ffmpeg -hide_banner -h full", "Prints FFmpeg's full option reference."),
+                ("List available encoders", "ffmpeg -hide_banner -encoders", "Check for libx264 or another encoder before choosing it."),
+                ("List available filters", "ffmpeg -hide_banner -filters", "Check for scale, concat, subtitles, and other filters."),
+                ("List supported formats", "ffmpeg -hide_banner -formats", "Shows which formats the build can read or write."),
+                ("Read options for one encoder", "ffmpeg -hide_banner -h encoder=libx264", "Lists options specific to the H.264 encoder."),
+                ("Read options for one filter", "ffmpeg -hide_banner -h filter=scale", "Lists options specific to the scale filter."),
+            ],
+        },
+    ],
+}
+
+TOOLS = [VD_TOOL, FFMPEG_TOOL]
+
+_vd_page = [example[1] for section in VD_TOOL["sections"] for example in section["examples"]]
+_missing = [command for command, _ in VD_COMMANDS if _vd_page.count(command) != 1]
+if _missing:
+    raise SystemExit(f"tools/vd: each VD_COMMANDS row must appear exactly once; check {_missing}")

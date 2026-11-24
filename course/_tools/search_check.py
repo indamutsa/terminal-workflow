@@ -94,6 +94,10 @@ QUERIES = [
     ("replace every match in string", {"module": 11, "snippet": "Count characters, take part of a string, replace text in a string"}),
     ("save error output", {"module": 11, "snippet": "Save errors to a file, or mix them with output"}),
     ("trace script", {"module": 11, "snippet": "See every command a script runs (bash -x)"}),
+    ("ffmpeg", {"tool": "ffmpeg"}),
+    ("extract audio", {"tool": "ffmpeg"}),
+    ("vd --audio", {"tool": "vd"}),
+    ("trim video", {"tool": "ffmpeg"}),
 ]
 
 MISSING_CONTENT = []
@@ -241,6 +245,8 @@ const results = [...queries.map(([query, expected]) => {
   const result = engine.search(query, "", top);
   return { query, expected, total: result.total, ok: result.items.some((it) => (Array.isArray(expected) ? expected : [expected]).some((expected) => {
     if (typeof expected === "string") return core.norm(it[4] + " " + it[5]).includes(core.norm(expected));
+    // A tool expectation must be the top hit, not just one of the top few.
+    if (expected.tool) return it === result.items[0] && data.files[it[1]].startsWith(`tools/${expected.tool}/`);
     if (expected.module) return data.files[it[1]].startsWith(`m${expected.module}-`) &&
       core.norm(it[4] + " " + it[5]).includes(core.norm(expected.snippet));
     const [key, description] = it[5].split(/ {2,}/, 2);
