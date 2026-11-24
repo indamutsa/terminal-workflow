@@ -4,8 +4,9 @@ import json
 import os
 import re
 
-from content.common import module_path
-from kit import anchor
+from content.common import MODULE_FILE, module_path
+from content.tools import TOOLS
+from kit import anchor, tool_href
 
 SNIPPET_MAX = 200
 INDEX_REL = "_shared/search-index.js"
@@ -123,7 +124,11 @@ def _lines(code):
     return [ln for ln in str(code).split("\n") if ln.strip() and ln.strip() not in closers]
 
 
-def entries(mods):
+def tool_file(tool):
+    return tool_href(tool["slug"]) + MODULE_FILE
+
+
+def entries(mods, tools=TOOLS):
     out, seen = [], set()
 
     def add(kind, fi, n, aid, title, text, code=False):
@@ -134,6 +139,12 @@ def entries(mods):
         if key in seen:
             return
         seen.add(key)
+        if fi >= len(mods):
+            # Tool pages follow the modules; their section number n is the "pages" position.
+            tool = tools[fi - len(mods)]
+            context = f"{tool['label']} {tool['sections'][n - 1]['title']}"
+            out.append([kind, fi, n, aid, clean(title), text, clean(context), ""])
+            return
         mod = mods[fi]
         drill_context = ""
         context = f"{mod['title']} {mod['pages'][n - 1]['h1']}"
@@ -202,6 +213,17 @@ def entries(mods):
             add("h", fi, n, anchor(n, "practice"), pr["h2"], "Practice questions")
             for i, (kind, q, _hint, _steps, _final) in enumerate(pr["qs"], 1):
                 add("t", fi, n, anchor(n, f"q{i}"), f"Q{i} · {kind}", q)
+    for ti, tool in enumerate(tools):
+        fi = len(mods) + ti
+        for n, section in enumerate(tool["sections"], 1):
+            add("h", fi, n, section["id"], section["title"], section["intro"])
+            for number, (task, command, explanation, *expect) in enumerate(section["examples"], 1):
+                aid = f"{section['id']}-{number}"
+                add("t", fi, n, aid, task, explanation)
+                for ln in _lines(command):
+                    add("c", fi, n, aid, task, ln, code=True)
+                for result in expect:
+                    add("t", fi, n, aid, task, result)
     return out
 
 
@@ -209,8 +231,10 @@ def payload(mods):
     return {
         "v": INDEX_VERSION,
         "syn": SYNONYMS,
-        "files": [module_path(m["folder"]) for m in mods],
-        "mods": [{"n": m["n"], "title": m["title"], "pages": [p["h1"] for p in m["pages"]]} for m in mods],
+        "files": [module_path(m["folder"]) for m in mods] + [tool_file(t) for t in TOOLS],
+        # A tool entry has "tool" (its label) in place of a module number; its pages are its sections.
+        "mods": [{"n": m["n"], "title": m["title"], "pages": [p["h1"] for p in m["pages"]]} for m in mods]
+                + [{"n": 0, "tool": t["label"], "title": t["title"], "pages": [s["title"] for s in t["sections"]]} for t in TOOLS],
         "items": entries(mods),
     }
 

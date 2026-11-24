@@ -67,16 +67,19 @@ FZF_HELPERS = [
     ("devh --pick", "Search the dev cheat sheet and put the pick on the prompt"),
 ]
 
-# Custom YouTube downloader commands shared by the Bash lesson and the Shell cheat sheet.
+# Custom YouTube downloader commands shared by the Bash lesson, the Shell cheat sheet and the vd tool page.
 VD_COMMANDS = [
-    ('vd "VIDEO_URL"', "Download a single YouTube video to the default folder (/Volumes/Depot/Videos/youtube)"),
-    ('vd --playlist "PLAYLIST_URL"', "Download a whole YouTube playlist into its own folder"),
+    ('vd "VIDEO_URL"', "Download a single YouTube video as MKV to the default folder (/Volumes/Depot/Videos/youtube)"),
+    ('vd --playlist "PLAYLIST_URL"', "Download a whole YouTube playlist into its own folder, skipping videos already downloaded"),
+    ('vd --audio "VIDEO_URL"', "Download only the best audio of a video, usually an .opus file, without re-encoding"),
+    ('vd --audio --playlist "PLAYLIST_URL"', "Download the best audio of every playlist video, skipping tracks already downloaded"),
+    ('vd --audio --playlist --dir ~/Music "PLAYLIST_URL"', "Download a playlist as audio files into your Music folder"),
     ('vd --dir "VIDEO_URL"', "Download a video to the current folder"),
     ('vd --dir . "VIDEO_URL"', "Download a video to the current folder using . as the path"),
     ('vd --dir "PATH" "VIDEO_URL"', "Download a video to an existing folder you choose"),
     ('vd --dir="PATH" "VIDEO_URL"', "Download a video to an existing folder using the equals sign form"),
-    ('vd --rebuild "VIDEO_URL"', "Pull the latest base image and rebuild the Docker image without cached layers before downloading"),
-    ('vd --rebuild --playlist --dir "PATH" "PLAYLIST_URL"', "Rebuild the Docker image, then download a playlist into an existing folder you choose"),
+    ('vd --rebuild "VIDEO_URL"', "Build a new downloader image tagged with the date and time, make it current, then download; older builds keep their tags"),
+    ('vd --rebuild --playlist --dir "PATH" "PLAYLIST_URL"', "Build a new downloader image, then download a playlist into an existing folder you choose"),
     ("vd --help", "Show the video downloader's usage and flags"),
     ("vd -h", "Show the video downloader's help with the short flag"),
 ]

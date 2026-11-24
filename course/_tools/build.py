@@ -21,6 +21,7 @@ import kit  # noqa: E402
 import search  # noqa: E402
 from content.cheatsheet import CHEATSHEET  # noqa: E402
 from content.common import MODULE_FILE, MODULE_META, PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, PRACTICE_MAX_LINES, SITE_GLOSSARY, module_href, module_path  # noqa: E402
+from content.tools import TOOLS as TOOL_REFERENCES  # noqa: E402
 
 SITE_NAME = "Terminal Workflow"
 PAGES_MIN, PAGES_MAX, PRACTICE_COUNT = 2, 4, 4
@@ -31,6 +32,8 @@ BLOCK_TYPES = ("cmd", "keys", "code", "text")
 CHEAT_REL = "_shared/cheatsheet.js"
 CHEAT_VERSION_LEN = 10
 LINE_REF = re.compile(r"\bline (\d+)")
+# Tool pages live two folders down: tools/<slug>/index.html.
+TOOL_ROOT = "../../"
 
 
 def cheat_version():
@@ -216,7 +219,7 @@ def module_html(mod, prev, nxt, version, cheat, mods):
     <style>
 {css}
     </style>
-    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml"><link rel="icon" href="/favicon.ico?v=2" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    {kit.favicons("../")}
   </head>
   <body class="has-side" data-root="../" data-file="{module_path(mod["folder"])}">
     {kit.topbar("../")}
@@ -226,6 +229,7 @@ def module_html(mod, prev, nxt, version, cheat, mods):
     <div class="tw-page">
     <main id="lessonRoot">
 {pages}
+      {kit.glossary_reference(mod["glossary"])}
     </main>
     <nav class="tabbar" aria-label="Page navigation">
       <div class="tabbar-inner">
@@ -244,8 +248,7 @@ def module_html(mod, prev, nxt, version, cheat, mods):
     </footer>
     </div>
     <script>window.TW_GLOSSARY = {gloss};</script>
-    <script src="../_shared/search-index.js?v={version}"></script>
-    <script src="../_shared/cheatsheet.js?v={cheat}"></script>
+    {kit.search_assets("../", version, cheat)}
     <script>
 {js}
     </script>
@@ -268,6 +271,72 @@ def write_module(mod, prev, nxt, version, cheat, mods):
     print(f"wrote {os.path.relpath(path, COURSE)} ({len(mod['pages'])} pages)")
 
 
+def tool_example(section_id, number, example):
+    """One copyable command with its explanation; a 4th item is a result line, which makes it a typed command."""
+    task, command, explanation, *expect = example
+    aid = f"{section_id}-{number}"
+    kind = "cmd" if expect else "code"
+    box = kit.codebox(f"{aid}-command", kind, kit.WHERE["shell"], task, command, *expect, lang=kit.CMD_LANG["shell"])
+    return f'<div id="{aid}">{box}<p class="section-intro">{kit.esc(explanation)}</p></div>'
+
+
+def tool_html(tool, mods, version, cheat):
+    root = TOOL_ROOT
+    css = read("_shared/course.css").replace("../_shared/fonts/", root + "_shared/fonts/")
+    site_js = read("_shared/site.js")
+    title = kit.esc(tool["title"])
+    sections = []
+    for section in tool["sections"]:
+        examples = "".join(tool_example(section["id"], n, ex) for n, ex in enumerate(section["examples"], 1))
+        sections.append(f'<section class="block" id="{section["id"]}"><h2>{kit.esc(section["title"])}</h2>'
+                        f'<p class="section-intro">{kit.esc(section["intro"])}</p>{examples}</section>')
+    return f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="{kit.esc(tool['tagline'])}" />
+    <title>{title} — {SITE_NAME}</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <style>
+{css}
+    </style>
+    {kit.favicons(root)}
+  </head>
+  <body class="has-side tool-reference" data-root="{root}" data-file="{kit.tool_href(tool['slug'])}{MODULE_FILE}">
+    {kit.topbar(root)}
+    {kit.sidebar(mods, root=root, current_tool=tool["slug"])}
+    {kit.search_dialog()}
+    {kit.cheat_drawer()}
+    <div class="tw-page">
+    <main>
+      <header class="lesson-header" id="tool"><h1>{title}</h1><p class="subtitle">{kit.esc(tool['intro'])}</p></header>
+      {"".join(sections)}
+    </main>
+    <footer><a href="{root}#{kit.TOOLS_GROUP_ID}">← All tools</a></footer>
+    </div>
+    {kit.search_assets(root, version, cheat)}
+    <script>
+{site_js}
+    </script>
+  </body>
+</html>
+"""
+
+
+def write_tool_references(mods, version, cheat):
+    """One reference page per tool at tools/<slug>/index.html; every page opens with a command that prints a result."""
+    for tool in TOOL_REFERENCES:
+        first = tool["sections"][0]["examples"][0]
+        if len(first) != 4:
+            raise SystemExit(f"tools/{tool['slug']}: the first example needs a result line")
+        folder = os.path.join(COURSE, kit.tool_href(tool["slug"]))
+        os.makedirs(folder, exist_ok=True)
+        with open(os.path.join(folder, MODULE_FILE), "w", encoding="utf-8") as f:
+            f.write(tool_html(tool, mods, version, cheat))
+        print(f"wrote {kit.tool_href(tool['slug'])}{MODULE_FILE}")
+
+
 def main():
     only = set(sys.argv[1:])
     mods = present()
@@ -287,6 +356,7 @@ def main():
         return
     import index
     index.write(COURSE, mods, version, cheat)
+    write_tool_references(mods, version, cheat)
 
 
 if __name__ == "__main__":

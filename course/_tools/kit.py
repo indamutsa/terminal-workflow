@@ -6,7 +6,11 @@ shared CSS and JS drive: copyable command boxes with a stated result, key tables
 from html import escape as _esc
 
 from content.common import MODULE_META, PRACTICE_DIR, PRACTICE_FILES, PRACTICE_HOME, SITE_URL, module_href
+from content.tools import TOOLS
 from highlight import highlight
+
+TOOLS_GROUP = "Tools"
+TOOLS_GROUP_ID = "group-tools"
 
 WHERE = {"shell": "Shell", "tmux": "tmux", "nvim": "Neovim", "lazygit": "LazyGit", "fzf": "fzf"}
 
@@ -180,9 +184,10 @@ def practice(page_n, p):
     out = [f'<section class="block" id="{anchor(page_n, "practice")}"><div class="section-label">Your turn</div><h2>{esc(p["h2"])}</h2>']
     for i, (kind, q, hint, steps, final) in enumerate(p["qs"], 1):
         st = "".join(f"<li>{_rich(s)}</li>" for s in steps)
-        out.append(f'<div class="practice-card" id="{anchor(page_n, f"q{i}")}"><span class="q-kind">{esc(kind)}</span><span class="q-num">Q{i}</span>'
-                   f'<p class="q-text">{_rich(q)}</p><details class="hint"><summary>hint</summary><p>{_rich(hint)}</p></details>'
-                   f'<details class="solution"><summary>step-by-step solution</summary><div class="solution-body">'
+        question = f"q{i}"
+        out.append(f'<div class="practice-card" id="{anchor(page_n, question)}"><span class="q-kind">{esc(kind)}</span><span class="q-num">Q{i}</span>'
+                   f'<p class="q-text">{_rich(q)}</p><details class="hint" id="{anchor(page_n, question, "hint")}"><summary>hint</summary><p>{_rich(hint)}</p></details>'
+                   f'<details class="solution" id="{anchor(page_n, question, "answer")}"><summary>step-by-step solution</summary><div class="solution-body">'
                    f'<ol class="solution-steps">{st}</ol><div class="solution-final"><strong>Final answer:</strong> {_rich(final)}</div>'
                    f'</div></details></div>')
     out.append("</section>")
@@ -245,7 +250,32 @@ def topbar(root, home=False):
     )
 
 
-def sidebar(mods, current=None, root=""):
+def tool_href(slug):
+    return f"tools/{slug}/"
+
+
+def glossary_reference(entries):
+    if not entries:
+        return ""
+    terms = "".join(f'<div id="glossary-{esc(term_id)}"><dt>{esc(label)}</dt><dd>{_rich(definition)}</dd></div>'
+                    for term_id, label, _forms, definition in entries)
+    return f'<details class="block tw-glossary-reference" id="glossary"><summary>Glossary</summary><dl>{terms}</dl></details>'
+
+
+def search_assets(root, version, cheat):
+    return (f'<script src="{root}_shared/search-index.js?v={version}"></script>\n'
+            f'    <script src="{root}_shared/cheatsheet.js?v={cheat}"></script>\n'
+            f'    <script src="{root}_shared/orama.js"></script>\n'
+            f'    <script src="{root}_shared/orama-search.js"></script>')
+
+
+def favicons(root):
+    return (f'<link rel="icon" href="{root}favicon.svg?v=2" type="image/svg+xml">'
+            f'<link rel="icon" href="{root}favicon.ico?v=2" sizes="any">'
+            f'<link rel="apple-touch-icon" href="{root}apple-touch-icon.png?v=2">')
+
+
+def sidebar(mods, current=None, root="", current_tool=None):
     """The course menu: every group, its modules and their pages, built from MODULE_META and each module's pages.
 
     The current module is open and links its own pages with bare #module-N anchors (site.js marks the shown page).
@@ -256,7 +286,15 @@ def sidebar(mods, current=None, root=""):
     for m in mods:
         groups.setdefault(meta[m["n"]]["group"], []).append(m)
     out = []
-    for group in sorted(groups):
+    for group in sorted([*groups, TOOLS_GROUP]):
+        if group == TOOLS_GROUP:
+            items = []
+            for tool in TOOLS:
+                current_page = ' aria-current="page"' if current_tool == tool["slug"] else ""
+                items.append(f'<li><a class="tw-side-tool" href="{root}{tool_href(tool["slug"])}"{current_page}>'
+                             f'<span class="tw-side-title">{esc(tool["label"])}</span></a></li>')
+            out.append(f'<section class="tw-side-group"><h2>{esc(TOOLS_GROUP)}</h2><ul>{"".join(items)}</ul></section>')
+            continue
         items = []
         for m in groups[group]:
             here = m["n"] == current

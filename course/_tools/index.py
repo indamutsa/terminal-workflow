@@ -2,7 +2,8 @@
 import os
 
 import kit
-from content.common import MODULE_META, module_href
+from content.common import MODULE_META, PRACTICE_DIR, PRACTICE_FILES, SITE_GLOSSARY, module_href
+from content.tools import TOOLS, example_count
 
 TIERS = {
     1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Intermediate", 5: "Advanced", 6: "Advanced", 7: "Expert", 8: "Reference",
@@ -25,6 +26,7 @@ GROUP_INTROS = {
     "Linux & Bash": "Find files, search text and write Bash scripts.",
     "tmux & Neovim": "Keep sessions running. Edit without the mouse.",
     "Git": "Save your work, undo mistakes and share branches.",
+    kit.TOOLS_GROUP: "Copy a ready command for downloading and converting media.",
 }
 
 START = {
@@ -33,6 +35,16 @@ START = {
     "code": "tmux new -s main",
     "expect": "The tmux status bar appears at the bottom with `[main]` on the left.",
 }
+
+def practice_files():
+    files = []
+    for name, body in PRACTICE_FILES.items():
+        aid = f"practice-{name}"
+        box = kit.codebox(f"{aid}-example", "code", "Practice file", name, body, lang=kit.code_lang(name))
+        files.append(f'<details id="{aid}"><summary>{kit.esc(name)}</summary>{box}'
+                     f'<a href="{PRACTICE_DIR}/{kit.esc(name)}" download>Download {kit.esc(name)}</a></details>')
+    return '<section class="cm-start" id="practice-files"><h2>Practice files</h2>' + "".join(files) + '</section>'
+
 
 def write(course, mods, version, cheat):
     css = open(os.path.join(course, "_shared", "course.css"), encoding="utf-8").read().replace("../_shared/fonts/", "_shared/fonts/")
@@ -58,6 +70,15 @@ def write(course, mods, version, cheat):
             f'<div class="cm-group-head"><div><h2 id="{group_id}-title">{kit.esc(group)}</h2>'
             f'<p>{kit.esc(GROUP_INTROS.get(group, ""))}</p></div><span>{len(cards)} modules</span></div>'
             f'<div class="cm-grid">{"".join(cards)}</div></section>')
+    tool_cards = "".join(
+        f'<article class="cm-card"><h3><a href="{kit.tool_href(t["slug"])}">{kit.esc(t["title"])}</a></h3><p>{kit.esc(t["tagline"])}</p>'
+        f'<a class="cm-open" href="{kit.tool_href(t["slug"])}">{example_count(t)} commands · open →</a></article>' for t in TOOLS)
+    jumps.append(f'<a href="#{kit.TOOLS_GROUP_ID}">{kit.esc(kit.TOOLS_GROUP)}</a>')
+    sections.append(
+        f'<section class="cm-group" id="{kit.TOOLS_GROUP_ID}" aria-labelledby="{kit.TOOLS_GROUP_ID}-title">'
+        f'<div class="cm-group-head"><div><h2 id="{kit.TOOLS_GROUP_ID}-title">{kit.esc(kit.TOOLS_GROUP)}</h2>'
+        f'<p>{kit.esc(GROUP_INTROS[kit.TOOLS_GROUP])}</p></div><span>{len(TOOLS)} tools</span></div>'
+        f'<div class="cm-grid">{tool_cards}</div></section>')
     path = []
     for stage, numbers, outcome in LEARNING_PATH:
         links = " · ".join(
@@ -77,7 +98,7 @@ def write(course, mods, version, cheat):
     <style>
 {css}
     </style>
-    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml"><link rel="icon" href="/favicon.ico?v=2" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    {kit.favicons("")}
   </head>
   <body class="course-map" data-root="" data-file="index.html">
     {kit.topbar("", home=True)}
@@ -85,7 +106,7 @@ def write(course, mods, version, cheat):
     {kit.search_dialog()}
     {kit.cheat_drawer()}
     <main>
-      <header class="cm-hero">
+      <header class="cm-hero" id="course-map">
         <div class="eyebrow">{len(mods)} modules · {total} pages</div>
         <h1>Find the command for any terminal task.</h1>
         <p class="subtitle">{kit.esc(HERO_SUBTITLE)}</p>
@@ -105,10 +126,11 @@ def write(course, mods, version, cheat):
         {kit.cmd("start", START)}
         {kit.practice_setup("setup")}
       </section>
+      {practice_files()}
+      {kit.glossary_reference(SITE_GLOSSARY)}
     </main>
     <footer><strong>Terminal Workflow</strong><br />Press / on any page to search every command and key.</footer>
-    <script src="_shared/search-index.js?v={version}"></script>
-    <script src="_shared/cheatsheet.js?v={cheat}"></script>
+    {kit.search_assets("", version, cheat)}
     <script>
 {site_js}
     </script>
