@@ -98,6 +98,8 @@ QUERIES = [
     ("extract audio", {"tool": "ffmpeg"}),
     ("vd --audio", {"tool": "vd"}),
     ("trim video", {"tool": "ffmpeg"}),
+    ("remove background noise", {"tool": "ffmpeg"}),
+    ("limiter", {"tool": "ffmpeg"}),
 ]
 
 MISSING_CONTENT = []
